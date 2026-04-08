@@ -62,9 +62,12 @@
 		.countBox { margin: 20px 0 0 0; }
 		.countBox:after { display: block; clear: both; content: ''; }
 		.countBox .leftArea { float: left; color: #666; font-size: 13px; }
-		.countBox .leftArea .to_result { display: inline-block; padding: 10px 15px; border: 1px solid #ddd; vertical-align: middle; }
+		.countBox .leftArea .to_result { display: inline-flex; align-items: center; padding: 0 15px; border: 1px solid #ddd; vertical-align: middle; height: 40px; }
 		.countBox .leftArea .to_result + .to_result { margin-left: -1px; }
-		.countBox .leftArea .to_result.radio_box { padding: 10px 15px; }
+		.countBox .leftArea .to_result + .to_result.label_cell { margin-left: 10px; }
+		.countBox .leftArea .to_result.label_cell + .to_result { margin-left: -1px; }
+		.countBox .leftArea .to_result.label_cell { background: #f0f1f2; color: #333; font-weight: 700; }
+		.countBox .leftArea .to_result.radio_box { padding: 0 15px; }
 		.countBox .leftArea .to_result.radio_box label { margin-right: 10px; cursor: pointer; }
 		.countBox .leftArea .to_result.radio_box input[type="radio"] { margin-right: 3px; cursor: pointer; }
 		.countBox .leftArea .to_result b { margin: 0 0 0 4px; color: #000; }
@@ -93,10 +96,14 @@
 		.htcbtnMd.btn-black { background: #666; border-color: #666; }
 		.htcbtnMd.btn-black span { color: #fff; }
 		.htcbtnMd.btn-black.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
+		/* 수정본 비활성화 (파일 미첨부) */
+		.htcbtnMd.btn-inactive { background: #e0e0e0; border-color: #ccc; }
+		.htcbtnMd.btn-inactive span { color: #aaa; }
+		.htcbtnMd.btn-inactive.ico_down:after { border-right-color: #aaa; border-bottom-color: #aaa; }
 		/* 버튼 드롭다운 */
 		.btn-wrap { position: relative; display: inline-block; }
 		.btn-dropdown { display: none !important; position: absolute; top: 100%; left: 0; z-index: 10; min-width: 100%; background: #fff; border: 1px solid #ddd; border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,.15); }
-		.btn-dropdown a { display: block; padding: 6px 12px; color: #333; font-size: 11px; white-space: nowrap; text-decoration: none; border-bottom: none; }
+		.btn-dropdown a { display: block; padding: 6px 12px; color: #333; font-size: 11px; white-space: nowrap; text-decoration: none; border-bottom: none !important; text-align: left; }
 		.btn-dropdown a:hover { background: #f5f5f5; }
 		.btn-wrap.open .btn-dropdown { display: block !important; }
 
@@ -213,7 +220,7 @@
 
 					<div class="countBox">
 						<div class="leftArea">
-							<span class="to_result">결과:<b>76</b></span><span class="to_result radio_box"><input type="radio" name="viewType" id="viewTotal" checked><label for="viewTotal">총금액</label> <input type="radio" name="viewType" id="viewTax"><label for="viewTax">세금계산서 발행</label></span>
+							<span class="to_result">결과:<b>76</b></span><span class="to_result label_cell">조회</span><span class="to_result radio_box"><input type="radio" name="viewType" id="viewTotal" checked><label for="viewTotal">총금액</label> <input type="radio" name="viewType" id="viewTax"><label for="viewTax">세금계산서 발행</label></span><span class="to_result label_cell">위하고 코드</span><span class="to_result">식대 41210, 1인당 과금 41320 <button class="htcbtnMd" style="margin-left:5px;"><span>수정</span></button></span>
 						</div>
 						<div class="rightArea">
 							<strong class="tit">목록개수</strong>
@@ -413,12 +420,12 @@ function renderTable() {
 		+ '<td class="pad-data">' + easyDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + welfareDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + giftDisplay + '</td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;"><button class="htcbtnMd ico_down"><span>수정본</span></button></div></td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;"><button class="htcbtnMd ico_down"><span>수정본</span></button></div></td>'
-		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;"><button class="htcbtnMd ico_down"><span>수정본</span></button></div></td>'
-		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;"><button class="htcbtnMd ico_down"><span>수정본</span></button></div></td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;"><button class="htcbtnMd ico_down"><span>수정본</span></button></div></td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;"><button class="htcbtnMd ico_down"><span>수정본</span></button></div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#">다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
 		+ '<td class="btn-cell pad-data"><button class="htcbtnMd"><span>삭제</span></button></td>'
 		+ '<td class="pad-data">' + r.rd.substring(5) + '</td>'
 		+ '<td style="border:none;"></td>'
@@ -459,6 +466,14 @@ function toggleDrop(btn) {
 	// 다른 열린 드롭다운 닫기
 	document.querySelectorAll('.btn-wrap.open').forEach(function(el) { el.classList.remove('open'); });
 	if (!isOpen) wrap.classList.add('open');
+}
+// 수정본 삭제 컨펌
+function confirmDelete(el) {
+	if (confirm('수정본을 삭제하시겠습니까?')) {
+		alert('삭제되었습니다.');
+	}
+	el.closest('.btn-wrap').classList.remove('open');
+	return false;
 }
 // 바깥 클릭 시 닫기
 document.addEventListener('click', function(e) {
