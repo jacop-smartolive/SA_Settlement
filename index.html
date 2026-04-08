@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>OliveTicket Service Admin</title>
+	<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+	<style>
+		/* Reset */
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
+		body {
+			overflow-x: hidden;
+			font: 12px/1.3 'Nanum Gothic', dotum, Helvetica, AppleGothic, arial, sans-serif;
+			color: #666;
+			background: #fff;
+			word-break: break-all;
+		}
+		a { text-decoration: none; color: inherit; }
+		ul, ol, li { list-style: none; }
+		table { border-collapse: collapse; width: 100%; }
+		button { overflow: hidden; margin: 0; padding: 0; border: 0 none; white-space: nowrap; text-align: center; vertical-align: top; cursor: pointer; }
+		caption, .blind { overflow: hidden; position: absolute; left: -9999em; width: 0; height: 0; margin: 0; padding: 0; font-size: 0; line-height: 0; text-indent: -9999em; }
+		em, i { font-style: normal; }
+		select { border: 1px solid #bbb; padding: 4px 0 4px 5px; }
+		input[type="text"] { width: 128px; height: 26px; margin: 0; padding: 0 10px; border: 1px solid #ddd; background: #fff; color: #666; font-family: 'Nanum Gothic'; font-size: 13px; line-height: 26px; box-sizing: border-box; }
+
+		/* Layout */
+		#wrap { position: relative; min-width: 1200px; background: #fff; }
+		.container { position: relative; background: #fff; }
+
+		/* lnbBox */
+		.lnbBox { overflow-y: auto; position: fixed; z-index: 2; width: 200px; height: 100%; background: #28313d; }
+		.lnbBox .tit { height: 100px; background: #ed1b24; line-height: 100px; text-align: center; }
+		.lnbBox .tit a { display: block; color: #fff; font-size: 22px; font-weight: 800; height: 100px; line-height: 100px; }
+
+		/* localMenuBox */
+		.localMenu > li { position: relative; border-bottom: 1px solid #384353; }
+		.localMenu > li > a { display: block; position: relative; height: 60px; padding: 0 0 0 20px; color: #9ba9bf; font-weight: 700; font-size: 16px; line-height: 60px; }
+		.localMenu > li > a:after { display: block; position: absolute; right: 21px; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #9ba9bf; content: ''; }
+		.localMenu > li.on > a { color: #ff2b33; }
+		.localMenu > li.on > a:after { right: 18px; margin-top: -3px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ff2b33; border-bottom: 0; width: 0; height: 0; }
+		.localMenu > li:hover > a { color: #fff; }
+
+		/* subMenuBox */
+		.subMenuBox { display: none; }
+		.localMenu > li.on > .subMenuBox { display: block; position: relative; padding: 10px 0; background: #354052; }
+		.subMenu li > a { display: block; height: 32px; padding: 0 0 0 20px; color: #7a869b; font-size: 13px; line-height: 32px; }
+		.subMenu li:hover > a { color: #fff; }
+		.subMenu li.on > a { color: #fff; }
+
+		/* content */
+		.content { position: relative; margin: 0 0 0 200px; padding: 0 30px 50px 30px; background: #fff; }
+		.content:after { display: block; clear: both; content: ''; }
+
+		/* content_header */
+		.content_header { position: relative; margin: 0 -30px; border-bottom: 1px solid #e8e8e8; }
+		.content_header:after { display: block; clear: both; content: ''; }
+
+		/* utilBox */
+		.utilBox { position: relative; padding: 0 122px 0 0; }
+		.utilList { overflow: hidden; }
+		.utilList > li { float: left; width: 18%; height: 58px; border-left: 1px solid #e8e8e8; color: #666; font-size: 14px; line-height: 58px; text-align: center; box-sizing: border-box; }
+		.utilList > li:nth-of-type(4) { width: 28%; }
+		.utilList > li > b { margin: 0 0 0 3px; color: #2f2f2f; }
+		.logList { overflow: hidden; position: absolute; right: 0; top: 0; width: 122px; }
+		.logList > li { float: left; width: 50%; height: 58px; border-left: 1px solid #e8e8e8; background: #ed1b24; box-sizing: border-box; }
+		.logList > li:first-child { background: #354052; }
+		.logList > li > a { display: block; position: relative; color: #fff; font-size: 11px; text-align: center; padding-top: 30px; }
+		.logList > li > a:before { display: block; width: 20px; height: 16px; margin: -20px auto 6px; content: ''; }
+
+		/* page_location */
+		.page_location span { display: inline-block; position: relative; padding: 0 7px 0 16px; color: #666; font-size: 20px; }
+		.page_location span:before { display: block; position: absolute; left: 0; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #999; content: ''; }
+		.page_location .blind + span { padding-left: 0; }
+		.page_location .blind + span:before { display: none; }
+		.page_location span.current { color: #2f2f2f; font-size: 24px; }
+		.page_location.first { margin-top: 40px; }
+
+		/* subTabBox */
+		.subTabBox { }
+		.subTabBox.first { margin-top: 33px; }
+		.sub_tab { border: 1px solid #ed1b24; border-radius: 5px; overflow: hidden; }
+		.sub_tab:after { display: block; clear: both; content: ''; }
+		.sub_tab > li { float: left; border-left: 1px solid #ed1b24; text-align: center; box-sizing: border-box; }
+		.sub_tab > li:first-child { border-left: 0 none; }
+		.sub_tab > li a { display: block; height: 46px; color: #666; font-size: 16px; line-height: 46px; text-align: center; }
+		.sub_tab > li.on a { background: #ed1b24; color: #fff; font-weight: 700; }
+		.sub_tab > li:hover a { background: #ed1b24; color: #fff; font-weight: 700; }
+		.tab_w3n > li { width: 33.3333%; }
+
+		/* formBox */
+		.formBox { position: relative; margin: 0; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; box-sizing: border-box; }
+		.formBox.type01 { margin-top: 20px; }
+
+		/* form_table */
+		.form_table > li { overflow: hidden; position: relative; width: 100%; padding: 5px 0; border-top: 1px solid #ddd; text-align: left; }
+		.form_table > li:first-child { border-color: #ed1b24; }
+		.form_table > li:after { display: block; clear: both; content: ''; }
+		.form_table .tit_outer { position: absolute; left: 0; top: 0; z-index: 1; width: 160px; height: 100%; }
+		.form_table .tit_outer .tit_inner { display: table; width: 100%; height: 100%; background: #f0f1f2; }
+		.form_table .tit_outer .tit_inner .tit { display: table-cell; padding: 0 0 0 20px; text-align: left; vertical-align: middle; color: #2f2f2f; font-weight: 700; font-size: 13px; }
+		.form_table .inner { position: relative; padding: 0 10px 0 170px; color: #666; font-size: 13px; }
+
+		/* searchBox */
+		.searchBox { display: inline-block; position: relative; vertical-align: top; }
+		.searchBox .selectBox { display: inline-block; }
+		.searchBox input { width: 210px; vertical-align: top; }
+
+		/* selectBox */
+		.selectBox { position: relative; z-index: 1; width: auto; min-width: 60px; height: 24px; border: 1px solid #e1e1e1; background: #fff; line-height: 24px; display: inline-block; }
+		.selectBox:before { position: absolute; right: 8px; top: 50%; width: 0; height: 0; margin-top: -2px; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #999; content: ''; }
+		.selectBox label { position: absolute; left: 5px; top: 0; z-index: -1; height: 24px; color: #999; line-height: 24px; }
+		.selectBox select { width: 100%; height: 24px; padding-right: 15px; border: 0; font-family: inherit; line-height: 24px; opacity: 0; -webkit-appearance: none; appearance: none; }
+
+		/* btn_area */
+		.btn_area { margin: 40px 0 0; text-align: center; }
+		.btn_area.type01 { text-align: right; }
+		.btn_area.first { margin-top: 10px; }
+		.htcbtnMd { display: inline-block; min-width: 25px; padding: 0 0 0 10px; border: 1px solid #515b6c; background: #fff; border-radius: 3px; box-sizing: border-box; }
+		.htcbtnMd span { display: inline-block; min-width: 25px; padding: 0 10px 0 0; color: #515b6c; font-size: 13px; line-height: 28px; text-align: center; font-family: 'Nanum Gothic'; }
+		.htcbtnMd.type02 { padding-left: 38px; border-color: #727887; background: #727887; }
+		.htcbtnMd.type02 span { padding-right: 38px; color: #fff; }
+
+		/* countBox */
+		.countBox { margin: 20px 0 0 0; }
+		.countBox:after { display: block; clear: both; content: ''; }
+		.countBox .leftArea { float: left; color: #666; font-size: 13px; }
+		.countBox .leftArea .to_result b { margin: 0 0 0 4px; color: #000; }
+		.countBox .rightArea { float: right; color: #666; font-size: 13px; }
+		.countBox .rightArea .tit { position: relative; padding: 0 10px; font-weight: normal; }
+		.countBox .rightArea .tit:before { display: block; position: absolute; left: 0; top: 50%; width: 3px; height: 3px; margin-top: -2px; background: #727887; content: ''; }
+
+		/* listBox */
+		.listBox { margin: 8px 0 0 0; border-top: 1px solid #ed1b24; border-right: 1px solid #ddd; background: #fff; }
+
+		/* bbs_list */
+		.bbs_list { position: relative; width: 100%; }
+		.bbs_list thead th { padding: 10px 0; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; text-align: center; }
+		.bbs_list tbody th,
+		.bbs_list tbody td { padding: 5px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #666; font-size: 13px; text-align: center; vertical-align: middle; }
+		.bbs_list.type01 tbody th,
+		.bbs_list.type01 tbody td { padding-top: 10px; padding-bottom: 10px; }
+		.bbs_list tbody td a { border-bottom: 1px dotted #000; color: inherit; }
+		.bbs_list tbody td a:hover,
+		.bbs_list tbody td a:active { font-weight: bold; color: #333; }
+		.bbs_list tbody tr:hover { background: #f5f5f5; }
+
+		/* pagenation */
+		.pagenation { margin: 30px 0 0 0; text-align: center; }
+		.pagenation span { display: inline-block; padding: 0 5px; vertical-align: top; }
+		.pagenation span a,
+		.pagenation span strong { display: inline-block; width: auto; min-width: 31px; height: 31px; border: 1px solid #ddd; background: #fff; color: #666; font-weight: 700; font-size: 14px; line-height: 31px; text-align: center; }
+		.pagenation span a:hover,
+		.pagenation span strong { border-color: #ed3e39; background: #ed3e39; color: #fff; }
+		.pagenation > a { display: inline-block; width: 33px; height: 33px; border: 1px solid #ddd; background: #fff; color: #666; font-size: 14px; line-height: 31px; text-align: center; vertical-align: top; }
+		.pagenation > a:hover { border-color: #999; color: #333; }
+
+		/* footer */
+		.footer { position: relative; overflow: hidden; margin: 0 0 0 200px; padding: 30px; background: #f6f6f6; box-sizing: border-box; }
+		.footer:after { display: block; clear: both; content: ''; }
+		.footer .f_leftArea { float: left; }
+		.footer .f_leftArea .copyright { margin: 10px 0 0 0; color: #666; font-size: 11px; text-transform: uppercase; }
+		.footer .f_rightArea { float: right; text-align: right; }
+		.footer .f_rightArea dl { overflow: hidden; line-height: 20px; }
+		.footer .f_rightArea dt { float: left; margin-right: 5px; color: #ed1b24; font-weight: 700; font-size: 12px; }
+		.footer .f_rightArea dd { float: left; color: #666; font-size: 12px; }
+	</style>
+</head>
+<body>
+
+<div id="wrap">
+	<section>
+		<div id="container" class="container">
+			<section>
+				<!-- lnbBox -->
+				<div class="lnbBox">
+					<h1 class="tit"><a href="/sa/main">Olive ticket</a></h1>
+					<nav id="localMenuBox" class="localMenuBox">
+						<h2 class="blind">메인메뉴</h2>
+						<ul class="localMenu">
+							<li><a href="#this">기업체 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">기업체 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/company/list">기업체 정보 관리</a></li>
+										<li><a href="/sa/company/mapping/list">직접 가맹점 관리</a></li>
+										<li><a href="/sa/company/master/list">마스터 기업체 관리</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">가맹점 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">가맹점 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/store/list">매장 정보</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">올리브 상품권 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">올리브 상품권 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/olivegift/order/list">주문내역</a></li>
+										<li><a href="/sa/olivegift/list">상품권 관리</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">모바일 쿠폰 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">모바일 쿠폰 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/mobile/order/list">주문내역</a></li>
+										<li><a href="/sa/mobile/goods/list">상품관리</a></li>
+										<li><a href="/sa/mobile/brand/list">브랜드관리</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">식권 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">식권 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/ticket/list">식권 결제 취소 관리</a></li>
+										<li><a href="/sa/ticket/ready/list">대기식권 관리</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="/sa/sms/company/list">SMS 발송내역</a></li>
+							<li class="on"><a href="#this">정산 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">정산 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/adjust/company/list">업체 정산</a></li>
+										<li class="on"><a href="/sa/adjust/company/complete/list">업체 정산 완료 내역</a></li>
+										<li><a href="/sa/adjust/store/complete/list">가맹점 정산 완료 내역</a></li>
+										<li><a href="/sa/adjust/user/complete/list">개인포인트 정산 완료 내역</a></li>
+										<li><a href="/sa/adjust/manual/list">수동 정산</a></li>
+										<li><a href="/sa/adjust/support/list">지난정산 엑셀다운로드</a></li>
+										<li><a href="/sa/adjust/main/list">매입 매출 내역</a></li>
+										<li><a href="/sa/adjust/main/list/immediately">매입 매출 내역(실시간)</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">서비스 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">서비스 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/term/service/list">약관 관리</a></li>
+										<li><a href="/sa/notice/list">공지사항 관리</a></li>
+										<li><a href="/sa/notice/popup/list">팝업 관리</a></li>
+										<li><a href="/sa/board/faq/list">FAQ 관리</a></li>
+										<li><a href="/sa/board/qna/list">1:1 문의</a></li>
+										<li><a href="/sa/board/work/list">업무요청 게시판 관리</a></li>
+										<li><a href="/sa/banner/list">배너 관리</a></li>
+										<li><a href="/sa/push/company/list">푸시 관리</a></li>
+										<li><a href="/sa/olivecoupon/event/list">쿠폰 관리</a></li>
+										<li><a href="/sa/point/refund/list">환불 관리</a></li>
+										<li><a href="/sa/sms/send/list">문자 관리</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">회원 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">회원 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/employee/list">회원 관리</a></li>
+										<li><a href="/sa/employee/gift/list">선물 관리</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">설정 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">시스템 설정 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="/sa/setting/list">시스템 설정 관리</a></li>
+										<li><a href="/sa/app/version/list">앱 버전 관리</a></li>
+										<li><a href="/sa/app/guide/list">앱 가이드 관리</a></li>
+										<li><a href="/sa/holiday/list">공휴일 관리</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="/sa/transfer/list">계좌 이체 관리</a></li>
+						</ul>
+					</nav>
+				</div>
+				<!-- //lnbBox -->
+			</section>
+			<section>
+				<!-- content -->
+				<div id="content" class="content">
+
+					<!-- content_header -->
+					<div class="content_header">
+						<h2 class="blind">가맹점 관리</h2>
+						<div class="utilBox">
+							<ul class="utilList">
+								<li>로그인 계정 :<b>신중엽(jy.shin)</b></li>
+								<li>&nbsp;</li>
+								<li>&nbsp;</li>
+								<li>이용자그룹 :<b>서비스 운영 관리자</b></li>
+								<li class="request"></li>
+							</ul>
+							<ul class="logList">
+								<li><a href="/sa/mypage">My Page</a></li>
+								<li><a href="/sa/logout">LogOut</a></li>
+							</ul>
+						</div>
+					</div>
+					<!-- //content_header -->
+
+					<!-- page_location -->
+					<div class="page_location first">
+						<strong class="blind">현재위치</strong>
+						<span><a href="/sa/adjust/company/list">정산 관리</a></span>
+						<span class="current"><a href="#this">정산 완료 내역</a></span>
+					</div>
+					<!-- //page_location -->
+
+					<form id="searchForm" name="searchForm" action="/sa/adjust/company/complete/list" method="post" onsubmit="return false;">
+					<input id="pageIndex" name="pageIndex" type="hidden" value="1">
+					<input id="companyId" name="companyId" type="hidden" value="">
+
+					<!-- subTabBox -->
+					<div class="subTabBox first">
+						<ol class="sub_tab tab_w3n">
+							<li class="on"><a href="/sa/adjust/company/complete/list" title="업체 정산 완료 내역">업체 정산 완료 내역</a><span class="blind">현재 페이지</span></li>
+							<li><a href="/sa/adjust/company/complete/view/month" title="월별 업체 정산 완료 내역">업체 정산 완료 내역(월별)</a></li>
+							<li><a href="/sa/adjust/ktering/complete/list" title="구내식당 정산 완료 내역">구내식당 정산 완료 내역</a></li>
+						</ol>
+					</div>
+					<!-- //subTabBox -->
+
+					<!-- formBox -->
+					<div class="formBox type01">
+						<h2 class="blind">검색하기</h2>
+						<ul class="form_table">
+							<li>
+								<div class="tit_outer">
+									<div class="tit_inner">
+										<div class="tit">검색</div>
+									</div>
+								</div>
+								<div class="inner">
+									<div class="searchBox">
+										<div class="selectBox">
+											<label for="searchType">기업체명</label>
+											<select id="searchType" name="searchType">
+												<option value="companyName">기업체명</option>
+												<option value="businessNo">사업자번호</option>
+												<option value="corporateNo">법인번호</option>
+											</select>
+										</div>
+										<input id="searchKeyword" name="searchKeyword" placeholder="검색어를 입력하세요" type="text" value="">
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<!-- //formBox -->
+
+					<div class="btn_area first type01">
+						<button type="button" class="htcbtnMd type02" onclick="fnViewPage('1');"><span>검색</span></button>
+					</div>
+
+					<!-- countBox -->
+					<div class="countBox">
+						<div class="leftArea">
+							<span class="to_result">결과:<b>370</b></span>
+						</div>
+						<div class="rightArea">
+							<strong class="tit">목록개수</strong>
+							<select id="pageSize" name="pageSize" onchange="fnViewPage('1');">
+								<option value="10">10</option>
+								<option value="20" selected="selected">20</option>
+								<option value="50">50</option>
+								<option value="100">100</option>
+							</select>
+						</div>
+					</div>
+					<!-- //countBox -->
+
+					<div class="listBox">
+						<table class="bbs_list type01">
+							<caption>기업체 관리 목록</caption>
+							<colgroup>
+								<col style="width:50px;">
+								<col style="width:auto;">
+								<col style="width:10%;">
+								<col style="width:10%;">
+								<col style="width:20%;">
+								<col style="width:10%;">
+								<col style="width:15%;">
+							</colgroup>
+							<thead>
+								<tr>
+									<th scope="row">번호</th>
+									<th scope="row">기업체</th>
+									<th scope="row">사업자등록번호</th>
+									<th scope="row">대표자 명</th>
+									<th scope="row">세금계산서 발행 이메일</th>
+									<th scope="row">정산 완료 건수</th>
+									<th scope="row">마지막 정산 완료일</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>370</td>
+									<td><a href="/sa/company/view?companyId=102">디와이피엔 주식회사</a></td>
+									<td>119-86-91089</td>
+									<td>신승대</td>
+									<td>ljeun@dypn.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=102">76</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>369</td>
+									<td><a href="/sa/company/view?companyId=35">유유제약</a></td>
+									<td>123-81-01790</td>
+									<td>유원상, 박노</td>
+									<td>nkkim@yuyu.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=35">89</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>368</td>
+									<td><a href="/sa/company/view?companyId=268">다인정보 주식회사</a></td>
+									<td>138-81-91014</td>
+									<td>추명해, 오충선</td>
+									<td>sym7929@douzoneon.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=268">56</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>367</td>
+									<td><a href="/sa/company/view?companyId=105">(주)에스앤피인터내셔널</a></td>
+									<td>114-86-19495</td>
+									<td>김호기</td>
+									<td>543@2705.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=105">74</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>366</td>
+									<td><a href="/sa/company/view?companyId=31">개인회원</a></td>
+									<td>000-00-000000</td>
+									<td>개인회원</td>
+									<td>user@user.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=31">14</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>365</td>
+									<td><a href="/sa/company/view?companyId=73">지니언스(주)</a></td>
+									<td>129-81-80148</td>
+									<td>이동범</td>
+									<td>htw0305@genians.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=73">79</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>364</td>
+									<td><a href="/sa/company/view?companyId=100">디와이피엔에프(주)</a></td>
+									<td>113-81-54363</td>
+									<td>신승대, 남승현</td>
+									<td>jinwon9557@dypnf.com</td>
+									<td><a href="detail.html">77</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>363</td>
+									<td><a href="/sa/company/view?companyId=151">롯데카드 입주사</a></td>
+									<td>000-00-00000</td>
+									<td>롯데카드 입주사</td>
+									<td>lottecardUser@oliveticket.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=151">56</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>362</td>
+									<td><a href="/sa/company/view?companyId=54">삼호씨앤엠(주)</a></td>
+									<td>603-81-30146</td>
+									<td>송창덕</td>
+									<td>1050129@samhodev.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=54">82</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>361</td>
+									<td><a href="/sa/company/view?companyId=22">주식회사 글로텍이엔씨</a></td>
+									<td>490-86-01017</td>
+									<td>진봉수</td>
+									<td>qwewr57@gteng.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=22">92</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>360</td>
+									<td><a href="/sa/company/view?companyId=140">롯데카드 주식회사</a></td>
+									<td>120-81-54231</td>
+									<td>조좌진</td>
+									<td>lottecard@oliveticket.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=140">56</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>359</td>
+									<td><a href="/sa/company/view?companyId=14">(주)퍼시스</a></td>
+									<td>215-81-20534</td>
+									<td>김태은,우인환</td>
+									<td>euna_yang@fursys.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=14">99</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>358</td>
+									<td><a href="/sa/company/view?companyId=207">주식회사 동양고속</a></td>
+									<td>138-81-28578</td>
+									<td>최성원</td>
+									<td>dykjy70@dyexpress.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=207">60</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>357</td>
+									<td><a href="/sa/company/view?companyId=12">(주)스마트올리브</a></td>
+									<td>646-88-00430</td>
+									<td>박현숙</td>
+									<td>tax@smart-olive.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=12">115</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>356</td>
+									<td><a href="/sa/company/view?companyId=250">(주)조선뉴스프레스</a></td>
+									<td>104-81-59006</td>
+									<td>정장열</td>
+									<td>cja@chosun.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=250">59</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>355</td>
+									<td><a href="/sa/company/view?companyId=9">(주)글로텍엔지니어링</a></td>
+									<td>108-81-59497</td>
+									<td>김균</td>
+									<td>cklee@gteng.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=9">102</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>354</td>
+									<td><a href="/sa/company/view?companyId=116">(주)와이즈 서울사무소</a></td>
+									<td>727-85-01023</td>
+									<td>이상훈</td>
+									<td>wise-hq@wisecontrol.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=116">70</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>353</td>
+									<td><a href="/sa/company/view?companyId=259">주식회사 포인트모바일</a></td>
+									<td>119-81-91385</td>
+									<td>이철환</td>
+									<td>mc.hyeon@pointmobile.com</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=259">57</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>352</td>
+									<td><a href="/sa/company/view?companyId=49">가산연세의원</a></td>
+									<td>446-95-00686</td>
+									<td>양혜건</td>
+									<td>dashout@daum.net</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=49">83</a></td>
+									<td>2026.03.31</td>
+								</tr>
+								<tr>
+									<td>351</td>
+									<td><a href="/sa/company/view?companyId=53">삼호개발(주)</a></td>
+									<td>220-81-14806</td>
+									<td>심재범</td>
+									<td>1050129@samhodev.co.kr</td>
+									<td><a href="/sa/adjust/company/complete/view?companyId=53">82</a></td>
+									<td>2026.03.31</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<!-- pagenation -->
+					<div class="pagenation">
+						<h3 class="blind">쪽수매기기</h3>
+						<span>
+							<strong>1</strong>
+							<a href="#this" onclick="fnViewPage(2); return false;">2</a>
+							<a href="#this" onclick="fnViewPage(3); return false;">3</a>
+							<a href="#this" onclick="fnViewPage(4); return false;">4</a>
+							<a href="#this" onclick="fnViewPage(5); return false;">5</a>
+							<a href="#this" onclick="fnViewPage(6); return false;">6</a>
+							<a href="#this" onclick="fnViewPage(7); return false;">7</a>
+							<a href="#this" onclick="fnViewPage(8); return false;">8</a>
+							<a href="#this" onclick="fnViewPage(9); return false;">9</a>
+							<a href="#this" onclick="fnViewPage(10); return false;">10</a>
+						</span>
+						<a href="#this" onclick="fnViewPage(11); return false;">&gt;</a>
+						<a href="#this" onclick="fnViewPage(19); return false;">&gt;&gt;</a>
+					</div>
+					<!-- //pagenation -->
+
+					</form>
+				</div>
+				<!-- //content -->
+			</section>
+		</div>
+	</section>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+	<div class="f_leftArea">
+		<p class="copyright">COPYRIGHT SMARTOLIVE. ALL RIGHTS RESERVED.</p>
+	</div>
+	<div class="f_rightArea">
+		<dl><dt>시스템 문의</dt><dd>02-2135-2131 (09:00~18:00 주말, 공휴일 제외)</dd></dl>
+		<dl><dt>운영 문의</dt><dd>02-2135-2131 (09:00~18:00 주말, 공휴일 제외)</dd></dl>
+	</div>
+</footer>
+
+<script>
+var contextPath = '/sa';
+
+function fnViewPage(pageNo) {
+	if (isNaN(pageNo)) {
+		pageNo = 1;
+	}
+	document.searchForm.pageIndex.value = pageNo;
+	alert('페이지 ' + pageNo + '로 이동');
+}
+</script>
+
+</body>
+</html>
