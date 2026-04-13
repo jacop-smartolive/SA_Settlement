@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>OliveTicket Service Admin</title>
+	<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
+		body { overflow-x: hidden; font: 12px/1.3 'Nanum Gothic', dotum, Helvetica, AppleGothic, arial, sans-serif; color: #666; background: #fff; word-break: break-all; }
+		a { text-decoration: none; color: inherit; }
+		ul, ol, li { list-style: none; }
+		table { border-collapse: collapse; }
+		button { overflow: hidden; margin: 0; padding: 0; border: 0 none; white-space: nowrap; text-align: center; vertical-align: top; cursor: pointer; }
+		caption, .blind { overflow: hidden; position: absolute; left: -9999em; width: 0; height: 0; margin: 0; padding: 0; font-size: 0; line-height: 0; text-indent: -9999em; }
+		select { border: 1px solid #bbb; padding: 4px 0 4px 5px; }
+
+		#wrap { position: relative; min-width: 1200px; background: #fff; }
+		.container { position: relative; background: #fff; }
+
+		.lnbBox { overflow-y: auto; position: fixed; z-index: 2; width: 200px; height: 100%; background: #28313d; }
+		.lnbBox .tit { height: 100px; background: #ed1b24; line-height: 100px; text-align: center; }
+		.lnbBox .tit a { display: block; color: #fff; font-size: 22px; font-weight: 800; height: 100px; line-height: 100px; }
+		.localMenu > li { position: relative; border-bottom: 1px solid #384353; }
+		.localMenu > li > a { display: block; position: relative; height: 60px; padding: 0 0 0 20px; color: #9ba9bf; font-weight: 700; font-size: 16px; line-height: 60px; }
+		.localMenu > li > a:after { display: block; position: absolute; right: 21px; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #9ba9bf; content: ''; }
+		.localMenu > li.on > a { color: #ff2b33; }
+		.localMenu > li.on > a:after { right: 18px; margin-top: -3px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ff2b33; border-bottom: 0; width: 0; height: 0; }
+		.localMenu > li:hover > a { color: #fff; }
+		.subMenuBox { display: none; }
+		.localMenu > li.on > .subMenuBox { display: block; position: relative; padding: 10px 0; background: #354052; }
+		.subMenu li > a { display: block; height: 32px; padding: 0 0 0 20px; color: #7a869b; font-size: 13px; line-height: 32px; }
+		.subMenu li:hover > a { color: #fff; }
+		.subMenu li.on > a { color: #fff; }
+
+		.content { position: relative; margin: 0 0 0 200px; padding: 0 10px 50px 30px; background: #fff; }
+		.content:after { display: block; clear: both; content: ''; }
+
+		.content_header { position: relative; margin: 0 -30px; border-bottom: 1px solid #e8e8e8; }
+		.utilBox { position: relative; padding: 0 122px 0 0; }
+		.utilList { overflow: hidden; }
+		.utilList > li { float: left; width: 18%; height: 58px; border-left: 1px solid #e8e8e8; color: #666; font-size: 14px; line-height: 58px; text-align: center; box-sizing: border-box; }
+		.utilList > li:nth-of-type(4) { width: 28%; }
+		.utilList > li > b { margin: 0 0 0 3px; color: #2f2f2f; }
+		.logList { overflow: hidden; position: absolute; right: 0; top: 0; width: 122px; }
+		.logList > li { float: left; width: 50%; height: 58px; border-left: 1px solid #e8e8e8; background: #ed1b24; box-sizing: border-box; }
+		.logList > li:first-child { background: #354052; }
+		.logList > li > a { display: block; color: #fff; font-size: 11px; text-align: center; padding-top: 30px; }
+
+		.page_location span { display: inline-block; position: relative; padding: 0 7px 0 16px; color: #666; font-size: 20px; }
+		.page_location span:before { display: block; position: absolute; left: 0; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #999; content: ''; }
+		.page_location .blind + span { padding-left: 0; }
+		.page_location .blind + span:before { display: none; }
+		.page_location span.current { color: #2f2f2f; font-size: 24px; }
+		.page_location.first { margin-top: 40px; }
+
+		.titBox { position: relative; }
+		.titBox .tit_name { color: #333; font-weight: 700; font-size: 36px; line-height: 36px; margin: 0; padding: 10px 0; border: 0; }
+		.titBox.first { margin-top: 30px; }
+
+		.countBox { margin: 20px 0 0 0; }
+		.countBox:after { display: block; clear: both; content: ''; }
+		.countBox .leftArea { float: left; color: #666; font-size: 13px; }
+		.countBox .leftArea .to_result { display: inline-flex; align-items: center; padding: 0 15px; border: 1px solid #ddd; vertical-align: middle; height: 40px; }
+		.countBox .leftArea .to_result + .to_result { margin-left: -1px; }
+		.countBox .leftArea .to_result + .to_result.label_cell { margin-left: 10px; }
+		.countBox .leftArea .to_result.label_cell + .to_result { margin-left: -1px; }
+		.countBox .leftArea .to_result.label_cell { background: #f0f1f2; color: #333; font-weight: 700; }
+		.countBox .leftArea .to_result.radio_box { padding: 0 15px; }
+		.countBox .leftArea .to_result.radio_box label { margin-right: 10px; cursor: pointer; }
+		.countBox .leftArea .to_result.radio_box input[type="radio"] { margin-right: 3px; cursor: pointer; }
+		.countBox .leftArea .to_result.radio_box input[type="radio"]:checked + label { font-weight: 700; color: #000; }
+		.countBox .leftArea .to_result b { margin: 0 0 0 4px; color: #000; }
+		.countBox .rightArea { float: right; color: #666; font-size: 13px; }
+		.countBox .rightArea .tit { position: relative; padding: 0 10px; font-weight: normal; }
+		.countBox .rightArea .tit:before { display: block; position: absolute; left: 0; top: 50%; width: 3px; height: 3px; margin-top: -2px; background: #727887; content: ''; }
+
+		.listBox { margin: 8px 0 0 0; border-top: 1px solid #ed1b24; background: #fff; overflow-x: auto; overflow-y: hidden; }
+
+		.bbs_list { position: relative; }
+		.bbs_list thead th { padding: 10px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; text-align: center; }
+		.bbs_list thead th:first-child { padding: 10px 4px; }
+		.bbs_list thead th.pad-data { padding: 10px 14px; }
+		.bbs_list tbody th, .bbs_list tbody td { padding: 5px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #666; font-size: 13px; text-align: center; vertical-align: middle; }
+		.bbs_list tbody td:first-child { padding: 5px 4px; }
+		.bbs_list tbody td.pad-data { padding: 5px 14px; }
+		.bbs_list.type01 tbody th, .bbs_list.type01 tbody td { padding-top: 10px; padding-bottom: 10px; }
+		.bbs_list tbody td a { border-bottom: 1px dotted #000; color: inherit; cursor: pointer; }
+		.bbs_list tbody td a:hover { font-weight: bold; color: #333; }
+		.bbs_list tbody tr:hover { background: #f5f5f5; }
+
+		.htcbtnMd { display: inline-block; min-width: 25px; padding: 0 8px; border: 1px solid #515b6c; background: #fff; border-radius: 3px; box-sizing: border-box; }
+		.htcbtnMd span { display: inline-block; padding: 0; color: #515b6c; font-size: 11px; line-height: 24px; text-align: center; font-family: 'Nanum Gothic'; }
+		.htcbtnMd.ico_down { position: relative; padding-right: 18px; }
+		.htcbtnMd.ico_down:after { display: block; position: absolute; right: 6px; top: 50%; margin-top: -5px; width: 5px; height: 5px; border-right: 1.5px solid #515b6c; border-bottom: 1.5px solid #515b6c; border-radius: 0 0 1px 0; transform: rotate(45deg); content: ''; }
+		.htcbtnMd.btn-black { background: #666; border-color: #666; }
+		.htcbtnMd.btn-black span { color: #fff; }
+		.htcbtnMd.btn-black.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
+		/* 수정본 비활성화 (파일 미첨부) */
+		.htcbtnMd.btn-inactive { background: #e0e0e0; border-color: #ccc; }
+		.htcbtnMd.btn-inactive span { color: #aaa; }
+		.htcbtnMd.btn-inactive.ico_down:after { border-right-color: #aaa; border-bottom-color: #aaa; }
+		/* 버튼 드롭다운 */
+		.btn-wrap { position: relative; display: inline-block; }
+		.btn-dropdown { display: none !important; position: absolute; top: 100%; left: 0; z-index: 10; min-width: 100%; background: #fff; border: 1px solid #ddd; border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,.15); }
+		.btn-dropdown a { display: block; padding: 8px 16px; color: #333; font-size: 13px; white-space: nowrap; text-decoration: none; border-bottom: none !important; text-align: left; }
+		.btn-dropdown a:hover { background: #f5f5f5; }
+		.btn-wrap.open .btn-dropdown { display: block !important; }
+
+		.bbs_list tbody td.btn-cell { text-align: center; }
+		.bbs_list tbody td.btn-cell div { display: flex; justify-content: center; }
+
+		.pagenation { margin: 30px 0 0 0; text-align: center; }
+		.pagenation span { display: inline-block; padding: 0 5px; vertical-align: top; }
+		.pagenation span a, .pagenation span strong { display: inline-block; width: auto; min-width: 31px; height: 31px; border: 1px solid #ddd; background: #fff; color: #666; font-weight: 700; font-size: 14px; line-height: 31px; text-align: center; }
+		.pagenation span a:hover, .pagenation span strong { border-color: #ed3e39; background: #ed3e39; color: #fff; }
+
+		.footer { position: relative; overflow: hidden; margin: 0 0 0 200px; padding: 30px; background: #f6f6f6; }
+		.footer:after { display: block; clear: both; content: ''; }
+		.footer .f_leftArea { float: left; }
+		.footer .f_leftArea .copyright { margin: 10px 0 0 0; color: #666; font-size: 11px; text-transform: uppercase; }
+		.footer .f_rightArea { float: right; text-align: right; }
+		.footer .f_rightArea dl { overflow: hidden; line-height: 20px; }
+		.footer .f_rightArea dt { float: left; margin-right: 5px; color: #ed1b24; font-weight: 700; font-size: 12px; }
+		.footer .f_rightArea dd { float: left; color: #666; font-size: 12px; }
+
+		.scroll-wrapper { width: 100%; overflow-x: scroll; overflow-y: hidden; }
+
+		/* form scroll */
+		#searchForm { overflow: visible; }
+
+
+		/* 하단 고정 가로 스크롤바 */
+		.hscroll-bar { position: fixed; bottom: 0; left: 200px; right: 0; z-index: 10; overflow-x: scroll; overflow-y: hidden; background: transparent; }
+		.hscroll-inner { height: 1px; }
+
+		/* 테이블 최소 너비 - 원본 2795px 기준 */
+		.bbs_list { table-layout: auto; width: max-content; }
+		.bbs_list thead th { white-space: nowrap; }
+		.bbs_list tbody td { white-space: nowrap; }
+		.bbs_list tbody td.btn-cell { white-space: normal; min-width: 70px; }
+
+		/* 버튼 간격 */
+		.bbs_list tbody td .htcbtnMd { margin: 2px 0; }
+		.bbs_list tbody td div + div { margin-top: 5px; }
+	</style>
+</head>
+<body>
+
+<div id="wrap">
+	<section>
+		<div id="container" class="container">
+			<section>
+				<div class="lnbBox">
+					<h1 class="tit"><a href="index.html">Olive ticket</a></h1>
+					<nav class="localMenuBox">
+						<h2 class="blind">메인메뉴</h2>
+						<ul class="localMenu">
+							<li><a href="#this">기업체 관리</a></li>
+							<li><a href="#this">가맹점 관리</a></li>
+							<li><a href="#this">올리브 상품권 관리</a></li>
+							<li><a href="#this">모바일 쿠폰 관리</a></li>
+							<li><a href="#this">식권 관리</a></li>
+							<li><a href="#">SMS 발송내역</a></li>
+							<li class="on"><a href="#this">정산 관리</a>
+								<div class="subMenuBox">
+									<h3 class="blind">정산 관리 서브 목록</h3>
+									<ul class="subMenu">
+										<li><a href="#">업체 정산</a></li>
+										<li class="on"><a href="index.html">업체 정산 완료 내역</a></li>
+										<li><a href="#">가맹점 정산 완료 내역</a></li>
+										<li><a href="#">개인포인트 정산 완료 내역</a></li>
+										<li><a href="#">수동 정산</a></li>
+										<li><a href="#">지난정산 엑셀다운로드</a></li>
+										<li><a href="#">매입 매출 내역</a></li>
+										<li><a href="#">매입 매출 내역(실시간)</a></li>
+									</ul>
+								</div>
+							</li>
+							<li><a href="#this">서비스 관리</a></li>
+							<li><a href="#this">회원 관리</a></li>
+							<li><a href="#this">설정 관리</a></li>
+							<li><a href="#">계좌 이체 관리</a></li>
+						</ul>
+					</nav>
+				</div>
+			</section>
+			<section>
+				<div id="content" class="content">
+					<div class="content_header">
+						<div class="utilBox">
+							<ul class="utilList">
+								<li>로그인 계정 :<b>신중엽(jy.shin)</b></li>
+								<li>&nbsp;</li>
+								<li>&nbsp;</li>
+								<li>이용자그룹 :<b>서비스 운영 관리자</b></li>
+								<li class="request"></li>
+							</ul>
+							<ul class="logList">
+								<li><a href="#">My Page</a></li>
+								<li><a href="#">LogOut</a></li>
+							</ul>
+						</div>
+					</div>
+
+					<div class="page_location first">
+						<strong class="blind">현재위치</strong>
+						<span><a href="#">정산 관리</a></span>
+						<span class="current"><a href="index.html">정산 완료 내역</a></span>
+						<span class="current"><a href="#this">정산 기간별 조회</a></span>
+					</div>
+
+					<form id="searchForm" name="searchForm" action="#" method="post" onsubmit="return false;">
+					<input id="pageIndex" name="pageIndex" type="hidden" value="1">
+					<input id="companyId" name="companyId" type="hidden" value="100">
+
+					<div class="titBox first">
+						<h2 class="tit_name">두산에너빌리티 (주)</h2>
+					</div>
+
+					<div class="countBox">
+						<div class="leftArea">
+							<span class="to_result label_cell">결과</span><span class="to_result"><b>76</b></span><span class="to_result label_cell">조회</span><span class="to_result radio_box"><input type="radio" name="viewType" id="viewTotal" checked><label for="viewTotal">총금액</label> <input type="radio" name="viewType" id="viewTax"><label for="viewTax">세금계산서 발행</label></span><span class="to_result label_cell">위하고 코드</span><span class="to_result">식대 <b>41210</b>, 1인당 과금 <b>41320</b> <button class="htcbtnMd" style="margin-left:5px;"><span>수정</span></button></span>
+						</div>
+						<div class="rightArea">
+							<strong class="tit">목록개수</strong>
+							<select id="pageSize" name="pageSize">
+								<option value="10">10</option>
+								<option value="20">20</option>
+								<option value="50">50</option>
+								<option value="100" selected="selected">100</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="listBox scroll-wrapper">
+							<table class="bbs_list type01">
+								<caption>정산 기간별 조회</caption>
+								<thead>
+								<tr>
+									<th>번호</th>
+									<th class="pad-data">정산 기간</th>
+									<th class="pad-data">결제 건수</th>
+									<th class="pad-data" id="thTotal">총 금액</th>
+									<th class="pad-data" id="thCol2">이용료</th>
+									<th class="pad-data" id="thCol3">가맹점</th>
+									<th class="col-hide pad-data">구내식당</th>
+									<th class="pad-data">간편결제</th>
+									<th class="col-hide pad-data">복지몰</th>
+									<th class="col-hide pad-data">기프티콘</th>
+									<th class="pad-data">정산서</th>
+									<th class="pad-data">가맹점 역발행</th>
+									<th>가맹점 정발행 (일반)</th>
+									<th>가맹점 정발행 (간이)</th>
+									<th class="pad-data">가맹점 지급</th>
+									<th class="pad-data">회계전표</th>
+									<th class="pad-data">삭제</th>
+									<th class="pad-data">요청일</th>
+									<th style="min-width:30px;border:none;background:none;"></th>
+								</tr>
+								</thead>
+								<tbody id="dataBody"></tbody>
+							</table>
+					</div>
+
+					<div class="pagenation">
+						<h3 class="blind">쪽수매기기</h3>
+						<span><strong>1</strong></span>
+					</div>
+
+					</form>
+				</div>
+			</section>
+		</div>
+	</section>
+</div>
+
+<!-- 하단 고정 가로 스크롤바 -->
+<div class="hscroll-bar" id="hscrollBar">
+	<div class="hscroll-inner" id="hscrollInner"></div>
+</div>
+
+<footer class="footer">
+	<div class="f_leftArea"><p class="copyright">COPYRIGHT SMARTOLIVE. ALL RIGHTS RESERVED.</p></div>
+	<div class="f_rightArea">
+		<dl><dt>시스템 문의</dt><dd>02-2135-2131 (09:00~18:00 주말, 공휴일 제외)</dd></dl>
+		<dl><dt>운영 문의</dt><dd>02-2135-2131 (09:00~18:00 주말, 공휴일 제외)</dd></dl>
+	</div>
+</footer>
+
+<script>
+// 역발행: 전체 가맹점
+var reverseItems = [
+	{name:"인터파크 비즈마켓", count:12, amount:520000, bizNo:"000-00-00000"},
+	{name:"오천집", count:212, amount:1494000, bizNo:"449-34-01612"},
+	{name:"공유주방(솔잎푸드)", count:157, amount:1309000, bizNo:"386-86-03282"},
+	{name:"밥이보약", count:101, amount:795000, bizNo:"781-38-00534"},
+	{name:"슬로우캘리 가산디지털점", count:7, amount:135500, bizNo:"380-44-00803"},
+	{name:"웰빙푸드 (구내식당)", count:141, amount:1001000, bizNo:"135-25-43079"},
+	{name:"따봉돈까스", count:53, amount:448600, bizNo:"408-72-00050"},
+	{name:"빤닭빤닭", count:41, amount:637000, bizNo:"279-02-03155"},
+	{name:"부산 아지매국밥 가산점", count:65, amount:736000, bizNo:"218-10-66198"},
+	{name:"미래더이룸푸드", count:39, amount:286000, bizNo:"354-02-03058"},
+	{name:"도원", count:21, amount:223000, bizNo:"180-49-01018"},
+	{name:"황제", count:99, amount:895400, bizNo:"284-70-00203"},
+	{name:"얌샘김밥 퍼블릭가산", count:35, amount:330200, bizNo:"272-03-03113"},
+	{name:"원조양평서울해장국", count:16, amount:168000, bizNo:"604-07-64601"},
+	{name:"빽다방 퍼블릭가산", count:1, amount:3700, bizNo:"509-06-93556"},
+	{name:"옛날그맛명동칼국수", count:21, amount:177000, bizNo:"119-21-08131"},
+	{name:"김가네 가산갑을그레이트점", count:18, amount:154000, bizNo:"762-10-00989"},
+	{name:"킹콩부대찌개", count:4, amount:50000, bizNo:"325-38-01196"},
+	{name:"써브웨이 가산그레이트밸리점", count:8, amount:80500, bizNo:"564-14-01887"},
+	{name:"큐큐면관 가산직영점", count:26, amount:273000, bizNo:"654-32-01471"},
+	{name:"명가교동짬뽕", count:6, amount:60000, bizNo:"119-22-77182"},
+	{name:"스테이키 퍼블릭가산점", count:22, amount:239100, bizNo:"152-34-01493"},
+	{name:"가산삼계탕", count:8, amount:75000, bizNo:"113-13-44696"},
+	{name:"써브웨이 가산디지털점", count:2, amount:20500, bizNo:"219-23-00414"},
+	{name:"동남집", count:9, amount:97000, bizNo:"372-11-00110"},
+	{name:"명가네삼겹살", count:4, amount:53000, bizNo:"611-20-02091"},
+	{name:"한려수도", count:4, amount:36000, bizNo:"134-22-07273"}
+]; // 27곳
+
+// 정발행(일반): 기업 + 가맹점
+var forwardItems = [
+	{name:"두산에너빌리티 (주)", amount:0, bizNo:"609-81-04684"},
+	{name:"인터파크 비즈마켓", count:12, amount:520000, bizNo:"000-00-00000"},
+	{name:"오천집", count:212, amount:1494000, bizNo:"449-34-01612"},
+	{name:"공유주방(솔잎푸드)", count:157, amount:1309000, bizNo:"386-86-03282"},
+	{name:"밥이보약", count:101, amount:795000, bizNo:"781-38-00534"},
+	{name:"슬로우캘리 가산디지털점", count:7, amount:135500, bizNo:"380-44-00803"},
+	{name:"웰빙푸드 (구내식당)", count:141, amount:1001000, bizNo:"135-25-43079"},
+	{name:"따봉돈까스", count:53, amount:448600, bizNo:"408-72-00050"},
+	{name:"빤닭빤닭", count:41, amount:637000, bizNo:"279-02-03155"},
+	{name:"부산 아지매국밥 가산점", count:65, amount:736000, bizNo:"218-10-66198"},
+	{name:"미래더이룸푸드", count:39, amount:286000, bizNo:"354-02-03058"},
+	{name:"도원", count:21, amount:223000, bizNo:"180-49-01018"},
+	{name:"황제", count:99, amount:895400, bizNo:"284-70-00203"},
+	{name:"얌샘김밥 퍼블릭가산", count:35, amount:330200, bizNo:"272-03-03113"},
+	{name:"원조양평서울해장국", count:16, amount:168000, bizNo:"604-07-64601"},
+	{name:"빽다방 퍼블릭가산", count:1, amount:3700, bizNo:"509-06-93556"},
+	{name:"옛날그맛명동칼국수", count:21, amount:177000, bizNo:"119-21-08131"},
+	{name:"김가네 가산갑을그레이트점", count:18, amount:154000, bizNo:"762-10-00989"},
+	{name:"킹콩부대찌개", count:4, amount:50000, bizNo:"325-38-01196"},
+	{name:"써브웨이 가산그레이트밸리점", count:8, amount:80500, bizNo:"564-14-01887"},
+	{name:"큐큐면관 가산직영점", count:26, amount:273000, bizNo:"654-32-01471"},
+	{name:"명가교동짬뽕", count:6, amount:60000, bizNo:"119-22-77182"},
+	{name:"스테이키 퍼블릭가산점", count:22, amount:239100, bizNo:"152-34-01493"},
+	{name:"가산삼계탕", count:8, amount:75000, bizNo:"113-13-44696"},
+	{name:"써브웨이 가산디지털점", count:2, amount:20500, bizNo:"219-23-00414"}
+]; // 25곳
+
+// 정발행(간이)
+var forwardSimpleItems = [
+	{name:"동남집", count:9, amount:97000, bizNo:"372-11-00110"},
+	{name:"명가네삼겹살", count:4, amount:53000, bizNo:"611-20-02091"},
+	{name:"한려수도", count:4, amount:36000, bizNo:"134-22-07273"}
+]; // 3곳
+var data = [
+{no:76,count:"4,269건",meal:"0",usage:"110,000",storePay:"10,297,500",cafeteria:"840,000",easy:"136,200",welfare:"2,725,360",gift:"13,314,900",ps:"2026-03-01",pe:"2026-03-31",pt:"월말일",rd:"2026.04.01"},
+{no:75,count:"3,384건",meal:"28,041,090",usage:"200,000",storePay:"28,041,090",cafeteria:"10,000,000",easy:"5,608,600",welfare:"22,432,490",gift:"239,494",ps:"2026-02-01",pe:"2026-02-28",pt:"월말일",rd:"2026.03.01"},
+{no:74,count:"4,239건",meal:"32,160,883",usage:"200,000",storePay:"32,160,883",cafeteria:"10,000,000",easy:"3,399,400",welfare:"28,761,483",gift:"310,520",ps:"2025-12-30",pe:"2026-01-31",pt:"월말일",rd:"2026.02.03"},
+{no:73,count:"3,966건",meal:"30,122,983",usage:"200,000",storePay:"30,122,983",cafeteria:"10,000,000",easy:"3,159,900",welfare:"26,963,083",gift:"289,003",ps:"2026-01-01",pe:"2026-01-31",pt:"월말일",rd:"2026.02.03"},
+{no:72,count:"3,741건",meal:"28,836,301",usage:"200,000",storePay:"28,836,301",cafeteria:"10,000,000",easy:"2,859,700",welfare:"25,976,601",gift:"265,237",ps:"2025-12-01",pe:"2025-12-29",pt:"월말일",rd:"2025.12.29"},
+{no:71,count:"3,793건",meal:"28,508,200",usage:"200,000",storePay:"28,508,200",cafeteria:"10,000,000",easy:"2,810,800",welfare:"25,697,400",gift:"271,123",ps:"2025-11-01",pe:"2025-11-30",pt:"월말일",rd:"2025.12.02"},
+{no:70,count:"3,356건",meal:"25,196,100",usage:"200,000",storePay:"25,196,100",cafeteria:"10,000,000",easy:"2,331,900",welfare:"22,864,200",gift:"242,055",ps:"2025-09-30",pe:"2025-10-31",pt:"월말일",rd:"2025.11.03"},
+{no:69,count:"3,654건",meal:"27,071,200",usage:"200,000",storePay:"27,071,200",cafeteria:"10,000,000",easy:"2,084,000",welfare:"24,987,200",gift:"266,757",ps:"2025-09-01",pe:"2025-09-29",pt:"월말일",rd:"2025.09.30"},
+{no:68,count:"3,531건",meal:"26,749,341",usage:"200,000",storePay:"26,749,341",cafeteria:"10,000,000",easy:"2,746,900",welfare:"24,002,441",gift:"254,335",ps:"2025-08-01",pe:"2025-08-31",pt:"월말일",rd:"2025.09.02"},
+{no:67,count:"3,995건",meal:"29,090,700",usage:"200,000",storePay:"29,090,700",cafeteria:"10,000,000",easy:"2,102,400",welfare:"26,988,300",gift:"300,366",ps:"2025-07-01",pe:"2025-07-31",pt:"월말일",rd:"2025.08.01"},
+{no:66,count:"3,270건",meal:"24,556,360",usage:"200,000",storePay:"24,556,360",cafeteria:"10,000,000",easy:"2,103,600",welfare:"22,452,760",gift:"236,120",ps:"2025-06-01",pe:"2025-06-30",pt:"월말일",rd:"2025.07.01"},
+{no:65,count:"3,084건",meal:"24,248,390",usage:"200,000",storePay:"24,248,390",cafeteria:"10,000,000",easy:"1,967,700",welfare:"22,280,690",gift:"227,206",ps:"2025-05-01",pe:"2025-05-31",pt:"월말일",rd:"2025.06.02"},
+{no:64,count:"3,679건",meal:"27,565,140",usage:"200,000",storePay:"27,565,140",cafeteria:"10,000,000",easy:"1,789,600",welfare:"25,775,540",gift:"274,880",ps:"2025-04-01",pe:"2025-04-30",pt:"월말일",rd:"2025.05.01"},
+{no:63,count:"3,516건",meal:"26,019,419",usage:"200,000",storePay:"26,019,419",cafeteria:"10,000,000",easy:"1,942,800",welfare:"24,076,619",gift:"247,894",ps:"2025-03-01",pe:"2025-03-31",pt:"월말일",rd:"2025.04.01"},
+{no:62,count:"3,346건",meal:"24,850,860",usage:"200,000",storePay:"24,850,860",cafeteria:"10,000,000",easy:"2,039,200",welfare:"22,811,660",gift:"242,891",ps:"2025-02-01",pe:"2025-02-28",pt:"월말일",rd:"2025.03.01"},
+{no:61,count:"3,243건",meal:"24,092,280",usage:"200,000",storePay:"24,092,280",cafeteria:"10,000,000",easy:"1,995,100",welfare:"22,097,180",gift:"227,465",ps:"2025-01-01",pe:"2025-01-31",pt:"월말일",rd:"2025.02.01"},
+{no:60,count:"3,559건",meal:"23,452,480",usage:"200,000",storePay:"23,452,480",cafeteria:"10,000,000",easy:"1,555,300",welfare:"21,897,180",gift:"235,408",ps:"2024-12-01",pe:"2024-12-31",pt:"월말일",rd:"2025.01.01"},
+{no:59,count:"3,362건",meal:"22,321,240",usage:"200,000",storePay:"22,321,240",cafeteria:"10,000,000",easy:"1,404,900",welfare:"20,916,340",gift:"223,951",ps:"2024-11-01",pe:"2024-11-30",pt:"월말일",rd:"2024.12.01"},
+{no:58,count:"3,043건",meal:"27,674,200",usage:"200,000",storePay:"27,674,200",cafeteria:"10,000,000",easy:"4,850,800",welfare:"22,823,400",gift:"188,366",ps:"2024-10-01",pe:"2024-10-31",pt:"월말일",rd:"2024.11.01"},
+{no:57,count:"2,971건",meal:"31,791,050",usage:"200,000",storePay:"31,791,050",cafeteria:"10,000,000",easy:"5,889,400",welfare:"25,901,650",gift:"195,643",ps:"2024-09-01",pe:"2024-09-30",pt:"월말일",rd:"2024.10.02"},
+{no:56,count:"3,182건",meal:"23,821,370",usage:"200,000",storePay:"23,821,370",cafeteria:"10,000,000",easy:"2,771,000",welfare:"21,050,370",gift:"230,281",ps:"2024-08-01",pe:"2024-08-31",pt:"월말일",rd:"2024.09.01"},
+{no:55,count:"3,520건",meal:"26,457,330",usage:"200,000",storePay:"26,457,330",cafeteria:"10,000,000",easy:"2,672,500",welfare:"23,784,830",gift:"256,077",ps:"2024-07-01",pe:"2024-07-31",pt:"월말일",rd:"2024.08.01"},
+{no:54,count:"2,742건",meal:"22,238,330",usage:"200,000",storePay:"22,238,330",cafeteria:"10,000,000",easy:"2,840,200",welfare:"19,398,130",gift:"185,714",ps:"2024-06-01",pe:"2024-06-30",pt:"월말일",rd:"2024.07.05"},
+{no:53,count:"2,793건",meal:"21,797,140",usage:"200,000",storePay:"21,797,140",cafeteria:"10,000,000",easy:"2,699,400",welfare:"19,097,740",gift:"195,912",ps:"2024-05-01",pe:"2024-05-31",pt:"월말일",rd:"2024.06.03"},
+{no:52,count:"3,015건",meal:"26,028,310",usage:"200,000",storePay:"26,028,310",cafeteria:"10,000,000",easy:"3,130,800",welfare:"22,897,510",gift:"230,989",ps:"2024-04-01",pe:"2024-04-30",pt:"월말일",rd:"2024.05.02"},
+{no:51,count:"2,930건",meal:"26,198,510",usage:"200,000",storePay:"26,198,510",cafeteria:"10,000,000",easy:"2,894,200",welfare:"23,304,310",gift:"217,877",ps:"2024-03-01",pe:"2024-03-31",pt:"월말일",rd:"2024.04.02"},
+{no:50,count:"3,013건",meal:"31,413,230",usage:"200,000",storePay:"31,413,230",cafeteria:"10,000,000",easy:"5,061,300",welfare:"26,351,930",gift:"216,541",ps:"2024-02-01",pe:"2024-02-29",pt:"월말일",rd:"2024.03.05"},
+{no:49,count:"3,381건",meal:"31,785,425",usage:"200,000",storePay:"31,785,425",cafeteria:"10,000,000",easy:"3,402,300",welfare:"28,383,125",gift:"245,253",ps:"2024-01-01",pe:"2024-01-31",pt:"월말일",rd:"2024.02.02"},
+{no:48,count:"2,873건",meal:"23,451,235",usage:"200,000",storePay:"23,451,235",cafeteria:"10,000,000",easy:"2,047,100",welfare:"21,404,135",gift:"213,398",ps:"2023-12-01",pe:"2023-12-31",pt:"월말일",rd:"2024.01.03"},
+{no:47,count:"3,181건",meal:"24,812,295",usage:"200,000",storePay:"24,812,295",cafeteria:"10,000,000",easy:"1,627,000",welfare:"23,185,295",gift:"232,285",ps:"2023-11-01",pe:"2023-11-30",pt:"월말일",rd:"2023.12.06"},
+{no:46,count:"2,653건",meal:"23,171,240",usage:"200,000",storePay:"23,171,240",cafeteria:"10,000,000",easy:"1,797,800",welfare:"21,373,440",gift:"207,962",ps:"2023-10-01",pe:"2023-10-31",pt:"월말일",rd:"2023.11.03"},
+{no:45,count:"2,922건",meal:"23,155,220",usage:"200,000",storePay:"23,155,220",cafeteria:"10,000,000",easy:"1,277,300",welfare:"21,877,920",gift:"211,145",ps:"2023-09-01",pe:"2023-09-30",pt:"월말일",rd:"2023.10.04"},
+{no:44,count:"3,226건",meal:"27,523,770",usage:"200,000",storePay:"27,523,770",cafeteria:"10,000,000",easy:"1,039,300",welfare:"26,484,470",gift:"243,962",ps:"2023-08-01",pe:"2023-08-31",pt:"월말일",rd:"2023.09.07"},
+{no:43,count:"3,340건",meal:"27,008,612",usage:"200,000",storePay:"27,008,612",cafeteria:"10,000,000",easy:"275,000",welfare:"26,733,612",gift:"236,122",ps:"2023-07-01",pe:"2023-07-31",pt:"월말일",rd:"2023.08.02"},
+{no:42,count:"3,380건",meal:"27,830,242",usage:"200,000",storePay:"27,830,242",cafeteria:"10,000,000",easy:"0",welfare:"27,830,242",gift:"234,149",ps:"2023-06-01",pe:"2023-06-30",pt:"월말일",rd:"2023.07.05"},
+{no:41,count:"3,476건",meal:"28,081,350",usage:"200,000",storePay:"28,081,350",cafeteria:"10,000,000",easy:"0",welfare:"28,081,350",gift:"240,829",ps:"2023-05-01",pe:"2023-05-31",pt:"월말일",rd:"2023.06.01"},
+{no:40,count:"3,379건",meal:"25,088,260",usage:"200,000",storePay:"25,088,260",cafeteria:"10,000,000",easy:"0",welfare:"25,088,260",gift:"238,368",ps:"2023-04-01",pe:"2023-04-30",pt:"월말일",rd:"2023.05.10"},
+{no:39,count:"3,498건",meal:"28,201,670",usage:"200,000",storePay:"28,201,670",cafeteria:"10,000,000",easy:"0",welfare:"28,201,670",gift:"247,120",ps:"2023-03-01",pe:"2023-03-31",pt:"월말일",rd:"2023.04.03"},
+{no:38,count:"3,059건",meal:"24,165,106",usage:"200,000",storePay:"24,165,106",cafeteria:"10,000,000",easy:"0",welfare:"24,165,106",gift:"222,404",ps:"2023-02-01",pe:"2023-02-28",pt:"월말일",rd:"2023.03.03"},
+{no:37,count:"2,882건",meal:"22,881,750",usage:"200,000",storePay:"22,881,750",cafeteria:"10,000,000",easy:"0",welfare:"22,881,750",gift:"200,208",ps:"2023-01-01",pe:"2023-01-31",pt:"월말일",rd:"2023.02.01"},
+{no:36,count:"3,148건",meal:"24,849,500",usage:"200,000",storePay:"24,849,500",cafeteria:"10,000,000",easy:"0",welfare:"24,849,500",gift:"228,271",ps:"2022-12-01",pe:"2022-12-31",pt:"월말일",rd:"2023.01.02"},
+{no:35,count:"3,400건",meal:"25,242,260",usage:"200,000",storePay:"25,242,260",cafeteria:"10,000,000",easy:"0",welfare:"25,242,260",gift:"243,382",ps:"2022-11-01",pe:"2022-11-30",pt:"월말일",rd:"2022.12.01"},
+{no:34,count:"3,100건",meal:"23,640,350",usage:"200,000",storePay:"23,640,350",cafeteria:"10,000,000",easy:"0",welfare:"23,640,350",gift:"227,906",ps:"2022-10-01",pe:"2022-10-31",pt:"월말일",rd:"2022.11.01"},
+{no:33,count:"3,066건",meal:"23,901,050",usage:"200,000",storePay:"23,901,050",cafeteria:"10,000,000",easy:"0",welfare:"23,901,050",gift:"225,556",ps:"2022-09-01",pe:"2022-09-30",pt:"월말일",rd:"2022.10.03"},
+{no:32,count:"3,426건",meal:"25,497,655",usage:"200,000",storePay:"25,497,655",cafeteria:"10,000,000",easy:"0",welfare:"25,497,655",gift:"239,356",ps:"2022-08-01",pe:"2022-08-31",pt:"월말일",rd:"2022.09.01"},
+{no:31,count:"3,514건",meal:"26,222,540",usage:"200,000",storePay:"26,222,540",cafeteria:"10,000,000",easy:"0",welfare:"26,222,540",gift:"254,027",ps:"2022-07-01",pe:"2022-07-31",pt:"월말일",rd:"2022.08.01"},
+{no:30,count:"3,413건",meal:"25,569,700",usage:"200,000",storePay:"25,569,700",cafeteria:"10,000,000",easy:"0",welfare:"25,569,700",gift:"252,667",ps:"2022-06-01",pe:"2022-06-30",pt:"월말일",rd:"2022.07.04"},
+{no:29,count:"3,375건",meal:"26,065,750",usage:"200,000",storePay:"26,065,750",cafeteria:"10,000,000",easy:"0",welfare:"26,065,750",gift:"265,296",ps:"2022-05-01",pe:"2022-05-31",pt:"월말일",rd:"2022.06.07"},
+{no:28,count:"3,346건",meal:"24,208,320",usage:"200,000",storePay:"24,208,320",cafeteria:"10,000,000",easy:"0",welfare:"24,208,320",gift:"251,041",ps:"2022-04-01",pe:"2022-04-30",pt:"월말일",rd:"2022.05.03"},
+{no:27,count:"3,181건",meal:"25,194,460",usage:"200,000",storePay:"25,194,460",cafeteria:"10,000,000",easy:"0",welfare:"25,194,460",gift:"243,831",ps:"2022-03-01",pe:"2022-03-31",pt:"월말일",rd:"2022.04.05"},
+{no:26,count:"2,603건",meal:"19,256,800",usage:"200,000",storePay:"19,256,800",cafeteria:"10,000,000",easy:"0",welfare:"19,256,800",gift:"190,990",ps:"2022-02-01",pe:"2022-02-28",pt:"월말일",rd:"2022.03.03"},
+{no:25,count:"3,453건",meal:"25,281,450",usage:"200,000",storePay:"25,281,450",cafeteria:"10,000,000",easy:"0",welfare:"25,281,450",gift:"259,794",ps:"2022-01-01",pe:"2022-01-31",pt:"월말일",rd:"2022.02.08"},
+{no:24,count:"4,020건",meal:"30,370,300",usage:"200,000",storePay:"30,370,300",cafeteria:"10,000,000",easy:"0",welfare:"30,370,300",gift:"318,936",ps:"2021-12-01",pe:"2021-12-31",pt:"월말일",rd:"2022.01.04"},
+{no:23,count:"3,611건",meal:"26,753,280",usage:"200,000",storePay:"26,753,280",cafeteria:"10,000,000",easy:"0",welfare:"26,753,280",gift:"298,478",ps:"2021-11-01",pe:"2021-11-30",pt:"월말일",rd:"2021.12.06"},
+{no:22,count:"2,134건",meal:"14,473,000",usage:"200,000",storePay:"14,473,000",cafeteria:"10,000,000",easy:"0",welfare:"14,473,000",gift:"144,730",ps:"2021-10-01",pe:"2021-10-31",pt:"월말일",rd:"2021.11.04"},
+{no:21,count:"2,184건",meal:"18,856,900",usage:"200,000",storePay:"18,856,900",cafeteria:"10,000,000",easy:"0",welfare:"18,856,900",gift:"317,474",ps:"2021-09-01",pe:"2021-09-30",pt:"월말일",rd:"2021.10.05"},
+{no:20,count:"2,682건",meal:"22,987,630",usage:"200,000",storePay:"22,987,630",cafeteria:"10,000,000",easy:"0",welfare:"22,987,630",gift:"448,971",ps:"2021-08-01",pe:"2021-08-31",pt:"월말일",rd:"2021.09.02"},
+{no:19,count:"2,748건",meal:"21,245,450",usage:"200,000",storePay:"21,245,450",cafeteria:"10,000,000",easy:"0",welfare:"21,245,450",gift:"400,339",ps:"2021-07-01",pe:"2021-07-31",pt:"월말일",rd:"2021.08.03"},
+{no:18,count:"3,003건",meal:"23,722,100",usage:"200,000",storePay:"23,722,100",cafeteria:"10,000,000",easy:"0",welfare:"23,722,100",gift:"456,381",ps:"2021-06-01",pe:"2021-06-30",pt:"월말일",rd:"2021.07.02"},
+{no:17,count:"2,604건",meal:"20,522,830",usage:"200,000",storePay:"20,522,830",cafeteria:"10,000,000",easy:"0",welfare:"20,522,830",gift:"390,270",ps:"2021-05-01",pe:"2021-05-31",pt:"월말일",rd:"2021.06.01"},
+{no:16,count:"2,632건",meal:"20,553,250",usage:"200,000",storePay:"20,553,250",cafeteria:"10,000,000",easy:"0",welfare:"20,553,250",gift:"387,787",ps:"2021-04-01",pe:"2021-04-30",pt:"월말일",rd:"2021.05.03"},
+{no:15,count:"2,707건",meal:"22,911,550",usage:"200,000",storePay:"22,911,550",cafeteria:"10,000,000",easy:"0",welfare:"22,911,550",gift:"454,490",ps:"2021-03-01",pe:"2021-03-31",pt:"월말일",rd:"2021.04.01"},
+{no:14,count:"2,014건",meal:"17,623,400",usage:"200,000",storePay:"17,623,400",cafeteria:"10,000,000",easy:"0",welfare:"17,623,400",gift:"350,706",ps:"2021-02-01",pe:"2021-02-28",pt:"월말일",rd:"2021.03.02"},
+{no:13,count:"2,438건",meal:"21,094,870",usage:"200,000",storePay:"21,094,870",cafeteria:"10,000,000",easy:"0",welfare:"21,094,870",gift:"417,542",ps:"2021-01-01",pe:"2021-01-31",pt:"월말일",rd:"2021.02.01"},
+{no:12,count:"2,407건",meal:"20,350,530",usage:"200,000",storePay:"20,350,530",cafeteria:"10,000,000",easy:"0",welfare:"20,350,530",gift:"395,222",ps:"2020-12-01",pe:"2020-12-31",pt:"월말일",rd:"2021.01.04"},
+{no:11,count:"2,720건",meal:"20,384,980",usage:"200,000",storePay:"20,384,980",cafeteria:"10,000,000",easy:"0",welfare:"20,384,980",gift:"386,266",ps:"2020-11-01",pe:"2020-11-30",pt:"월말일",rd:"2020.12.01"},
+{no:10,count:"2,405건",meal:"18,744,600",usage:"200,000",storePay:"18,744,600",cafeteria:"10,000,000",easy:"0",welfare:"18,744,600",gift:"364,134",ps:"2020-10-01",pe:"2020-10-31",pt:"월말일",rd:"2020.11.02"},
+{no:9,count:"2,731건",meal:"20,707,870",usage:"200,000",storePay:"20,707,870",cafeteria:"10,000,000",easy:"0",welfare:"20,707,870",gift:"362,805",ps:"2020-09-01",pe:"2020-09-30",pt:"월말일",rd:"2020.10.06"},
+{no:8,count:"2,796건",meal:"20,556,370",usage:"200,000",storePay:"20,556,370",cafeteria:"10,000,000",easy:"0",welfare:"20,556,370",gift:"360,007",ps:"2020-08-01",pe:"2020-08-31",pt:"월말일",rd:"2020.09.01"},
+{no:7,count:"2,994건",meal:"22,487,300",usage:"200,000",storePay:"22,487,300",cafeteria:"10,000,000",easy:"0",welfare:"22,487,300",gift:"396,341",ps:"2020-07-01",pe:"2020-07-31",pt:"월말일",rd:"2020.08.03"},
+{no:6,count:"2,963건",meal:"23,271,200",usage:"200,000",storePay:"23,271,200",cafeteria:"10,000,000",easy:"0",welfare:"23,271,200",gift:"412,983",ps:"2020-06-01",pe:"2020-06-30",pt:"월말일",rd:"2020.07.01"},
+{no:5,count:"2,590건",meal:"19,375,700",usage:"200,000",storePay:"19,375,700",cafeteria:"10,000,000",easy:"0",welfare:"19,375,700",gift:"337,213",ps:"2020-05-01",pe:"2020-05-31",pt:"월말일",rd:"2020.06.02"},
+{no:4,count:"2,859건",meal:"20,833,225",usage:"200,000",storePay:"20,833,225",cafeteria:"10,000,000",easy:"0",welfare:"20,833,225",gift:"356,993",ps:"2020-04-01",pe:"2020-04-30",pt:"월말일",rd:"2020.05.01"},
+{no:3,count:"1,792건",meal:"13,917,550",usage:"200,000",storePay:"13,917,550",cafeteria:"10,000,000",easy:"0",welfare:"13,917,550",gift:"271,403",ps:"2020-03-01",pe:"2020-03-31",pt:"월말일",rd:"2020.04.01"},
+{no:2,count:"2,278건",meal:"18,805,510",usage:"200,000",storePay:"18,805,510",cafeteria:"10,000,000",easy:"0",welfare:"18,805,510",gift:"363,530",ps:"2020-02-01",pe:"2020-02-29",pt:"월말일",rd:"2020.03.02"},
+{no:1,count:"1,409건",meal:"11,550,700",usage:"200,000",storePay:"11,550,700",cafeteria:"10,000,000",easy:"0",welfare:"11,550,700",gift:"222,941",ps:"2019-12-30",pe:"2020-01-31",pt:"월말일",rd:"2020.02.03"}
+];
+
+function parseNum(s) { return parseInt(String(s).replace(/,/g,'')) || 0; }
+function formatNum(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function roundMan(n) { return Math.floor(n / 10000) * 10000; }
+function fmtMan(s) { return formatNum(roundMan(parseNum(s))); }
+
+var isTaxMode = false;
+
+function renderTable() {
+	var tbody = document.getElementById('dataBody');
+	var html = '';
+	data.forEach(function(r) {
+		var welfareVal = parseNum(r.welfare);
+		var storePayVal = parseNum(r.storePay);
+		var easyVal = parseNum(r.easy);
+		var usageVal = parseNum(r.usage);
+		var cafeteriaVal = parseNum(r.cafeteria);
+		var giftVal = parseNum(r.gift);
+		if (isTaxMode) {
+			var taxStorePayVal = Math.floor(storePayVal * (1 - 0.0275));
+			
+		}
+		var total, col1Val, col2Val, col3Val;
+		if (isTaxMode) {
+			var taxTotal = storePayVal;
+			var taxSae = Math.round(taxTotal / 11);
+			var taxSupply = taxTotal - taxSae;
+			col1Val = '<div style="text-align:left;">총액: ' + formatNum(taxTotal) + '</div><div style="text-align:left;">공급: ' + formatNum(taxSupply) + '</div><div style="text-align:left;">세액: ' + formatNum(taxSae) + '</div>';
+			var usageSae = Math.round(usageVal / 11);
+			
+			var usageSupply = usageVal - usageSae;
+			col2Val = '<div style="text-align:left;">총액: ' + formatNum(usageVal) + '</div><div style="text-align:left;">공급: ' + formatNum(usageSupply) + '</div><div style="text-align:left;">세액: ' + formatNum(usageSae) + '</div>';
+			var storeSae = Math.round(taxStorePayVal / 11);
+			var storeSupply = taxStorePayVal - storeSae;
+			col3Val = '<div style="text-align:left;">총액: ' + formatNum(taxStorePayVal) + '</div><div style="text-align:left;">공급: ' + formatNum(storeSupply) + '</div><div style="text-align:left;">세액: ' + formatNum(storeSae) + '</div>';
+		} else {
+			total = usageVal + storePayVal + cafeteriaVal + easyVal + welfareVal + giftVal;
+			col1Val = formatNum(total);
+			col2Val = formatNum(usageVal);
+			col3Val = formatNum(storePayVal);
+		}
+		var cafeteriaDisplay = isTaxMode ? '-' : formatNum(cafeteriaVal);
+		var easyDisplay = isTaxMode ? '-' : formatNum(easyVal);
+		var welfareDisplay = isTaxMode ? '-' : formatNum(welfareVal);
+		var giftDisplay = isTaxMode ? '-' : formatNum(giftVal);
+		html += '<tr>'
+		+ '<td>' + r.no + '</td>'
+		+ '<td class="pad-data"><span>' + r.ps.substring(5) + '</span> ~ <span>' + r.pe.substring(5) + '</span></td>'
+		+ '<td class="pad-data"><a>' + r.count + '</a></td>'
+		+ '<td class="pad-data">' + col1Val + '</td>'
+		+ '<td class="pad-data">' + col2Val + '</td>'
+		+ '<td class="pad-data">' + col3Val + '</td>'
+		+ '<td class="col-hide pad-data">' + cafeteriaDisplay + '</td>'
+		+ '<td class="pad-data">' + easyDisplay + '</td>'
+		+ '<td class="col-hide pad-data">' + welfareDisplay + '</td>'
+		+ '<td class="col-hide pad-data">' + giftDisplay + '</td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><button class="htcbtnMd"><span>삭제</span></button></td>'
+		+ '<td class="pad-data">' + r.rd.substring(5) + '</td>'
+		+ '<td style="border:none;"></td>'
+		+ '</tr>';
+	});
+	tbody.innerHTML = html;
+}
+// 하단 고정 가로 스크롤바 동기화
+var wrapper = document.querySelector('.scroll-wrapper');
+var hbar = document.getElementById('hscrollBar');
+var hinner = document.getElementById('hscrollInner');
+
+function syncScrollWidth() {
+	hinner.style.width = wrapper.scrollWidth + 'px';
+}
+
+renderTable();
+syncScrollWidth();
+
+var syncing = false;
+hbar.addEventListener('scroll', function() {
+	if (syncing) return;
+	syncing = true;
+	wrapper.scrollLeft = hbar.scrollLeft;
+	requestAnimationFrame(function() { syncing = false; });
+});
+wrapper.addEventListener('scroll', function() {
+	if (syncing) return;
+	syncing = true;
+	hbar.scrollLeft = wrapper.scrollLeft;
+	requestAnimationFrame(function() { syncing = false; });
+});
+
+// 원본 버튼 드롭다운 토글
+function toggleDrop(btn) {
+	var wrap = btn.parentElement;
+	var isOpen = wrap.classList.contains('open');
+	// 다른 열린 드롭다운 닫기
+	document.querySelectorAll('.btn-wrap.open').forEach(function(el) { el.classList.remove('open'); });
+	if (!isOpen) wrap.classList.add('open');
+}
+// 수정본 삭제 컨펌
+function confirmDelete(el) {
+	if (confirm('수정본을 삭제하시겠습니까?')) {
+		alert('삭제되었습니다.');
+	}
+	el.closest('.btn-wrap').classList.remove('open');
+	return false;
+}
+// 바깥 클릭 시 닫기
+document.addEventListener('click', function(e) {
+	if (!e.target.closest('.btn-wrap')) {
+		document.querySelectorAll('.btn-wrap.open').forEach(function(el) { el.classList.remove('open'); });
+	}
+});
+
+// 라디오 버튼 - 총금액/세금계산서 발행 전환
+document.getElementById('viewTotal').addEventListener('change', function() {
+	isTaxMode = false;
+	document.getElementById('thTotal').textContent = '총 금액';
+	renderTable();
+	syncScrollWidth();
+});
+document.getElementById('viewTax').addEventListener('change', function() {
+	isTaxMode = true;
+	document.getElementById('thTotal').textContent = '식대';
+	renderTable();
+	syncScrollWidth();
+});
+</script>
+</body>
+</html>
