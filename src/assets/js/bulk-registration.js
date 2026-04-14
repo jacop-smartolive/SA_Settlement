@@ -60,7 +60,7 @@ function getReverseConfig(buyer) {
   var B = buyer || SUPPLIER;
   var buyerEmail = B.email || SUPPLIER.taxEmail;
   return {
-    templateUrl: "downloads/templates/reverse.xlsx",
+    templateUrl: "../../resources/templates/reverse.xlsx",
     colLetters: COL_REVERSE, maxCol: 66, lastColLetter: "BO", spans: "1:67",
     buildVals: function(item, master, storeBizNo, supply, tax, writeDay, itemText, receiptType) {
       var v = {};
@@ -83,7 +83,7 @@ function getReverseConfig(buyer) {
 
 function getForward50Config() {
   return {
-    templateUrl: "downloads/templates/forward_50.xlsx",
+    templateUrl: "../../resources/templates/forward_50.xlsx",
     colLetters: COL_FORWARD_50, maxCol: 58, lastColLetter: "BG", spans: "1:59",
     buildVals: function(item, master, storeBizNo, supply, tax, writeDay, itemText, receiptType) {
       var v = {};
@@ -103,7 +103,7 @@ function getForward50Config() {
 
 function getForward101Config() {
   return {
-    templateUrl: "downloads/templates/forward_101.xlsx",
+    templateUrl: "../../resources/templates/forward_101.xlsx",
     colLetters: COL_FORWARD_101, maxCol: 50, lastColLetter: "AY", spans: "1:51",
     buildVals: function(item, master, storeBizNo, supply, tax, writeDay, itemText, receiptType) {
       var v = {};
@@ -369,7 +369,7 @@ function generateDetailExcel(type, items, companyName, year, month) {
   var today = new Date();
   var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
 
-  fetch("downloads/templates/reverse_detail.xlsx").then(function(res){
+  fetch("../../resources/templates/reverse_detail.xlsx").then(function(res){
     return res.arrayBuffer();
   }).then(function(buf){
     return JSZip.loadAsync(buf);

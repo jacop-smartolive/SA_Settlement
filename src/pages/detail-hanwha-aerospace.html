@@ -7,7 +7,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
 	<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-	<script src="downloads/bulk-registration.js?v=8"></script>
+	<script src="../assets/js/bulk-registration.js?v=8"></script>
 	<style>
 		* { margin: 0; padding: 0; box-sizing: border-box; }
 		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
@@ -212,7 +212,7 @@
 		<div id="container" class="container">
 			<section>
 				<div class="lnbBox">
-					<h1 class="tit"><a href="index.html">Olive ticket</a></h1>
+					<h1 class="tit"><a href="../index.html">Olive ticket</a></h1>
 					<nav class="localMenuBox">
 						<h2 class="blind">메인메뉴</h2>
 						<ul class="localMenu">
@@ -227,7 +227,7 @@
 									<h3 class="blind">정산 관리 서브 목록</h3>
 									<ul class="subMenu">
 										<li><a href="#">업체 정산</a></li>
-										<li class="on"><a href="index.html">업체 정산 완료 내역</a></li>
+										<li class="on"><a href="../index.html">업체 정산 완료 내역</a></li>
 										<li><a href="#">가맹점 정산 완료 내역</a></li>
 										<li><a href="#">개인포인트 정산 완료 내역</a></li>
 										<li><a href="#">수동 정산</a></li>
@@ -266,7 +266,7 @@
 					<div class="page_location first">
 						<strong class="blind">현재위치</strong>
 						<span><a href="#">정산 관리</a></span>
-						<span class="current"><a href="index.html">정산 완료 내역</a></span>
+						<span class="current"><a href="../index.html">정산 완료 내역</a></span>
 						<span class="current"><a href="#this">정산 기간별 조회</a></span>
 					</div>
 
@@ -344,12 +344,18 @@
 <!-- 양식 선택 팝업 -->
 <div class="preview-overlay" id="fmtPickOverlay">
 	<div class="preview-backdrop" onclick="closeFmtPick()"></div>
-	<div class="preview-modal" style="max-width:560px;">
-		<div class="preview-header">
-			<div><h2 style="font-size:16px;">수정본 파일 양식 선택</h2><p style="font-size:12px;color:#666;">업로드할 파일이 어떤 양식인가요?</p></div>
-			<button class="close-btn" onclick="closeFmtPick()">&times;</button>
+	<div id="fmtPickModal" style="position:relative;background:#fff;border-radius:16px;width:620px;max-width:95vw;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);overflow:hidden;animation:modalIn .2s ease-out;margin:0 16px;">
+		<!-- Header -->
+		<div style="padding:24px 28px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+			<div>
+				<h2 style="margin:0;font-size:18px;font-weight:700;color:#111827;letter-spacing:-0.02em;" id="fmtPickTitle">수정본 파일 양식 선택</h2>
+				<p style="margin:6px 0 0;font-size:14px;color:#6B7280;line-height:1.5;">업로드할 파일의 양식을 선택해주세요</p>
+			</div>
+			<button onclick="closeFmtPick()" style="background:#F3F4F6;border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6B7280;font-size:16px;" onmouseover="this.style.background='#E5E7EB';this.style.color='#374151'" onmouseout="this.style.background='#F3F4F6';this.style.color='#6B7280'">&times;</button>
 		</div>
-		<div id="fmtPickBody" style="display:flex;gap:12px;padding:24px;"></div>
+		<!-- Cards -->
+		<div id="fmtPickBody" style="padding:20px 28px;display:flex;gap:12px;"></div>
+		<div style="height:8px;"></div>
 	</div>
 </div>
 
@@ -432,7 +438,7 @@
 <script>
 // 가맹점 마스터 (대표자/이메일) - SUPPLIER는 bulk-registration.js에 정의됨
 var storeMaster = {};
-fetch('downloads/store_master.json').then(function(r){return r.json()}).then(function(d){
+fetch('../assets/data/store_master.json').then(function(r){return r.json()}).then(function(d){
 	d.forEach(function(s){ storeMaster[s.bizNo] = {ceoName: s.ceoName, email: s.email}; });
 }).catch(function(){});
 
@@ -600,7 +606,7 @@ function renderTable() {
 		+ '<td class="pad-data">' + easyDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + welfareDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + giftDisplay + '</td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_per_person.xlsx" download>다운로드</a><a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.hasRevision ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">미리보기</a><a href="#" onclick="return attachFile(this)">파일수정</a><a href="#" onclick="downloadRevision(' + r.no + '); return false;">다운로드</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="return attachFile(this)">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="../../resources/samples/settlement_per_person.xlsx" download>다운로드</a><a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.hasRevision ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">미리보기</a><a href="#" onclick="return attachFile(this)">파일수정</a><a href="#" onclick="downloadRevision(' + r.no + '); return false;">다운로드</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="return attachFile(this)">파일첨부</a></div></span>') + '</div></td>'
 		+ buildColBtns(r, 'reverse', '가맹점 역발행', true)
 		+ buildColBtns(r, 'forward', '가맹점 정발행 (일반)', true)
 		+ buildColBtns(r, 'forwardSimple', '가맹점 정발행 (간이)', true)
@@ -1022,12 +1028,13 @@ function buildColBtns(r, colType, label, hasBulk) {
 
 	// 수정본 버튼 드롭다운
 	var revMenu = '';
+	var isTaxInv = (colType === 'reverse' || colType === 'forward' || colType === 'forwardSimple');
 	if (r[revKey]) {
 		revMenu = '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown">'
 			+ '<a href="#" onclick="openColPreview(\'' + colType + '\',true,' + r.no + '); return false;">미리보기</a>'
 			+ '<a href="#" onclick="return attachColFile(this,\'' + colType + '\')">파일수정</a>'
 			+ '<a href="#" onclick="downloadColRevision(' + r.no + ',\'' + colType + '\'); return false;">다운로드</a>'
-			+ '<a href="#" onclick="return deleteColRevision(this,\'' + colType + '\')">삭제</a>'
+			+ (isTaxInv ? '' : '<a href="#" onclick="return deleteColRevision(this,\'' + colType + '\')">삭제</a>')
 			+ '</div></span>';
 	} else {
 		revMenu = '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown">'
@@ -1122,24 +1129,82 @@ function parseColFile(colType, buf, fmt) {
 
 var pendingColFmt = null;
 
+var FMT_COLORS = {
+	hometax:{color:'#2563EB',bg:'#EFF6FF',desc:'국세청 홈택스 양식'},
+	hometax50:{color:'#2563EB',bg:'#EFF6FF',desc:'50건 이하 홈택스 양식'},
+	hometax101:{color:'#1D4ED8',bg:'#EFF6FF',desc:'101~1,000건 홈택스 양식'},
+	uplus:{color:'#E11D72',bg:'#FFF1F2',desc:'LG 유플러스 양식'}
+};
+
+function buildFmtCard(o, row, colType, onclick, disableEmpty) {
+	var fc = FMT_COLORS[o.fmt] || FMT_COLORS.hometax;
+	var hint = o.fmt === 'uplus' ? 'CSV' : 'XLSX';
+	var existing = row && row['revFile_' + colType + '_' + o.fmt];
+	if (!existing && row && (row['revFmt_'+colType]||'hometax') === o.fmt) existing = row['revFile_'+colType];
+	var hasFile = !!existing;
+	var borderStyle = hasFile ? '2px solid '+fc.color : '2px solid #E5E7EB';
+	var bgStyle = hasFile ? fc.bg : '#FAFAFA';
+	var isDisabled = disableEmpty && !hasFile;
+	var cursor = isDisabled ? 'not-allowed' : 'pointer';
+	var opacity = isDisabled ? '0.6' : '1';
+
+	// 파일 영역
+	var fileArea;
+	if (hasFile) {
+		fileArea = '<div style="display:flex;align-items:center;gap:10px;width:100%;">'
+			+ '<div style="width:32px;height:32px;border-radius:6px;background:'+fc.color+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+			+ '<svg width="14" height="14" fill="none" stroke="'+fc.color+'" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>'
+			+ '<div style="flex:1;min-width:0;">'
+			+ '<div style="font-size:12px;font-weight:500;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(existing)+'</div>'
+			+ '<div style="font-size:11px;color:#9CA3AF;">.'+hint.toLowerCase()+'</div></div>'
+			+ (disableEmpty ? '' :
+			'<div onclick="event.stopPropagation();deleteFmtFile(\''+colType+'\',\''+o.fmt+'\')" style="flex-shrink:0;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#D1D5DB;transition:color .15s;" onmouseover="this.style.color=\'#EF4444\'" onmouseout="this.style.color=\'#D1D5DB\'">'
+			+ '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>'
+			+ '</div>')
+			+ '</div>';
+	} else {
+		fileArea = '<div style="display:flex;align-items:center;gap:8px;width:100%;justify-content:center;color:#9CA3AF;">'
+			+ '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+			+ '<span style="font-size:12.5px;font-weight:500;">파일 첨부하기</span></div>';
+	}
+
+	return '<div onclick="'+(isDisabled?'':onclick)+'" style="flex:1;border:'+borderStyle+';border-radius:12px;background:'+bgStyle+';cursor:'+cursor+';opacity:'+opacity+';overflow:hidden;transition:all .2s;">'
+		+ '<div style="padding:20px 18px 16px;">'
+		+ '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">'
+		+ '<div style="font-size:15px;font-weight:650;color:'+(hasFile?'#111827':'#374151')+';">'+o.label+'</div>'
+		+ '<div style="font-size:11px;font-weight:600;color:'+(hasFile?fc.color:'#9CA3AF')+';letter-spacing:0.05em;">'+hint+'</div></div>'
+		+ '<div style="font-size:12.5px;color:#9CA3AF;">'+fc.desc+'</div></div>'
+		+ '<div style="border-top:1px solid '+(hasFile?fc.color+'22':'#F3F4F6')+';padding:12px 18px;min-height:48px;display:flex;align-items:center;background:'+(hasFile?fc.color+'08':'#FAFAFA')+';">'
+		+ fileArea + '</div></div>';
+}
+
+function deleteFmtFile(colType, fmt) {
+	var fmtLabel = {hometax:'홈택스',hometax50:'홈택스 (50건 이하)',hometax101:'홈택스 (101~1,000건)',uplus:'LG U+'};
+	if (!confirm((fmtLabel[fmt]||fmt) + ' 수정본을 삭제하시겠습니까?')) return;
+	var rowNo = pendingColRow || parseInt(document.getElementById('fmtPickOverlay').getAttribute('data-row'));
+	var row = data.find(function(d){return d.no == rowNo;});
+	if (!row) return;
+	var suf = '_' + colType + '_' + fmt;
+	delete row['revFile'+suf]; delete row['revBase64'+suf]; delete row['revData'+suf];
+	if (row['revFmt_'+colType] === fmt) delete row['revFmt_'+colType];
+	var hasAny = ['hometax','hometax50','hometax101','uplus'].some(function(f){ return !!row['revBase64_'+colType+'_'+f]; });
+	if (!hasAny) row['rev_'+colType] = false;
+	saveRevisions(); renderTable(); if (typeof syncScrollWidth === 'function') syncScrollWidth();
+	// 팝업 갱신
+	var mode = document.getElementById('fmtPickOverlay').getAttribute('data-mode');
+	if (mode === 'download') openDownloadFmtPick(rowNo, colType);
+	else { pendingColRow = rowNo; pendingColType = colType; pickFormatAndAttach(rowNo, colType); }
+}
+
 function pickFormatAndAttach(rowNo, colType) {
 	pendingColRow = rowNo; pendingColType = colType;
 	var opts = getFmtOptions(colType);
 	var row = data.find(function(d){return d.no == rowNo;});
-	var body = document.getElementById('fmtPickBody');
-	body.innerHTML = opts.map(function(o) {
-		var hint = o.fmt === 'uplus' ? 'CSV' : 'XLSX';
-		var existing = row && row['revFile_' + colType + '_' + o.fmt];
-		// 레거시 호환
-		if (!existing && row && (row['revFmt_'+colType]||'hometax') === o.fmt) existing = row['revFile_'+colType];
-		var attached = existing
-			? '<div style="margin-top:8px;font-size:11px;color:#2563eb;font-weight:500;word-break:break-all;padding:6px 8px;background:#eff6ff;border-radius:6px;">📎 ' + escHtml(existing) + '</div>'
-			: '<div style="margin-top:8px;font-size:11px;color:#9ca3af;">미첨부</div>';
-		var border = existing ? '2px solid #2563eb' : '1px solid #d1d5db';
-		return '<button type="button" onclick="pickFmt(\''+o.fmt+'\')" style="flex:1;padding:18px;border:'+border+';border-radius:8px;background:#fff;cursor:pointer;font-weight:600;font-size:13px;text-align:center;">'
-			+ o.label + '<br><span style="font-size:11px;color:#666;font-weight:400;">'+hint+'</span>'
-			+ attached + '</button>';
+	document.getElementById('fmtPickTitle').textContent = '수정본 파일 양식 선택';
+	document.getElementById('fmtPickBody').innerHTML = opts.map(function(o) {
+		return buildFmtCard(o, row, colType, "pickFmt('"+o.fmt+"')", false);
 	}).join('');
+	document.getElementById('fmtPickModal').style.width = opts.length >= 3 ? '920px' : '620px';
 	document.getElementById('fmtPickOverlay').classList.add('show');
 }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -1320,26 +1385,16 @@ function downloadColRevision(rowNo, colType, fmt) {
 function openDownloadFmtPick(rowNo, colType) {
 	var opts = getFmtOptions(colType);
 	var row = data.find(function(d){return d.no == rowNo;});
-	var body = document.getElementById('fmtPickBody');
-	body.innerHTML = opts.map(function(o) {
-		var hint = o.fmt === 'uplus' ? 'CSV' : 'XLSX';
-		var existing = row && row['revFile_' + colType + '_' + o.fmt];
-		if (!existing && row && (row['revFmt_'+colType]||'hometax') === o.fmt) existing = row['revFile_'+colType];
-		var border = existing ? '2px solid #2563eb' : '1px solid #e5e7eb';
-		var color = existing ? '#111' : '#9ca3af';
-		var cursor = existing ? 'pointer' : 'not-allowed';
-		var attached = existing
-			? '<div style="margin-top:8px;font-size:11px;color:#2563eb;font-weight:500;word-break:break-all;padding:6px 8px;background:#eff6ff;border-radius:6px;">📎 ' + escHtml(existing) + '</div>'
-			: '<div style="margin-top:8px;font-size:11px;color:#9ca3af;">미첨부</div>';
-		var action = existing ? 'pickDownloadFmt(\''+o.fmt+'\')' : 'return false';
-		return '<button type="button" onclick="'+action+'" style="flex:1;padding:18px;border:'+border+';border-radius:8px;background:#fff;cursor:'+cursor+';font-weight:600;font-size:13px;color:'+color+';text-align:center;">'
-			+ o.label + '<br><span style="font-size:11px;color:#666;font-weight:400;">'+hint+'</span>'
-			+ attached + '</button>';
+	document.getElementById('fmtPickTitle').textContent = '수정본 다운로드';
+	document.getElementById('fmtPickBody').innerHTML = opts.map(function(o) {
+		return buildFmtCard(o, row, colType, "pickDownloadFmt('"+o.fmt+"')", true);
 	}).join('');
-	document.getElementById('fmtPickOverlay').setAttribute('data-mode','download');
-	document.getElementById('fmtPickOverlay').setAttribute('data-row', rowNo);
-	document.getElementById('fmtPickOverlay').setAttribute('data-col', colType);
-	document.getElementById('fmtPickOverlay').classList.add('show');
+	document.getElementById('fmtPickModal').style.width = opts.length >= 3 ? '920px' : '620px';
+	var ov = document.getElementById('fmtPickOverlay');
+	ov.setAttribute('data-mode','download');
+	ov.setAttribute('data-row', rowNo);
+	ov.setAttribute('data-col', colType);
+	ov.classList.add('show');
 }
 function pickDownloadFmt(fmt) {
 	var ov = document.getElementById('fmtPickOverlay');

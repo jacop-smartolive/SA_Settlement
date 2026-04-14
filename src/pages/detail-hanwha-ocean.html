@@ -153,7 +153,7 @@
 		<div id="container" class="container">
 			<section>
 				<div class="lnbBox">
-					<h1 class="tit"><a href="index.html">Olive ticket</a></h1>
+					<h1 class="tit"><a href="../index.html">Olive ticket</a></h1>
 					<nav class="localMenuBox">
 						<h2 class="blind">메인메뉴</h2>
 						<ul class="localMenu">
@@ -168,7 +168,7 @@
 									<h3 class="blind">정산 관리 서브 목록</h3>
 									<ul class="subMenu">
 										<li><a href="#">업체 정산</a></li>
-										<li class="on"><a href="index.html">업체 정산 완료 내역</a></li>
+										<li class="on"><a href="../index.html">업체 정산 완료 내역</a></li>
 										<li><a href="#">가맹점 정산 완료 내역</a></li>
 										<li><a href="#">개인포인트 정산 완료 내역</a></li>
 										<li><a href="#">수동 정산</a></li>
@@ -207,7 +207,7 @@
 					<div class="page_location first">
 						<strong class="blind">현재위치</strong>
 						<span><a href="#">정산 관리</a></span>
-						<span class="current"><a href="index.html">정산 완료 내역</a></span>
+						<span class="current"><a href="../index.html">정산 완료 내역</a></span>
 						<span class="current"><a href="#this">정산 기간별 조회</a></span>
 					</div>
 
@@ -216,7 +216,7 @@
 					<input id="companyId" name="companyId" type="hidden" value="100">
 
 					<div class="titBox first">
-						<h2 class="tit_name">두산에너빌리티 (주)</h2>
+						<h2 class="tit_name">한화오션(주)</h2>
 					</div>
 
 					<div class="countBox">
@@ -292,72 +292,32 @@
 <script>
 // 역발행: 전체 가맹점
 var reverseItems = [
-	{name:"인터파크 비즈마켓", count:12, amount:520000, bizNo:"000-00-00000"},
-	{name:"오천집", count:212, amount:1494000, bizNo:"449-34-01612"},
-	{name:"공유주방(솔잎푸드)", count:157, amount:1309000, bizNo:"386-86-03282"},
-	{name:"밥이보약", count:101, amount:795000, bizNo:"781-38-00534"},
-	{name:"슬로우캘리 가산디지털점", count:7, amount:135500, bizNo:"380-44-00803"},
-	{name:"웰빙푸드 (구내식당)", count:141, amount:1001000, bizNo:"135-25-43079"},
-	{name:"따봉돈까스", count:53, amount:448600, bizNo:"408-72-00050"},
-	{name:"빤닭빤닭", count:41, amount:637000, bizNo:"279-02-03155"},
-	{name:"부산 아지매국밥 가산점", count:65, amount:736000, bizNo:"218-10-66198"},
-	{name:"미래더이룸푸드", count:39, amount:286000, bizNo:"354-02-03058"},
-	{name:"도원", count:21, amount:223000, bizNo:"180-49-01018"},
-	{name:"황제", count:99, amount:895400, bizNo:"284-70-00203"},
-	{name:"얌샘김밥 퍼블릭가산", count:35, amount:330200, bizNo:"272-03-03113"},
-	{name:"원조양평서울해장국", count:16, amount:168000, bizNo:"604-07-64601"},
-	{name:"빽다방 퍼블릭가산", count:1, amount:3700, bizNo:"509-06-93556"},
-	{name:"옛날그맛명동칼국수", count:21, amount:177000, bizNo:"119-21-08131"},
-	{name:"김가네 가산갑을그레이트점", count:18, amount:154000, bizNo:"762-10-00989"},
-	{name:"킹콩부대찌개", count:4, amount:50000, bizNo:"325-38-01196"},
-	{name:"써브웨이 가산그레이트밸리점", count:8, amount:80500, bizNo:"564-14-01887"},
-	{name:"큐큐면관 가산직영점", count:26, amount:273000, bizNo:"654-32-01471"},
-	{name:"명가교동짬뽕", count:6, amount:60000, bizNo:"119-22-77182"},
-	{name:"스테이키 퍼블릭가산점", count:22, amount:239100, bizNo:"152-34-01493"},
-	{name:"가산삼계탕", count:8, amount:75000, bizNo:"113-13-44696"},
-	{name:"써브웨이 가산디지털점", count:2, amount:20500, bizNo:"219-23-00414"},
-	{name:"동남집", count:9, amount:97000, bizNo:"372-11-00110"},
-	{name:"명가네삼겹살", count:4, amount:53000, bizNo:"611-20-02091"},
-	{name:"한려수도", count:4, amount:36000, bizNo:"134-22-07273"}
-]; // 27곳
+	{name:"팔공티 마곡벨리오점", count:144, amount:543100, bizNo:"733-11-02216"},
+	{name:"트렌드커피(폐업)", count:20, amount:220500, bizNo:"571-22-02050"},
+	{name:"돌체테이블", count:34, amount:226000, bizNo:"324-12-02585"},
+	{name:"소맘김밥", count:17, amount:108300, bizNo:"726-33-01526"},
+	{name:"더베럴스커피", count:8, amount:34000, bizNo:"399-01-03224"},
+	{name:"달콤하우스 마곡점", count:8, amount:130920, bizNo:"501-47-00376"},
+	{name:"김둘레순대국 양천향교점", count:2, amount:37000, bizNo:"519-40-00489"}
+]; // 7곳
 
 // 정발행(일반): 기업 + 가맹점
 var forwardItems = [
-	{name:"두산에너빌리티 (주)", amount:0, bizNo:"609-81-04684"},
-	{name:"인터파크 비즈마켓", count:12, amount:520000, bizNo:"000-00-00000"},
-	{name:"오천집", count:212, amount:1494000, bizNo:"449-34-01612"},
-	{name:"공유주방(솔잎푸드)", count:157, amount:1309000, bizNo:"386-86-03282"},
-	{name:"밥이보약", count:101, amount:795000, bizNo:"781-38-00534"},
-	{name:"슬로우캘리 가산디지털점", count:7, amount:135500, bizNo:"380-44-00803"},
-	{name:"웰빙푸드 (구내식당)", count:141, amount:1001000, bizNo:"135-25-43079"},
-	{name:"따봉돈까스", count:53, amount:448600, bizNo:"408-72-00050"},
-	{name:"빤닭빤닭", count:41, amount:637000, bizNo:"279-02-03155"},
-	{name:"부산 아지매국밥 가산점", count:65, amount:736000, bizNo:"218-10-66198"},
-	{name:"미래더이룸푸드", count:39, amount:286000, bizNo:"354-02-03058"},
-	{name:"도원", count:21, amount:223000, bizNo:"180-49-01018"},
-	{name:"황제", count:99, amount:895400, bizNo:"284-70-00203"},
-	{name:"얌샘김밥 퍼블릭가산", count:35, amount:330200, bizNo:"272-03-03113"},
-	{name:"원조양평서울해장국", count:16, amount:168000, bizNo:"604-07-64601"},
-	{name:"빽다방 퍼블릭가산", count:1, amount:3700, bizNo:"509-06-93556"},
-	{name:"옛날그맛명동칼국수", count:21, amount:177000, bizNo:"119-21-08131"},
-	{name:"김가네 가산갑을그레이트점", count:18, amount:154000, bizNo:"762-10-00989"},
-	{name:"킹콩부대찌개", count:4, amount:50000, bizNo:"325-38-01196"},
-	{name:"써브웨이 가산그레이트밸리점", count:8, amount:80500, bizNo:"564-14-01887"},
-	{name:"큐큐면관 가산직영점", count:26, amount:273000, bizNo:"654-32-01471"},
-	{name:"명가교동짬뽕", count:6, amount:60000, bizNo:"119-22-77182"},
-	{name:"스테이키 퍼블릭가산점", count:22, amount:239100, bizNo:"152-34-01493"},
-	{name:"가산삼계탕", count:8, amount:75000, bizNo:"113-13-44696"},
-	{name:"써브웨이 가산디지털점", count:2, amount:20500, bizNo:"219-23-00414"}
-]; // 25곳
+	{name:"한화오션(주)", amount:0, bizNo:"104-81-57667"},
+	{name:"팔공티 마곡벨리오점", count:144, amount:543100, bizNo:"733-11-02216"},
+	{name:"트렌드커피(폐업)", count:20, amount:220500, bizNo:"571-22-02050"},
+	{name:"돌체테이블", count:34, amount:226000, bizNo:"324-12-02585"},
+	{name:"소맘김밥", count:17, amount:108300, bizNo:"726-33-01526"},
+	{name:"더베럴스커피", count:8, amount:34000, bizNo:"399-01-03224"}
+]; // 6곳
 
 // 정발행(간이)
 var forwardSimpleItems = [
-	{name:"동남집", count:9, amount:97000, bizNo:"372-11-00110"},
-	{name:"명가네삼겹살", count:4, amount:53000, bizNo:"611-20-02091"},
-	{name:"한려수도", count:4, amount:36000, bizNo:"134-22-07273"}
-]; // 3곳
+	{name:"달콤하우스 마곡점", count:8, amount:130920, bizNo:"501-47-00376"},
+	{name:"김둘레순대국 양천향교점", count:2, amount:37000, bizNo:"519-40-00489"}
+]; // 2곳
 var data = [
-{no:76,count:"4,269건",meal:"0",usage:"110,000",storePay:"10,297,500",cafeteria:"840,000",easy:"136,200",welfare:"2,725,360",gift:"13,314,900",ps:"2026-03-01",pe:"2026-03-31",pt:"월말일",rd:"2026.04.01"},
+{no:76,count:"4,269건",meal:"0",usage:"220,000",storePay:"1,299,820",cafeteria:"19,200,000",easy:"136,200",welfare:"1,625,360",gift:"1,995,100",ps:"2026-03-01",pe:"2026-03-31",pt:"월말일",rd:"2026.04.01"},
 {no:75,count:"3,384건",meal:"28,041,090",usage:"200,000",storePay:"28,041,090",cafeteria:"10,000,000",easy:"5,608,600",welfare:"22,432,490",gift:"239,494",ps:"2026-02-01",pe:"2026-02-28",pt:"월말일",rd:"2026.03.01"},
 {no:74,count:"4,239건",meal:"32,160,883",usage:"200,000",storePay:"32,160,883",cafeteria:"10,000,000",easy:"3,399,400",welfare:"28,761,483",gift:"310,520",ps:"2025-12-30",pe:"2026-01-31",pt:"월말일",rd:"2026.02.03"},
 {no:73,count:"3,966건",meal:"30,122,983",usage:"200,000",storePay:"30,122,983",cafeteria:"10,000,000",easy:"3,159,900",welfare:"26,963,083",gift:"289,003",ps:"2026-01-01",pe:"2026-01-31",pt:"월말일",rd:"2026.02.03"},
@@ -490,12 +450,12 @@ function renderTable() {
 		+ '<td class="pad-data">' + easyDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + welfareDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + giftDisplay + '</td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
-		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
-		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_flat_rate.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_per_person.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_per_person.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_per_person.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_per_person.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_per_person.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="downloads/settlement_per_person.xlsx" download>다운로드</a><a href="#">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.no == 76 ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">미리보기</a><a href="#">파일수정</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#">파일첨부</a></div></span>') + '</div></td>'
 		+ '<td class="btn-cell pad-data"><button class="htcbtnMd"><span>삭제</span></button></td>'
 		+ '<td class="pad-data">' + r.rd.substring(5) + '</td>'
 		+ '<td style="border:none;"></td>'
