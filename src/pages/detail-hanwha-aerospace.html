@@ -7,7 +7,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
 	<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-	<script src="../assets/js/bulk-registration.js?v=8"></script>
+	<script src="../assets/js/bulk-registration.js?v=10"></script>
 	<style>
 		* { margin: 0; padding: 0; box-sizing: border-box; }
 		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
@@ -606,7 +606,7 @@ function renderTable() {
 		+ '<td class="pad-data">' + easyDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + welfareDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + giftDisplay + '</td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="../../resources/samples/settlement_per_person.xlsx" download>다운로드</a><a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.hasRevision ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">미리보기</a><a href="#" onclick="return attachFile(this)">파일수정</a><a href="#" onclick="downloadRevision(' + r.no + '); return false;">다운로드</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="return attachFile(this)">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#" onclick="downloadSettlement(); return false;">다운로드</a><a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.hasRevision ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">미리보기</a><a href="#" onclick="return attachFile(this)">파일수정</a><a href="#" onclick="downloadRevision(' + r.no + '); return false;">다운로드</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="return attachFile(this)">파일첨부</a></div></span>') + '</div></td>'
 		+ buildColBtns(r, 'reverse', '가맹점 역발행', true)
 		+ buildColBtns(r, 'forward', '가맹점 정발행 (일반)', true)
 		+ buildColBtns(r, 'forwardSimple', '가맹점 정발행 (간이)', true)
@@ -1130,7 +1130,7 @@ function parseColFile(colType, buf, fmt) {
 var pendingColFmt = null;
 
 var FMT_COLORS = {
-	hometax:{color:'#2563EB',bg:'#EFF6FF',desc:'국세청 홈택스 양식'},
+	hometax:{color:'#2563EB',bg:'#EFF6FF',desc:'50건 이하 홈택스 양식'},
 	hometax50:{color:'#2563EB',bg:'#EFF6FF',desc:'50건 이하 홈택스 양식'},
 	hometax101:{color:'#1D4ED8',bg:'#EFF6FF',desc:'101~1,000건 홈택스 양식'},
 	uplus:{color:'#E11D72',bg:'#FFF1F2',desc:'LG 유플러스 양식'}
@@ -1376,7 +1376,17 @@ function downloadColRevision(rowNo, colType, fmt) {
 	var blob = new Blob([bytes], {type: mime});
 	var link = document.createElement('a');
 	link.href = URL.createObjectURL(blob);
-	link.download = fileName || (fmt === 'uplus' ? '수정본.csv' : '수정본.xlsx');
+	var companyName = document.querySelector('.tit_name').textContent;
+	var today = new Date();
+	var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+	var typeLabels = {reverse:'역발행', forward:'정발행 (일반)', forwardSimple:'정발행 (간이)', transfer:'가맹점지급', slip:'회계전표'};
+	var fmtLabels = {hometax:'홈텍스_50건이하등록', hometax50:'홈텍스_50건이하등록', hometax101:'홈텍스_101~1000건등록', uplus:'LGU+'};
+	var ext = fmt === 'uplus' ? '.csv' : '.xlsx';
+	if (colType === 'transfer' || colType === 'slip') {
+		link.download = companyName + '_' + typeLabels[colType] + '_수정본_' + dateStr + ext;
+	} else {
+		link.download = companyName + '_' + typeLabels[colType] + '_' + (fmtLabels[fmt]||fmt) + '_수정본_' + dateStr + ext;
+	}
 	document.body.appendChild(link); link.click();
 	document.body.removeChild(link);
 	URL.revokeObjectURL(link.href);
@@ -1432,7 +1442,7 @@ function getFmtOptions(colType) {
 		{fmt:'uplus', label:'LG U+'}
 	];
 	return [
-		{fmt:'hometax', label:'홈택스'},
+		{fmt:'hometax', label:'홈택스 (50건 이하)'},
 		{fmt:'uplus', label:'LG U+'}
 	];
 }
@@ -1469,12 +1479,15 @@ function renderColPreviewBody() {
 	}
 	if (!items) {
 		if (st.isRevision) {
-			// 해당 양식으로 업로드된 수정본 없음
+			var fmtLabels = {hometax:'홈택스',hometax50:'홈택스 (50건 이하)',hometax101:'홈택스 (101~1,000건)',uplus:'LG U+'};
 			headEl.innerHTML = '';
-			bodyEl.innerHTML = '<tr><td style="padding:40px;text-align:center;color:#888;">첨부된 ' + (st.fmt==='uplus'?'LG U+':'홈택스') + ' 수정본이 없습니다.</td></tr>';
+			bodyEl.innerHTML = '<tr><td colspan="99" style="padding:60px 20px;text-align:center;color:#9CA3AF;font-size:14px;">'
+				+ '첨부된 <b style="color:#6B7280;">' + (fmtLabels[st.fmt]||st.fmt) + '</b> 수정본이 없습니다.'
+				+ '<br><span style="font-size:12px;margin-top:8px;display:inline-block;">수정본 → 파일수정에서 업로드해주세요.</span></td></tr>';
+			var tbl = document.getElementById('previewTable');
+			if (tbl) { tbl.style.width = '100%'; tbl.style.tableLayout = 'auto'; }
 			return;
 		}
-		// 원본
 		var itemsMap = {reverse:reverseItems, forward:forwardItems, forwardSimple:forwardSimpleItems};
 		var companyBizNo = (typeof BUYER !== 'undefined') ? BUYER.bizNo : '';
 		items = itemsMap[st.colType]
@@ -1675,6 +1688,13 @@ function openColPreview(colType, isRevision, rowNo) {
 		document.getElementById('previewModal').classList.add('show');
 		return;
 	}
+	// 수정본이고 업로드 데이터 있으면 그것 사용
+	// 수정본 데이터: 양식별 키 > 레거시 키
+	var uploadedData = null;
+	if (isRevision && row) {
+		var revFmt = row['revFmt_'+colType] || 'hometax';
+		uploadedData = row['revData_'+colType+'_'+revFmt] || row['revData_'+colType] || null;
+	}
 	var html = '';
 	// (deprecated below — kept for no-op)
 	if (false) {
@@ -1774,9 +1794,12 @@ function openColPreview(colType, isRevision, rowNo) {
 		if (uploadedData) {
 			items = uploadedData.items;
 		} else {
+			var bankNames = ["국민은행","신한은행","우리은행","하나은행","농협은행","기업은행","SC제일은행","씨티은행","카카오뱅크","토스뱅크","케이뱅크"];
+			function nameSeed(n){var s=0;for(var i=0;i<n.length;i++)s+=n.charCodeAt(i);return Math.abs(s);}
 			items = reverseItems.map(function(item) {
 				var fee = Math.round(item.amount * 0.0275);
-				return {bank:'', account:'', amount:item.amount-fee, desc:item.name, note:item.bizNo||''};
+				var seed = nameSeed(item.name);
+				return {bank:bankNames[seed%bankNames.length], account:(100+(seed%900))+'-'+(1000000+((seed*7919)%9000000))+'-'+(10+((seed*31)%90)), amount:item.amount-fee, desc:companyName+' 정산', note:item.name};
 			});
 		}
 		items.forEach(function(item,i) {
@@ -1824,7 +1847,10 @@ function downloadRevision(rowNo) {
 	var blob = new Blob([bytes], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 	var link = document.createElement('a');
 	link.href = URL.createObjectURL(blob);
-	link.download = row._fileName || '수정본.xlsx';
+	var companyName = document.querySelector('.tit_name').textContent;
+	var today = new Date();
+	var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+	link.download = companyName + '_정산서_수정본_' + dateStr + '.xlsx';
 	document.body.appendChild(link); link.click();
 	document.body.removeChild(link);
 	URL.revokeObjectURL(link.href);
@@ -2002,6 +2028,22 @@ function closePreview() {
 	document.getElementById('previewModal').classList.remove('show');
 }
 
+// 정산서 다운로드
+function downloadSettlement() {
+	var companyName = document.querySelector('.tit_name').textContent;
+	var today = new Date();
+	var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+	var fileName = companyName + '_정산서_' + dateStr + '.xlsx';
+	fetch('../../resources/samples/settlement_per_person.xlsx').then(function(r){return r.blob();}).then(function(blob){
+		var link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = fileName;
+		document.body.appendChild(link); link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(link.href);
+	});
+}
+
 // 내역 다운로드 - bulk-registration.js의 generateDetailExcel 호출
 function downloadDetail(type) {
 	var companyName = document.querySelector('.tit_name').textContent;
@@ -2079,7 +2121,7 @@ var currentBulkTab = 'hometax';
 var bulkConfig = {
 	reverse: { title:'역발행', item:'식대', code:'45710', receipt:'02', alert:'*엑셀 : 업로드 제한 없음 / 계산서 : 10건씩 끊어서 발행', btns:'10' },
 	forward: { title:'정발행 일반', item:'수수료', code:'40720', receipt:'01', alert:'*엑셀 : 업로드 제한 없음\n*계산서 : 50건씩 끊어서 발행하거나, 101~1,000건까지 한 번에 발행', btns:'50_101' },
-	forwardSimple: { title:'정발행 간이', item:'수수료', code:'40710', receipt:'01', alert:'*엑셀 : 업로드 제한 없음\n*계산서 : 50건씩 끊어서 발행하거나, 101~1,000건까지 한 번에 발행', btns:'50_101' }
+	forwardSimple: { title:'정발행 간이', item:'수수료', code:'40710', receipt:'01', alert:'*엑셀 : 업로드 제한 없음\n*계산서 : 50건씩 끊어서 발행', btns:'50' }
 };
 
 function openBulkPopup(type) {
@@ -2138,9 +2180,11 @@ function updatePopupBtns() {
 		html = '<button class="btn-uplus" onclick="startBulkDownload(\'uplus\')">다운로드</button>';
 	} else if (cfg.btns === '10') {
 		html = '<button class="btn-hometax" onclick="startBulkDownload(\'small\')">10건 이하</button>';
-	} else {
+	} else if (cfg.btns === '50_101') {
 		html = '<button class="btn-hometax" onclick="startBulkDownload(\'small\')">50건 이하</button>';
 		html += ' <button class="btn-hometax-outline" onclick="startBulkDownload(\'large\')">101~1000건</button>';
+	} else {
+		html = '<button class="btn-hometax" onclick="startBulkDownload(\'small\')">다운로드</button>';
 	}
 	document.getElementById('popupDownloadBtns').innerHTML = html;
 }
@@ -2167,6 +2211,7 @@ function startBulkDownload(size) {
 
 	var params = {
 		type: currentBulkType,
+		companyName: document.querySelector('.tit_name').textContent,
 		buyer: { bizNo: "6098102992", name: "한화에어로스페이스 (주)", ceo: "손재일", email: "valyouable@naver.com" },
 		items: bulkItems,
 		writeDate: writeDate,

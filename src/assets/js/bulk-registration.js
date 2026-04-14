@@ -126,6 +126,7 @@ function generateBulkRegExcel(params) {
   var type = params.type, items = params.items, writeDate = params.writeDate;
   var itemName = params.itemName, wihagoCode = params.wihagoCode, receiptType = params.receiptType;
   var forceLarge = params.forceLargeTemplate;
+  var companyName = params.companyName || '';
   var onProgress = params.onProgress || function(){};
   var totalItems = items.length;
   onProgress(10);
@@ -236,9 +237,9 @@ function generateBulkRegExcel(params) {
       });
     });
   }).then(function(blob) {
-    var typeLabel = type === "reverse" ? "역발행" : type === "forward" ? "정발행(일반)" : "정발행(간이)";
-    var sizeLabel = totalItems > 100 ? "_대량" : "";
-    downloadBlob(blob, "세금계산서_일괄등록_" + typeLabel + sizeLabel + "_" + writeDate + ".xlsx");
+    var typeLabel = type === "reverse" ? "역발행" : type === "forward" ? "정발행 (일반)" : "정발행 (간이)";
+    var sizeLabel = forceLarge ? "101~1000건등록" : (type === "reverse" ? "10건이하등록" : "50건이하등록");
+    downloadBlob(blob, companyName + "_" + typeLabel + "_홈텍스_" + sizeLabel + "_" + writeDate + ".xlsx");
     onProgress(100);
   }).catch(function(err) {
     console.error("일괄등록 Excel 생성 실패:", err);
@@ -303,6 +304,7 @@ function generateBulkRegCsv(params) {
   var type = params.type, items = params.items, writeDate = params.writeDate;
   var tradeDate = params.tradeDate, itemName = params.itemName, wihagoCode = params.wihagoCode;
   var receiptType = params.receiptType;
+  var companyName = params.companyName || '';
   var onProgress = params.onProgress || function(){};
   var totalItems = items.length;
   onProgress(10);
@@ -356,8 +358,8 @@ function generateBulkRegCsv(params) {
   var encodeToEucKr = createEucKrEncoder();
   var encoded = encodeToEucKr(csvContent);
   var blob = new Blob([encoded], {type:"text/csv"});
-  var typeLabel = type === "reverse" ? "역발행" : type === "forward" ? "정발행(일반)" : "정발행(간이)";
-  downloadBlob(blob, "세금계산서_일괄등록_" + typeLabel + "_전자문서_" + writeDate + ".csv");
+  var typeLabel = type === "reverse" ? "역발행" : type === "forward" ? "정발행 (일반)" : "정발행 (간이)";
+  downloadBlob(blob, companyName + "_" + typeLabel + "_LGU+_" + writeDate + ".csv");
   onProgress(100);
 }
 
@@ -459,29 +461,35 @@ function generateDetailExcel(type, items, companyName, year, month) {
 function generateTransferExcel(items, companyName, year, month) {
   var today = new Date();
   var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+  var bankNames = ["국민은행","신한은행","우리은행","하나은행","농협은행","기업은행","SC제일은행","씨티은행","카카오뱅크","토스뱅크","케이뱅크"];
+
+  function nameSeed(name) {
+    var s = 0;
+    for (var i = 0; i < name.length; i++) s += name.charCodeAt(i);
+    return Math.abs(s);
+  }
 
   // SharedStrings 빌드
   var ss = [];
   function ssIdx(str){ var s=String(str); var i=ss.indexOf(s); if(i>=0) return i; ss.push(s); return ss.length-1; }
-  var headerTexts = ["은행","계좌번호","금액","설명","비고"];
-  headerTexts.forEach(ssIdx);
 
   var rowsXml = '';
-  // 헤더 행
-  rowsXml += '<row r="1" spans="1:5" ht="20" customHeight="1">';
-  headerTexts.forEach(function(h,c){ rowsXml += '<c r="'+String.fromCharCode(65+c)+'1" s="3" t="s"><v>'+ssIdx(h)+'</v></c>'; });
-  rowsXml += '</row>';
-  // 데이터 행
+  // 데이터 행 (헤더 없음 — ADMIN-SITE-UI 기준)
   items.forEach(function(item,r){
-    var rowNum = r+2;
+    var rowNum = r+1;
     var fee = Math.round(item.amount * COMMISSION_RATE);
     var amt = item.amount - fee;
+    var seed = nameSeed(item.name);
+    var bank = bankNames[seed % bankNames.length];
+    var account = (100 + (seed % 900)) + '-' + (1000000 + ((seed * 7919) % 9000000)) + '-' + (10 + ((seed * 31) % 90));
+    var desc = companyName + ' 정산';
+    var note = item.name;
     rowsXml += '<row r="'+rowNum+'" spans="1:5" ht="16.5" customHeight="1">';
-    rowsXml += '<c r="A'+rowNum+'" s="1" t="s"><v>'+ssIdx("")+'</v></c>';
-    rowsXml += '<c r="B'+rowNum+'" s="1" t="s"><v>'+ssIdx("")+'</v></c>';
+    rowsXml += '<c r="A'+rowNum+'" s="1" t="s"><v>'+ssIdx(bank)+'</v></c>';
+    rowsXml += '<c r="B'+rowNum+'" s="1" t="s"><v>'+ssIdx(account)+'</v></c>';
     rowsXml += '<c r="C'+rowNum+'" s="2"><v>'+amt+'</v></c>';
-    rowsXml += '<c r="D'+rowNum+'" s="1" t="s"><v>'+ssIdx(item.name)+'</v></c>';
-    rowsXml += '<c r="E'+rowNum+'" s="1" t="s"><v>'+ssIdx(item.bizNo||"")+'</v></c>';
+    rowsXml += '<c r="D'+rowNum+'" s="1" t="s"><v>'+ssIdx(desc)+'</v></c>';
+    rowsXml += '<c r="E'+rowNum+'" s="1" t="s"><v>'+ssIdx(note)+'</v></c>';
     rowsXml += '</row>';
   });
 
@@ -513,7 +521,7 @@ function generateTransferExcel(items, companyName, year, month) {
   zip.file('xl/sharedStrings.xml', ssXml);
 
   zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}).then(function(blob){
-    downloadBlob(blob, companyName+"_"+year+"년"+month+"월_대량이체_원본_"+dateStr+".xlsx");
+    downloadBlob(blob, companyName+"_가맹점지급_"+dateStr+".xlsx");
   });
 }
 
@@ -593,6 +601,6 @@ function generateSlipExcel(items, companyName, year, month) {
   zip.file('xl/sharedStrings.xml', ssXml);
 
   zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}).then(function(blob){
-    downloadBlob(blob, companyName+"_"+year+"년"+month+"월_전표_원본_"+dateStr+".xlsx");
+    downloadBlob(blob, companyName+"_회계전표_"+dateStr+".xlsx");
   });
 }
