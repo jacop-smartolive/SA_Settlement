@@ -841,6 +841,48 @@ fetch('assets/data/store_master.json').then(function(r){return r.json();}).then(
 }).catch(function(){});
 
 // 일괄 다운로드 이력 기록 (localStorage에 직접 저장)
+// 수정본 데이터 조회 (localStorage에서)
+function getRevisionItems(companyName, colType) {
+	try {
+		var saved = localStorage.getItem('settlement-rev-' + companyName);
+		if (!saved) return null;
+		var revData = JSON.parse(saved);
+		var fmts = ['hometax','hometax50','hometax101','uplus'];
+		var allItems = [];
+		Object.keys(revData).forEach(function(rowNo) {
+			var row = revData[rowNo];
+			// 양식별 수정본 확인
+			for (var i = 0; i < fmts.length; i++) {
+				var key = 'revData_' + colType + '_' + fmts[i];
+				if (row[key] && row[key].items && row[key].items.length > 0) {
+					row[key].items.forEach(function(item) { allItems.push(item); });
+					return; // 첫 번째 양식 데이터 사용
+				}
+			}
+			// 레거시 키
+			var legacyKey = 'revData_' + colType;
+			if (row[legacyKey] && row[legacyKey].items && row[legacyKey].items.length > 0) {
+				row[legacyKey].items.forEach(function(item) { allItems.push(item); });
+			}
+		});
+		return allItems.length > 0 ? allItems : null;
+	} catch(e) { return null; }
+}
+
+// 수정본 정산서 금액 조회
+function getRevisionSettlement(companyName) {
+	try {
+		var saved = localStorage.getItem('settlement-rev-' + companyName);
+		if (!saved) return null;
+		var revData = JSON.parse(saved);
+		var rowKeys = Object.keys(revData);
+		if (rowKeys.length === 0) return null;
+		var row = revData[rowKeys[0]];
+		if (row._parsedData) return row._parsedData;
+		return null;
+	} catch(e) { return null; }
+}
+
 function recordBulkDownload(companyName, colType, type, fmt) {
 	var now = new Date();
 	var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
@@ -1087,15 +1129,24 @@ function startStoreInvoiceDownload() {
 	var wiCodes = {reverse:'45710', forward:'40720', forwardSimple:'40710'};
 	var isReverse = type === 'reverse';
 
-	// 모든 체크 기업의 가맹점을 합산
+	// 수정본 우선, 없으면 원본 사용
 	var allItems = [];
+	var usedRevision = false;
 	checked.forEach(function(co) {
-		(co[itemsKey] || []).forEach(function(item) {
-			var fee = Math.round(item.amount * 0.0275);
-			var bill = isReverse ? item.amount - fee : fee;
-			var tax = Math.ceil(bill / 11);
-			allItems.push({ name:item.name, amount:item.amount, billAmount:bill, supply:bill-tax, tax:tax, note:item.bizNo||'' });
-		});
+		var revItems = getRevisionItems(co.name, type);
+		if (revItems) {
+			usedRevision = true;
+			revItems.forEach(function(item) {
+				allItems.push({ name:item.name, amount:item.amount||0, billAmount:item.amount||0, supply:item.supply||0, tax:item.tax||0, note:item.bizNo||'' });
+			});
+		} else {
+			(co[itemsKey] || []).forEach(function(item) {
+				var fee = Math.round(item.amount * 0.0275);
+				var bill = isReverse ? item.amount - fee : fee;
+				var tax = Math.ceil(bill / 11);
+				allItems.push({ name:item.name, amount:item.amount, billAmount:bill, supply:bill-tax, tax:tax, note:item.bizNo||'' });
+			});
+		}
 	});
 
 	if (allItems.length === 0) { alert('다운로드할 가맹점 데이터가 없습니다.'); return; }
@@ -1117,7 +1168,8 @@ function startStoreInvoiceDownload() {
 			document.getElementById('ciProgressText').textContent = pct + '%';
 			if (pct >= 100) {
 				var dlFmt = ciTab === 'uplus' ? 'uplus' : 'hometax';
-				checked.forEach(function(co){ recordBulkDownload(co.name, type, '원본', dlFmt); });
+				var dlType = usedRevision ? '수정본' : '원본';
+				checked.forEach(function(co){ recordBulkDownload(co.name, type, dlType, dlFmt); });
 				setTimeout(closeCompanyIssue, 500);
 			}
 		}
@@ -1266,17 +1318,23 @@ function startCompanyIssueDownload() {
 function startBulkTransferDownload() {
 	var checked = getCheckedCompanies();
 	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
-	// 모든 체크 기업의 reverseItems 합산
 	var allItems = [];
+	var usedRevision = false;
 	checked.forEach(function(co) {
-		(co.reverseItems || []).forEach(function(item) { allItems.push(item); });
+		var revItems = getRevisionItems(co.name, 'transfer');
+		if (revItems) {
+			usedRevision = true;
+			revItems.forEach(function(item) { allItems.push(item); });
+		} else {
+			(co.reverseItems || []).forEach(function(item) { allItems.push(item); });
+		}
 	});
 	if (allItems.length === 0) { alert('다운로드할 가맹점 데이터가 없습니다.'); return; }
 	var companyName = checked.length === 1 ? checked[0].name : '전체';
 	var year = new Date().getFullYear().toString();
 	var month = String(new Date().getMonth()+1).padStart(2,'0');
 	generateTransferExcel(allItems, companyName, year, month);
-	checked.forEach(function(co){ recordBulkDownload(co.name, 'transfer', '원본'); });
+	checked.forEach(function(co){ recordBulkDownload(co.name, 'transfer', usedRevision ? '수정본' : '원본'); });
 }
 
 // 회계전표 일괄 다운로드 (기업별 외상매출금 포함)
@@ -1287,8 +1345,9 @@ function startBulkSlipDownload() {
 		var co = checked[0];
 		var year = new Date().getFullYear().toString();
 		var month = String(new Date().getMonth()+1).padStart(2,'0');
-		generateSlipExcel(co.reverseItems || [], co.name, year, month);
-		recordBulkDownload(co.name, 'slip', '원본');
+		var revItems = getRevisionItems(co.name, 'slip');
+		generateSlipExcel(revItems || co.reverseItems || [], co.name, year, month);
+		recordBulkDownload(co.name, 'slip', revItems ? '수정본' : '원본');
 		return;
 	}
 	// 복수 기업: 기업별로 가맹점 차변 + 고객사 대변 묶어서 생성
@@ -1307,8 +1366,11 @@ function startBulkSlipDownload() {
 	rowsXml += '</row>';
 
 	var rowNum = 2;
+	var usedRevision = false;
 	checked.forEach(function(co) {
-		var items = co.reverseItems || [];
+		var revItems = getRevisionItems(co.name, 'slip');
+		var items = revItems || co.reverseItems || [];
+		if (revItems) usedRevision = true;
 		var totalBill = 0;
 		// 가맹점별 차변
 		items.forEach(function(item) {
@@ -1366,7 +1428,7 @@ function startBulkSlipDownload() {
 	zip.file('xl/sharedStrings.xml', ssXml);
 	zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}).then(function(blob){
 		downloadBlob(blob, '전체_회계전표_'+dateStr+'.xlsx');
-		checked.forEach(function(co){ recordBulkDownload(co.name, 'slip', '원본'); });
+		checked.forEach(function(co){ recordBulkDownload(co.name, 'slip', usedRevision ? '수정본' : '원본'); });
 	});
 }
 
@@ -1403,15 +1465,24 @@ function startCompanyIssueExcel(companies, writeDate, writeDay, itemName, receip
 
 				for (var i = 0; i < companies.length; i++) {
 					var co = companies[i];
-					// 정산서 데이터에서 최근 식대(meal) 가져오기
-					var saved = localStorage.getItem('settlement-rev-' + co.name);
+					// 수정본 정산서 데이터 우선, 없으면 원본
+					var revSettlement = getRevisionSettlement(co.name);
 					var mealAmount = 0;
-					if (saved) {
-						var revData = JSON.parse(saved);
-						var firstRow = revData[Object.keys(revData)[0]];
-						if (firstRow && firstRow.usage) mealAmount = parseInt(String(firstRow.usage).replace(/,/g,'')) || 0;
+					if (revSettlement) {
+						// 수정본: 전체 총액 (구내식당+가맹점+간편결제+올리브몰 등)
+						mealAmount = (revSettlement.cafeteria ? revSettlement.cafeteria.totalAmount : 0)
+							+ (revSettlement.stores ? revSettlement.stores.totalAmount : 0)
+							+ (revSettlement.simpleFood ? revSettlement.simpleFood.totalAmount : 0)
+							+ (revSettlement.oliveMall ? revSettlement.oliveMall.totalAmount : 0);
 					}
-					// 없으면 기본값
+					if (!mealAmount) {
+						var saved = localStorage.getItem('settlement-rev-' + co.name);
+						if (saved) {
+							var revData = JSON.parse(saved);
+							var firstRow = revData[Object.keys(revData)[0]];
+							if (firstRow && firstRow.usage) mealAmount = parseInt(String(firstRow.usage).replace(/,/g,'')) || 0;
+						}
+					}
 					if (!mealAmount) mealAmount = 28000000;
 					var tax = Math.ceil(mealAmount / 11);
 					var supply = mealAmount - tax;
@@ -1501,12 +1572,21 @@ function startCompanyIssueCsv(companies, writeDate, tradeDate, itemName, receipt
 
 	for (var i = 0; i < companies.length; i++) {
 		var co = companies[i];
-		var saved = localStorage.getItem('settlement-rev-' + co.name);
+		var revSettlement = getRevisionSettlement(co.name);
 		var mealAmount = 0;
-		if (saved) {
-			var revData = JSON.parse(saved);
-			var firstRow = revData[Object.keys(revData)[0]];
-			if (firstRow && firstRow.usage) mealAmount = parseInt(String(firstRow.usage).replace(/,/g,'')) || 0;
+		if (revSettlement) {
+			mealAmount = (revSettlement.cafeteria ? revSettlement.cafeteria.totalAmount : 0)
+				+ (revSettlement.stores ? revSettlement.stores.totalAmount : 0)
+				+ (revSettlement.simpleFood ? revSettlement.simpleFood.totalAmount : 0)
+				+ (revSettlement.oliveMall ? revSettlement.oliveMall.totalAmount : 0);
+		}
+		if (!mealAmount) {
+			var saved = localStorage.getItem('settlement-rev-' + co.name);
+			if (saved) {
+				var revData = JSON.parse(saved);
+				var firstRow = revData[Object.keys(revData)[0]];
+				if (firstRow && firstRow.usage) mealAmount = parseInt(String(firstRow.usage).replace(/,/g,'')) || 0;
+			}
 		}
 		if (!mealAmount) mealAmount = 28000000;
 		var tax = Math.ceil(mealAmount / 11);
