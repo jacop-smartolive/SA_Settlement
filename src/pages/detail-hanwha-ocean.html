@@ -93,7 +93,7 @@
 		.bbs_list tbody td a:hover { font-weight: bold; color: #333; }
 		.bbs_list tbody tr:hover { background: #f5f5f5; }
 
-		.htcbtnMd { display: inline-block; min-width: 25px; padding: 0 8px; border: 1px solid #515b6c; background: #fff; border-radius: 3px; box-sizing: border-box; }
+		.htcbtnMd { display: inline-block; width: 60px; padding: 0 8px; border: 1px solid #515b6c; background: #fff; border-radius: 3px; box-sizing: border-box; }
 		.htcbtnMd span { display: inline-block; padding: 0; color: #515b6c; font-size: 11px; line-height: 24px; text-align: center; font-family: 'Nanum Gothic'; }
 		.htcbtnMd.ico_down { position: relative; padding-right: 18px; }
 		.htcbtnMd.ico_down:after { display: block; position: absolute; right: 6px; top: 50%; margin-top: -5px; width: 5px; height: 5px; border-right: 1.5px solid #515b6c; border-bottom: 1.5px solid #515b6c; border-radius: 0 0 1px 0; transform: rotate(45deg); content: ''; }
@@ -280,9 +280,11 @@
 
 					<div class="countBox">
 						<div class="leftArea">
-							<span class="to_result label_cell">결과</span><span class="to_result"><b>76</b></span><span class="to_result label_cell">조회</span><span class="to_result radio_box"><input type="radio" name="viewType" id="viewTotal" checked><label for="viewTotal">총금액</label> <input type="radio" name="viewType" id="viewTax"><label for="viewTax">세금계산서 발행</label></span><span class="to_result label_cell">위하고 코드</span><span class="to_result">식대 <b>41210</b>, 1인당 과금 <b>41320</b> <button class="htcbtnMd" style="margin-left:5px;"><span>수정</span></button></span>
+							<span class="to_result label_cell">결과</span><span class="to_result"><b>76</b></span><span class="to_result label_cell">조회</span><span class="to_result radio_box"><input type="radio" name="viewType" id="viewTotal" checked><label for="viewTotal">총금액</label> <input type="radio" name="viewType" id="viewTax"><label for="viewTax">세금계산서 발행</label></span>
 						</div>
-						<div class="rightArea">
+						<div class="rightArea" style="display:flex;align-items:center;gap:16px;">
+							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#2563eb;"><span style="width:8px;height:8px;border-radius:50%;background:#2563eb;display:inline-block;"></span>다운로드</span>
+							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#e5006a;"><span style="width:8px;height:8px;border-radius:50%;background:#e5006a;display:inline-block;"></span>수정본 업로드</span>
 							<strong class="tit">목록개수</strong>
 							<select id="pageSize" name="pageSize">
 								<option value="10">10</option>
@@ -606,7 +608,7 @@ function renderTable() {
 		+ '<td class="pad-data">' + easyDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + welfareDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + giftDisplay + '</td>'
-		+ '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#" onclick="downloadSettlement(); return false;">다운로드</a><a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.hasRevision ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">미리보기</a><a href="#" onclick="return attachFile(this)">파일수정</a><a href="#" onclick="downloadRevision(' + r.no + '); return false;">다운로드</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="return attachFile(this)">파일첨부</a></div></span>') + '</div></td>'
+		+ '<td class="btn-cell pad-data">' + getDlLabel(r, null) + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#" onclick="downloadSettlement(' + r.no + '); return false;">다운로드</a><a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.hasRevision ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">미리보기</a><a href="#" onclick="return attachFile(this)">파일수정</a><a href="#" onclick="downloadRevision(' + r.no + '); recordDownload(' + r.no + ',null,\'수정본\'); return false;">다운로드</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="return attachFile(this)">파일첨부</a></div></span>') + '</div></td>'
 		+ buildColBtns(r, 'reverse', '가맹점 역발행', true)
 		+ buildColBtns(r, 'forward', '가맹점 정발행 (일반)', true)
 		+ buildColBtns(r, 'forwardSimple', '가맹점 정발행 (간이)', true)
@@ -674,7 +676,9 @@ function saveRevisions() {
 		var key = 'settlement-rev-' + companyName;
 		var revData = {};
 		data.forEach(function(row) {
-			if (row.hasRevision) {
+			var hasDl = ['settlement','reverse','forward','forwardSimple','transfer','slip'].some(function(k){ return !!row['dl_'+k]; });
+			var hasRev = row.hasRevision || ['reverse','forward','forwardSimple','transfer','slip'].some(function(ct){ return !!row['rev_'+ct]; });
+			if (hasRev || hasDl) {
 				var save = {
 					_original: row._original,
 					_stores: row._stores,
@@ -700,6 +704,11 @@ function saveRevisions() {
 							save['revData'+suf] = row['revData'+suf];
 						}
 					});
+				});
+				// 다운로드 이력 저장
+				['settlement','reverse','forward','forwardSimple','transfer','slip'].forEach(function(k) {
+					var dk = 'dl_' + k;
+					if (row[dk]) save[dk] = row[dk];
 				});
 				revData[row.no] = save;
 			}
@@ -747,6 +756,10 @@ function saveRevisions() {
 							row['revData'+suf] = rev['revData'+suf];
 							row['rev_'+ct] = true;
 						}
+					});
+					// 다운로드 이력 복원
+					['settlement','reverse','forward','forwardSimple','transfer','slip'].forEach(function(k){
+						if (rev['dl_'+k]) row['dl_'+k] = rev['dl_'+k];
 					});
 				});
 			}
@@ -877,9 +890,7 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 			row._fileBase64 = btoa(binary);
 			row._fileName = file.name;
 			row.hasRevision = true;
-			renderTable();
-			syncScrollWidth();
-			saveRevisions();
+			recordDownload(pendingRowNo, null, '수정본', null, null, 'upload');
 			// 업로드 직후 수정본 미리보기 자동 열기
 			var rowNoForPreview = pendingRowNo;
 			setTimeout(function() {
@@ -1016,14 +1027,47 @@ function buildStyledXlsx(sheetName, headers, dataRows, colWidths, numCols, fileN
 	});
 }
 
+// 다운로드 이력 기록 (colType=null이면 정산서)
+function recordDownload(rowNo, colType, type, fmt, source, action) {
+	var now = new Date();
+	var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+	var timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+	var key = colType ? 'dl_'+colType : 'dl_settlement';
+	var fmtLabel = '';
+	if (fmt === 'uplus' || fmt === 'lguplus') fmtLabel = 'LG U+ ';
+	else if (fmt === 'hometax' || fmt === 'hometax50' || fmt === 'hometax101') fmtLabel = '홈텍스 ';
+	var srcLabel = source === 'bulk' ? '(일괄) ' : '(개별) ';
+	var actLabel = action === 'upload' ? '[UP]' : '[DL]';
+	var val = dateStr + '|' + timeStr + ' ' + srcLabel + fmtLabel + type + ' ' + actLabel;
+	var row = rowNo ? data.find(function(d){return d.no==rowNo;}) : null;
+	if (row) row[key] = val;
+	saveRevisions();
+	renderTable();
+	if (typeof syncScrollWidth === 'function') syncScrollWidth();
+}
+
+function hasDlAny(r) {
+	return ['settlement','reverse','forward','forwardSimple','transfer','slip'].some(function(k){ return !!r['dl_'+k]; });
+}
+function getDlLabel(r, colType) {
+	var key = colType ? 'dl_'+colType : 'dl_settlement';
+	var hasAny = hasDlAny(r);
+	if (!r[key]) return hasAny ? '<div style="height:30px;"></div>' : '';
+	var parts = r[key].split('|');
+	var isUpload = (r[key].indexOf('[UP]') >= 0);
+	var color = isUpload ? '#e5006a' : '#2563eb';
+	var display = parts[1].replace(' [DL]','').replace(' [UP]','');
+	return '<div style="font-size:12px;color:'+color+';line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+parts[0]+'<br>'+display+'</div>';
+}
+
 // 열별 원본/수정본 버튼 빌더
 function buildColBtns(r, colType, label, hasBulk) {
 	var revKey = 'rev_' + colType;
 	// 원본 버튼 드롭다운
 	var origMenu = '';
 	if (hasBulk) origMenu += '<a href="#" onclick="openBulkPopup(\'' + colType + '\'); return false;">다운로드</a>';
-	else if (colType === 'transfer') origMenu += '<a href="#" onclick="downloadTransfer(); return false;">다운로드</a>';
-	else origMenu += '<a href="#" onclick="downloadSlip(); return false;">다운로드</a>';
+	else if (colType === 'transfer') origMenu += '<a href="#" onclick="downloadTransfer(" + r.no + "); return false;">다운로드</a>';
+	else origMenu += '<a href="#" onclick="downloadSlip(" + r.no + "); return false;">다운로드</a>';
 	origMenu += '<a href="#" onclick="openColPreview(\'' + colType + '\'); return false;">미리보기</a>';
 
 	// 수정본 버튼 드롭다운
@@ -1042,7 +1086,7 @@ function buildColBtns(r, colType, label, hasBulk) {
 			+ '</div></span>';
 	}
 
-	return '<td class="btn-cell pad-data"><div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown">' + origMenu + '</div></span></div><div style="margin-top:5px;">' + revMenu + '</div></td>';
+	return '<td class="btn-cell pad-data">' + getDlLabel(r, colType) + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown">' + origMenu + '</div></span></div><div style="margin-top:5px;">' + revMenu + '</div></td>';
 }
 
 // 열별 파일 파싱 + 저장
@@ -1257,9 +1301,7 @@ function handleColFileChange(e) {
 		// 호환: 열에 수정본이 하나라도 있으면 rev_<cType> = true
 		row['rev_' + cType] = true;
 		row['revFmt_' + cType] = fmt; // 최근 업로드 양식
-		renderTable();
-		if (typeof syncScrollWidth === 'function') syncScrollWidth();
-		saveRevisions();
+		recordDownload(rowNo, cType, '수정본', fmt, null, 'upload');
 		setTimeout(function() { openColPreview(cType, true, rowNo); }, 100);
 	};
 	if (isCsv) reader.readAsArrayBuffer(file);
@@ -1390,6 +1432,7 @@ function downloadColRevision(rowNo, colType, fmt) {
 	document.body.appendChild(link); link.click();
 	document.body.removeChild(link);
 	URL.revokeObjectURL(link.href);
+	recordDownload(rowNo, colType, '수정본', fmt);
 }
 
 function openDownloadFmtPick(rowNo, colType) {
@@ -2029,7 +2072,7 @@ function closePreview() {
 }
 
 // 정산서 다운로드
-function downloadSettlement() {
+function downloadSettlement(rowNo) {
 	var companyName = document.querySelector('.tit_name').textContent;
 	var today = new Date();
 	var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
@@ -2041,6 +2084,7 @@ function downloadSettlement() {
 		document.body.appendChild(link); link.click();
 		document.body.removeChild(link);
 		URL.revokeObjectURL(link.href);
+		recordDownload(rowNo, null, '원본');
 	});
 }
 
@@ -2054,19 +2098,21 @@ function downloadDetail(type) {
 }
 
 // 대량이체 다운로드 - bulk-registration.js의 generateTransferExcel 호출
-function downloadTransfer() {
+function downloadTransfer(rowNo) {
 	var companyName = document.querySelector('.tit_name').textContent;
 	var year = data[0] ? data[0].ps.substring(0,4) : new Date().getFullYear();
 	var month = data[0] ? data[0].ps.substring(5,7) : String(new Date().getMonth()+1).padStart(2,'0');
 	generateTransferExcel(reverseItems, companyName, year, month);
+	recordDownload(rowNo, 'transfer', '원본');
 }
 
 // 회계전표 다운로드 - bulk-registration.js의 generateSlipExcel 호출
-function downloadSlip() {
+function downloadSlip(rowNo) {
 	var companyName = document.querySelector('.tit_name').textContent;
 	var year = data[0] ? data[0].ps.substring(0,4) : new Date().getFullYear();
 	var month = data[0] ? data[0].ps.substring(5,7) : String(new Date().getMonth()+1).padStart(2,'0');
 	generateSlipExcel(reverseItems, companyName, year, month);
+	recordDownload(rowNo, 'slip', '원본');
 }
 
 // 수정본 삭제 컨펌
@@ -2116,6 +2162,7 @@ document.getElementById('viewTax').addEventListener('change', function() {
 
 // 세금계산서 일괄등록 팝업
 var currentBulkType = '';
+var currentBulkRow = null;
 var currentBulkTab = 'hometax';
 
 var bulkConfig = {
@@ -2124,8 +2171,9 @@ var bulkConfig = {
 	forwardSimple: { title:'정발행 간이', item:'수수료', code:'40710', receipt:'01', alert:'*엑셀 : 업로드 제한 없음\n*계산서 : 50건씩 끊어서 발행', btns:'50' }
 };
 
-function openBulkPopup(type) {
+function openBulkPopup(type, rowNo) {
 	currentBulkType = type;
+	currentBulkRow = rowNo || null;
 	currentBulkTab = 'hometax';
 	var cfg = bulkConfig[type];
 	document.getElementById('popupTitle').textContent = cfg.title;
@@ -2181,8 +2229,12 @@ function updatePopupBtns() {
 	} else if (cfg.btns === '10') {
 		html = '<button class="btn-hometax" onclick="startBulkDownload(\'small\')">10건 이하</button>';
 	} else if (cfg.btns === '50_101') {
-		html = '<button class="btn-hometax" onclick="startBulkDownload(\'small\')">50건 이하</button>';
-		html += ' <button class="btn-hometax-outline" onclick="startBulkDownload(\'large\')">101~1000건</button>';
+		var itemsMap = {reverse:reverseItems, forward:forwardItems, forwardSimple:forwardSimpleItems};
+		var storeCount = (itemsMap[currentBulkType] || []).length;
+		var dis50 = storeCount > 50;
+		var dis101 = storeCount <= 100;
+		html = '<button class="btn-hometax" onclick="startBulkDownload(\'small\')"' + (dis50 ? ' disabled style="opacity:0.4;cursor:not-allowed;"' : '') + '>50건 이하</button>';
+		html += ' <button class="btn-hometax-outline" onclick="startBulkDownload(\'large\')"' + (dis101 ? ' disabled style="opacity:0.4;cursor:not-allowed;"' : '') + '>101~1,000건</button>';
 	} else {
 		html = '<button class="btn-hometax" onclick="startBulkDownload(\'small\')">다운로드</button>';
 	}
@@ -2223,7 +2275,10 @@ function startBulkDownload(size) {
 		onProgress: function(pct) {
 			document.getElementById('popupProgressFill').style.width = pct + '%';
 			document.getElementById('popupProgressText').textContent = pct + '%';
-			if (pct >= 100) setTimeout(function(){ closeBulkPopup(); }, 300);
+			if (pct >= 100) {
+				recordDownload(currentBulkRow, currentBulkType, '원본', currentBulkTab === 'uplus' ? 'uplus' : 'hometax');
+				setTimeout(function(){ closeBulkPopup(); }, 300);
+			}
 		}
 	};
 

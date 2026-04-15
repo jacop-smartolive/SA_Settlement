@@ -5,6 +5,8 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>OliveTicket Service Admin</title>
 	<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+	<script src="assets/js/bulk-registration.js?v=10"></script>
 	<style>
 		/* Reset */
 		* { margin: 0; padding: 0; box-sizing: border-box; }
@@ -126,6 +128,9 @@
 		.countBox { margin: 20px 0 0 0; }
 		.countBox:after { display: block; clear: both; content: ''; }
 		.countBox .leftArea { float: left; color: #666; font-size: 13px; }
+		.countBox .leftArea .to_result { display: inline-flex; align-items: center; padding: 0 15px; border: 1px solid #ddd; vertical-align: middle; height: 40px; }
+		.countBox .leftArea .to_result + .to_result { margin-left: -1px; }
+		.countBox .leftArea .to_result.label_cell { background: #f0f1f2; color: #333; font-weight: 700; }
 		.countBox .leftArea .to_result b { margin: 0 0 0 4px; color: #000; }
 		.countBox .rightArea { float: right; color: #666; font-size: 13px; }
 		.countBox .rightArea .tit { position: relative; padding: 0 10px; font-weight: normal; }
@@ -136,9 +141,10 @@
 
 		/* bbs_list */
 		.bbs_list { position: relative; width: 100%; }
-		.bbs_list thead th { padding: 10px 0; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; text-align: center; }
+		.bbs_list thead th { padding: 10px 0; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; text-align: center; white-space: nowrap; }
+		.bbs_list { table-layout: auto; }
 		.bbs_list tbody th,
-		.bbs_list tbody td { padding: 5px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #666; font-size: 13px; text-align: center; vertical-align: middle; }
+		.bbs_list tbody td { padding: 5px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #666; font-size: 13px; text-align: center; vertical-align: middle; white-space: nowrap; }
 		.bbs_list.type01 tbody th,
 		.bbs_list.type01 tbody td { padding-top: 10px; padding-bottom: 10px; }
 		.bbs_list tbody td a { border-bottom: 1px dotted #000; color: inherit; }
@@ -358,16 +364,41 @@
 					</div>
 					<!-- //formBox -->
 
-					<div class="btn_area first type01">
+					<div class="btn_area first type01" style="display:flex;gap:8px;align-items:center;justify-content:flex-end;">
 						<button type="button" class="htcbtnMd type02" onclick="fnViewPage('1');"><span>검색</span></button>
+						<div style="position:relative;display:inline-block;">
+							<button type="button" class="htcbtnMd type02 bulk-dl-btn" onclick="toggleBulkDl(this)" style="padding:0 18px 0 8px;position:relative;">
+								<span>일괄 다운로드</span>
+								<svg class="bulk-dl-arrow" style="position:absolute;right:5px;top:50%;margin-top:-5px;transition:transform .2s;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+							</button>
+							<div class="bulk-dl-dropdown" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;min-width:100%;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;padding:4px 0;">
+								<a href="#" onclick="bulkDownloadAll('companyIssue'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">고객사 발행</a>
+								<a href="#" onclick="bulkDownloadAll('reverse'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 역발행</a>
+								<a href="#" onclick="bulkDownloadAll('forward'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 정발행 (일반)</a>
+								<a href="#" onclick="bulkDownloadAll('forwardSimple'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 정발행 (간이)</a>
+								<a href="#" onclick="bulkDownloadAll('transfer'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 지급</a>
+								<a href="#" onclick="bulkDownloadAll('slip'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">회계전표</a>
+							</div>
+						</div>
 					</div>
 
 					<!-- countBox -->
 					<div class="countBox">
 						<div class="leftArea">
-							<span class="to_result">결과:<b>4</b></span>
+							<span class="to_result label_cell">결과</span><span class="to_result"><b>4</b></span>
+							<select id="sortFilter" onchange="applySortFilter()" style="margin-left:12px;height:40px;padding:0 10px;border:1px solid #ddd;font-size:13px;color:#333;vertical-align:middle;">
+								<option value="">기본 순</option>
+								<option value="dl_settlement">정산서 일괄 순</option>
+								<option value="dl_reverse">가맹점 역발행 일괄 순</option>
+								<option value="dl_forward">가맹점 정발행 (일반) 일괄 순</option>
+								<option value="dl_forwardSimple">가맹점 정발행 (간이) 일괄 순</option>
+								<option value="dl_transfer">가맹점 지급 일괄 순</option>
+								<option value="dl_slip">회계전표 일괄 순</option>
+							</select>
 						</div>
-						<div class="rightArea">
+						<div class="rightArea" style="display:flex;align-items:center;gap:16px;">
+							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#2563eb;"><span style="width:8px;height:8px;border-radius:50%;background:#2563eb;display:inline-block;"></span>다운로드</span>
+							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#e5006a;"><span style="width:8px;height:8px;border-radius:50%;background:#e5006a;display:inline-block;"></span>수정본 업로드</span>
 							<strong class="tit">목록개수</strong>
 							<select id="pageSize" name="pageSize" onchange="fnViewPage('1');">
 								<option value="10">10</option>
@@ -383,59 +414,89 @@
 						<table class="bbs_list type01">
 							<caption>기업체 관리 목록</caption>
 							<colgroup>
-								<col style="width:50px;">
-								<col style="width:auto;">
-								<col style="width:10%;">
-								<col style="width:10%;">
-								<col style="width:20%;">
-								<col style="width:10%;">
-								<col style="width:15%;">
+								<col style="width:36px;">
+								<col style="width:28px;">
+								<col style="width:36px;">
+								<col>
+								<col>
+								<col>
+								<col>
+								<col>
+								<col>
+								<col style="width:220px;">
+								<col>
+								<col>
 							</colgroup>
 							<thead>
 								<tr>
+									<th scope="row"><input type="checkbox" id="checkAll" onclick="toggleCheckAll(this)"></th>
+									<th scope="row"></th>
 									<th scope="row">번호</th>
 									<th scope="row">기업체</th>
 									<th scope="row">사업자등록번호</th>
 									<th scope="row">대표자 명</th>
 									<th scope="row">세금계산서 발행 이메일</th>
+									<th scope="row">위하고 코드1</th>
+									<th scope="row">위하고 코드2</th>
+									<th scope="row">최근 다운로드</th>
 									<th scope="row">정산 완료 건수</th>
 									<th scope="row">마지막 정산 완료일</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
+								<tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="drop(event)">
+									<td><input type="checkbox" class="row-check"></td>
+									<td style="cursor:grab;text-align:center;color:#aaa;">☰</td>
 									<td>4</td>
 									<td><a href="pages/detail-hanwha-aerospace.html">한화에어로스페이스 (주)</a></td>
 									<td>609-81-02992</td>
 									<td>손재일</td>
-									<td></td>
+									<td>valyouable@naver.com</td>
+									<td>[41210] 식대</td>
+									<td>[41210] 1인당 과금</td>
+									<td class="dl-history" data-company="한화에어로스페이스 (주)"></td>
 									<td><a href="pages/detail-hanwha-aerospace.html">77</a></td>
 									<td>2026.03.31</td>
 								</tr>
-								<tr>
+								<tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="drop(event)">
+									<td><input type="checkbox" class="row-check"></td>
+									<td style="cursor:grab;text-align:center;color:#aaa;">☰</td>
 									<td>3</td>
 									<td><a href="pages/detail-doosan-enerbility.html">두산에너빌리티 (주)</a></td>
 									<td>609-81-04684</td>
 									<td>박지원</td>
-									<td></td>
+									<td>valyouable@naver.com</td>
+									<td>[41210] 식대</td>
+									<td>[41330] 정액제</td>
+									<td class="dl-history" data-company="두산에너빌리티 (주)"></td>
 									<td><a href="pages/detail-doosan-enerbility.html">76</a></td>
 									<td>2026.03.31</td>
 								</tr>
-								<tr>
+								<tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="drop(event)">
+									<td><input type="checkbox" class="row-check"></td>
+									<td style="cursor:grab;text-align:center;color:#aaa;">☰</td>
 									<td>2</td>
 									<td><a href="pages/detail-hanwha-ocean.html">한화오션(주)</a></td>
 									<td>104-81-57667</td>
 									<td>김희철</td>
-									<td></td>
+									<td>valyouable@naver.com</td>
+									<td>[41210] 식대</td>
+									<td>[41210] 1인당 과금</td>
+									<td class="dl-history" data-company="한화오션(주)"></td>
 									<td><a href="pages/detail-hanwha-ocean.html">56</a></td>
 									<td>2026.03.31</td>
 								</tr>
-								<tr>
+								<tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="drop(event)">
+									<td><input type="checkbox" class="row-check"></td>
+									<td style="cursor:grab;text-align:center;color:#aaa;">☰</td>
 									<td>1</td>
 									<td><a href="pages/detail-hd-hyundai.html">HD현대중공업(주)</a></td>
 									<td>252-87-01412</td>
 									<td>이상균, 노진율</td>
-									<td></td>
+									<td>valyouable@naver.com</td>
+									<td>[41210] 식대</td>
+									<td>-</td>
+									<td class="dl-history" data-company="HD현대중공업(주)"></td>
 									<td><a href="pages/detail-hd-hyundai.html">74</a></td>
 									<td>2026.03.31</td>
 								</tr>
@@ -458,6 +519,108 @@
 			</section>
 		</div>
 	</section>
+</div>
+
+<!-- 최근 다운로드 이력 팝업 -->
+<div id="dlHistoryOverlay" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+	<div style="width:720px;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.12);overflow:hidden;margin:auto;">
+		<div style="padding:24px 28px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+			<div>
+				<h2 id="dlHistoryTitle" style="font-size:18px;font-weight:700;color:#111827;margin:0;">최근 다운로드 일시</h2>
+				<p id="dlHistorySubtitle" style="margin:6px 0 0;font-size:13px;color:#6B7280;"></p>
+			</div>
+			<button onclick="closeDlHistoryPopup()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;cursor:pointer;color:#6b7280;display:flex;align-items:center;justify-content:center;">✕</button>
+		</div>
+		<div style="padding:20px 28px;">
+			<table id="dlHistoryTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+				<thead>
+					<tr style="background:#f8f9fa;">
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">유형</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">수정유무</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">등록방식</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">다운로드/업로드</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">최근 일시</th>
+					</tr>
+				</thead>
+				<tbody id="dlHistoryBody"></tbody>
+			</table>
+		</div>
+		<div style="height:1px;background:#f3f4f6;"></div>
+		<div style="padding:16px 28px;display:flex;justify-content:flex-end;">
+			<button onclick="closeDlHistoryPopup()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">닫기</button>
+		</div>
+	</div>
+</div>
+
+<!-- 고객사 발행 팝업 -->
+<div id="companyIssueOverlay" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+	<div style="width:520px;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.12);overflow:hidden;margin:auto;">
+		<div style="padding:24px 28px 0;">
+			<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
+				<div>
+					<div id="ciAccentLabel" style="font-size:11px;font-weight:600;color:#1D8AFF;letter-spacing:0.06em;margin-bottom:4px;">고객사 세금계산서 일괄등록</div>
+					<h2 style="font-size:18px;font-weight:700;color:#111827;margin:0;">다운로드</h2>
+				</div>
+				<button onclick="closeCompanyIssue()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;cursor:pointer;color:#6b7280;display:flex;align-items:center;justify-content:center;">✕</button>
+			</div>
+			<!-- 탭 -->
+			<div style="display:flex;gap:8px;margin-bottom:20px;">
+				<button id="ciTabHometax" onclick="setCiTab('hometax')" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;cursor:pointer;border:1px solid #1D8AFF;background:#EBF5FF;font-family:inherit;">
+					<span style="width:20px;height:20px;border-radius:50%;background:#1D8AFF;display:flex;align-items:center;justify-content:center;"><span style="width:8px;height:8px;border-radius:50%;background:#fff;"></span></span>
+					<span style="font-size:14px;color:#1D8AFF;font-weight:600;">홈택스</span>
+				</button>
+				<button id="ciTabUplus" onclick="setCiTab('uplus')" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;cursor:pointer;border:1px solid #e5e7eb;background:#fff;font-family:inherit;">
+					<span style="width:20px;height:20px;border-radius:50%;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;"></span>
+					<span style="font-size:14px;color:#374151;font-weight:400;">LG U+ 전자문서</span>
+				</button>
+			</div>
+			<!-- 입력 필드 -->
+			<div style="margin-bottom:16px;">
+				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">작성일자</p>
+				<input id="ciWriteDate" type="text" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;" placeholder="YYYYMMDD">
+			</div>
+			<div style="margin-bottom:16px;">
+				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">거래일자</p>
+				<input id="ciTradeDate" type="text" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;" placeholder="YYYYMMDD">
+			</div>
+			<div style="margin-bottom:16px;">
+				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">품목1</p>
+				<input id="ciItemName" type="text" value="식대" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
+			</div>
+			<div id="ciItem2Row" style="margin-bottom:16px;display:none;">
+				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">품목2</p>
+				<input id="ciItemName2" type="text" value="이용료" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
+			</div>
+			<div style="margin-bottom:16px;">
+				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">영수/청구</p>
+				<select id="ciReceiptType" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
+					<option value="01">영수(01)</option>
+					<option value="02" selected>청구(02)</option>
+				</select>
+			</div>
+			<div id="ciCheckedInfo" style="font-size:12px;color:#6b7280;margin-bottom:16px;"></div>
+			<!-- 프로그레스 -->
+			<div id="ciProgress" style="display:none;margin-bottom:16px;">
+				<div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
+					<div id="ciProgressFill" style="height:100%;width:0%;background:#1D8AFF;transition:width .3s;border-radius:3px;"></div>
+				</div>
+				<div id="ciProgressText" style="text-align:center;font-size:12px;color:#1D8AFF;margin-top:6px;">0%</div>
+			</div>
+		</div>
+		<div style="height:1px;background:#f3f4f6;"></div>
+		<div id="ciFooter" style="padding:16px 28px;display:flex;justify-content:flex-end;gap:10px;">
+			<button onclick="closeCompanyIssue()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">취소</button>
+			<button id="ciDownloadBtn" onclick="startCompanyIssueDownload()" style="height:42px;padding:0 22px;border-radius:10px;border:none;background:#1a6cf6;font-size:14px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;">
+				<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+				다운로드
+			</button>
+			<div id="ciSizeBtns" style="display:none;gap:10px;">
+				<button onclick="closeCompanyIssue()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">취소</button>
+				<button id="ciBtn50" onclick="startStoreInvoiceDownloadSize('small')" style="height:42px;padding:0 18px;border-radius:10px;border:none;background:#1a6cf6;font-size:13px;font-weight:600;color:#fff;cursor:pointer;">50건 이하</button>
+				<button id="ciBtn101" onclick="startStoreInvoiceDownloadSize('large')" style="height:42px;padding:0 18px;border-radius:10px;border:none;background:#1a6cf6;font-size:13px;font-weight:600;color:#fff;cursor:pointer;">101~1,000건</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 <!-- Footer -->
@@ -483,5 +646,926 @@ function fnViewPage(pageNo) {
 }
 </script>
 
+<script>
+// 최근 다운로드 이력 표시
+(function loadDlHistory() {
+	var labels = {
+		dl_settlement: '정산서',
+		dl_reverse: '가맹점 역발행',
+		dl_forward: '가맹점 정발행 (일반)',
+		dl_forwardSimple: '가맹점 정발행 (간이)',
+		dl_transfer: '가맹점 지급',
+		dl_slip: '회계전표'
+	};
+	var keys = ['dl_settlement','dl_reverse','dl_forward','dl_forwardSimple','dl_transfer','dl_slip'];
+	document.querySelectorAll('.dl-history').forEach(function(td) {
+		var company = td.getAttribute('data-company');
+		var saved = localStorage.getItem('settlement-rev-' + company);
+		if (!saved) return;
+		var revData = JSON.parse(saved);
+		var items = [];
+		Object.keys(revData).forEach(function(rowNo) {
+			var row = revData[rowNo];
+			keys.forEach(function(k) {
+				if (row[k]) {
+					var parts = row[k].split('|');
+					var dateVal = parts[0];
+					var infoVal = parts[1] || '';
+					var timePart = infoVal.substring(0, 5);
+					var typePart = infoVal.substring(6);
+					items.push({ label: labels[k], date: dateVal, time: timePart, type: typePart, raw: dateVal + ' ' + timePart });
+				}
+			});
+		});
+		if (items.length === 0) return;
+		// 가장 최근 1개만 2줄로 표시 + 클릭 팝업
+		items.sort(function(a, b) { return b.raw.localeCompare(a.raw); });
+		var it = items[0];
+		var isUpload = (it.type.indexOf('[UP]') >= 0);
+		var dlColor = isUpload ? '#e5006a' : '#2563eb';
+		var displayType = it.type.replace(' [DL]','').replace(' [UP]','');
+		td.innerHTML = '<div onclick="openDlHistoryPopup(\''+company.replace(/'/g,"\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;color:'+dlColor+';cursor:pointer;text-decoration:underline;text-underline-offset:2px;">'
+			+ it.date + ' ' + it.time + '<br>'
+			+ it.label + ' : ' + displayType + '</div>';
+		td.setAttribute('data-all-items', JSON.stringify(items));
+	});
+})();
+
+// 필터 정렬: 일괄 다운로드 일시 기준 (미완료 → 최근순)
+function applySortFilter() {
+	var key = document.getElementById('sortFilter').value;
+	var tbody = document.querySelector('.bbs_list tbody');
+	var rows = Array.from(tbody.querySelectorAll('tr'));
+	if (!key) {
+		// 기본 순: 번호 내림차순
+		rows.sort(function(a, b) {
+			var noA = parseInt(a.querySelector('td:nth-child(3)').textContent) || 0;
+			var noB = parseInt(b.querySelector('td:nth-child(3)').textContent) || 0;
+			return noB - noA;
+		});
+	} else {
+		// 해당 유형 일괄 다운로드 일시 기준 정렬
+		rows.sort(function(a, b) {
+			var compA = (a.querySelector('td:nth-child(4) a') || {}).textContent || '';
+			var compB = (b.querySelector('td:nth-child(4) a') || {}).textContent || '';
+			var dateA = getBulkDlDate(compA, key);
+			var dateB = getBulkDlDate(compB, key);
+			// 일괄 미완료(빈값) → 뒤로, 완료 → 최근순
+			if (!dateA && !dateB) return 0;
+			if (!dateA) return 1;
+			if (!dateB) return -1;
+			return dateB.localeCompare(dateA);
+		});
+	}
+	rows.forEach(function(r) { tbody.appendChild(r); });
+}
+
+function getBulkDlDate(companyName, dlKey) {
+	try {
+		var saved = localStorage.getItem('settlement-rev-' + companyName);
+		if (!saved) return '';
+		var revData = JSON.parse(saved);
+		var latest = '';
+		Object.keys(revData).forEach(function(rowNo) {
+			var row = revData[rowNo];
+			if (row[dlKey]) {
+				var parts = row[dlKey].split('|');
+				var info = parts[1] || '';
+				if (info.indexOf('(일괄)') >= 0) {
+					var raw = parts[0] + ' ' + info.substring(0, 5);
+					if (raw > latest) latest = raw;
+				}
+			}
+		});
+		return latest;
+	} catch(e) { return ''; }
+}
+
+// 최근 다운로드 이력 팝업
+function openDlHistoryPopup(companyName) {
+	var labels = {
+		dl_settlement: '정산서',
+		dl_reverse: '가맹점 역발행',
+		dl_forward: '가맹점 정발행 (일반)',
+		dl_forwardSimple: '가맹점 정발행 (간이)',
+		dl_transfer: '가맹점 지급',
+		dl_slip: '회계전표'
+	};
+	var keys = ['dl_settlement','dl_reverse','dl_forward','dl_forwardSimple','dl_transfer','dl_slip'];
+	var saved = localStorage.getItem('settlement-rev-' + companyName);
+	var revData = saved ? JSON.parse(saved) : {};
+
+	// 모든 행에서 최신 이력 수집 (유형별 최신 1건)
+	var latest = {};
+	Object.keys(revData).forEach(function(rowNo) {
+		var row = revData[rowNo];
+		keys.forEach(function(k) {
+			if (row[k]) {
+				var parts = row[k].split('|');
+				var dateVal = parts[0];
+				var infoVal = parts[1] || '';
+				var raw = dateVal + ' ' + infoVal.substring(0,5);
+				if (!latest[k] || raw > latest[k].raw) {
+					latest[k] = { date: dateVal, info: infoVal, raw: raw };
+				}
+			}
+		});
+	});
+
+	// 8행: 원본/수정본 × 다운로드/업로드 분리
+	var rows = [];
+	keys.forEach(function(k) {
+		var label = labels[k];
+		var entry = latest[k];
+		if (entry) {
+			var info = entry.info;
+			var isRevision = info.indexOf('수정본') >= 0;
+			var isUpload = info.indexOf('[UP]') >= 0;
+			var isBulk = info.indexOf('(일괄)') >= 0;
+			var timeOnly = info.replace(/원본/g,'').replace(/수정본/g,'').replace(/다운로드/g,'').replace(/업로드/g,'').replace(/\(개별\)/g,'').replace(/\(일괄\)/g,'').replace(/ \[DL\]/g,'').replace(/ \[UP\]/g,'').trim();
+			rows.push({
+				type: label,
+				variant: isRevision ? '수정본' : '원본',
+				method: isBulk ? '일괄' : '개별',
+				action: isUpload ? '업로드' : '다운로드',
+				datetime: entry.date + ' ' + timeOnly
+			});
+		} else {
+			rows.push({ type: label, variant: '-', method: '-', action: '-', datetime: '-' });
+		}
+	});
+
+	document.getElementById('dlHistorySubtitle').textContent = companyName;
+	var html = '';
+	rows.forEach(function(r) {
+		var color = r.datetime === '-' ? '#ccc' : '#333';
+		var dtColor = r.datetime === '-' ? '#ccc' : (r.action === '업로드' ? '#e5006a' : '#2563eb');
+		html += '<tr>'
+			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.type+'</td>'
+			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.variant+'</td>'
+			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.method+'</td>'
+			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.action+'</td>'
+			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+dtColor+';white-space:nowrap;">'+r.datetime+'</td>'
+			+ '</tr>';
+	});
+	document.getElementById('dlHistoryBody').innerHTML = html;
+	document.getElementById('dlHistoryOverlay').style.display = 'flex';
+}
+function closeDlHistoryPopup() { document.getElementById('dlHistoryOverlay').style.display = 'none'; }
+
+// 일괄 다운로드 드롭다운
+function toggleBulkDl(btn) {
+	var dd = btn.nextElementSibling;
+	var arrow = btn.querySelector('.bulk-dl-arrow');
+	var isOpen = dd.classList.contains('show');
+	dd.classList.toggle('show');
+	arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+document.addEventListener('click', function(e) {
+	if (!e.target.closest('.bulk-dl-btn') && !e.target.closest('.bulk-dl-dropdown')) {
+		document.querySelectorAll('.bulk-dl-dropdown.show').forEach(function(d) {
+			d.classList.remove('show');
+			var arrow = d.previousElementSibling.querySelector('.bulk-dl-arrow');
+			if (arrow) arrow.style.transform = '';
+		});
+	}
+});
+var bulkDlStyle = document.createElement('style');
+bulkDlStyle.textContent = '.bulk-dl-dropdown.show{display:block!important;} .bulk-dl-dropdown a:hover{background:#f3f4f6;}';
+document.head.appendChild(bulkDlStyle);
+
+// 가맹점 마스터 로드
+var storeMaster = {};
+fetch('assets/data/store_master.json').then(function(r){return r.json();}).then(function(d){
+	d.forEach(function(s){ storeMaster[s.bizNo] = {ceoName:s.ceoName, email:s.email}; });
+}).catch(function(){});
+
+// 일괄 다운로드 이력 기록 (localStorage에 직접 저장)
+function recordBulkDownload(companyName, colType, type, fmt) {
+	var now = new Date();
+	var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+	var timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+	var key = colType ? 'dl_'+colType : 'dl_settlement';
+	var fmtLabel = '';
+	if (fmt === 'uplus' || fmt === 'lguplus') fmtLabel = 'LG U+ ';
+	else if (fmt === 'hometax' || fmt === 'hometax50' || fmt === 'hometax101') fmtLabel = '홈텍스 ';
+	var val = dateStr + '|' + timeStr + ' (일괄) ' + fmtLabel + type + ' [DL]';
+	try {
+		var storageKey = 'settlement-rev-' + companyName;
+		var saved = localStorage.getItem(storageKey);
+		var revData = saved ? JSON.parse(saved) : {};
+		// 첫 번째 행에 기록 (없으면 76번 기본)
+		var rowNo = Object.keys(revData)[0] || '76';
+		if (!revData[rowNo]) revData[rowNo] = {};
+		revData[rowNo][key] = val;
+		localStorage.setItem(storageKey, JSON.stringify(revData));
+	} catch(e) { console.error(e); }
+}
+
+// 기업 데이터 + 가맹점 리스트
+var companyData = [
+	{name:'한화에어로스페이스 (주)', bizNo:'609-81-02992', ceo:'손재일', email:'valyouable@naver.com',
+		reverseItems:[
+			{name:"팔공티 마곡벨리오점",count:144,amount:543100,bizNo:"733-11-02216"},
+			{name:"트렌드커피(폐업)",count:20,amount:220500,bizNo:"571-22-02050"},
+			{name:"돌체테이블",count:34,amount:226000,bizNo:"324-12-02585"},
+			{name:"소맘김밥",count:17,amount:108300,bizNo:"726-33-01526"},
+			{name:"더베럴스커피",count:8,amount:34000,bizNo:"399-01-03224"},
+			{name:"달콤하우스 마곡점",count:8,amount:130920,bizNo:"501-47-00376"},
+			{name:"김둘레순대국 양천향교점",count:2,amount:37000,bizNo:"519-40-00489"}
+		],
+		forwardItems:[
+			{name:"팔공티 마곡벨리오점",count:144,amount:543100,bizNo:"733-11-02216"},
+			{name:"트렌드커피(폐업)",count:20,amount:220500,bizNo:"571-22-02050"},
+			{name:"돌체테이블",count:34,amount:226000,bizNo:"324-12-02585"},
+			{name:"소맘김밥",count:17,amount:108300,bizNo:"726-33-01526"},
+			{name:"더베럴스커피",count:8,amount:34000,bizNo:"399-01-03224"}
+		],
+		forwardSimpleItems:[
+			{name:"달콤하우스 마곡점",count:8,amount:130920,bizNo:"501-47-00376"},
+			{name:"김둘레순대국 양천향교점",count:2,amount:37000,bizNo:"519-40-00489"}
+		]},
+	{name:'두산에너빌리티 (주)', bizNo:'609-81-04684', ceo:'박지원', email:'valyouable@naver.com',
+		reverseItems:[
+			{name:"인터파크 비즈마켓",count:12,amount:520000,bizNo:"000-00-00000"},
+			{name:"오천집",count:212,amount:1494000,bizNo:"449-34-01612"},
+			{name:"공유주방(솔잎푸드)",count:157,amount:1309000,bizNo:"386-86-03282"},
+			{name:"밥이보약",count:101,amount:795000,bizNo:"781-38-00534"},
+			{name:"슬로우캘리 가산디지털점",count:7,amount:135500,bizNo:"380-44-00803"},
+			{name:"웰빙푸드 (구내식당)",count:141,amount:1001000,bizNo:"135-25-43079"},
+			{name:"따봉돈까스",count:53,amount:448600,bizNo:"408-72-00050"},
+			{name:"빤닭빤닭",count:41,amount:637000,bizNo:"279-02-03155"},
+			{name:"부산 아지매국밥 가산점",count:65,amount:736000,bizNo:"218-10-66198"},
+			{name:"미래더이룸푸드",count:39,amount:286000,bizNo:"354-02-03058"},
+			{name:"도원",count:21,amount:223000,bizNo:"180-49-01018"},
+			{name:"황제",count:99,amount:895400,bizNo:"284-70-00203"},
+			{name:"얌샘김밥 퍼블릭가산",count:35,amount:330200,bizNo:"272-03-03113"},
+			{name:"원조양평서울해장국",count:16,amount:168000,bizNo:"604-07-64601"},
+			{name:"빽다방 퍼블릭가산",count:1,amount:3700,bizNo:"509-06-93556"},
+			{name:"옛날그맛명동칼국수",count:21,amount:177000,bizNo:"119-21-08131"},
+			{name:"김가네 가산갑을그레이트점",count:18,amount:154000,bizNo:"762-10-00989"},
+			{name:"킹콩부대찌개",count:4,amount:50000,bizNo:"325-38-01196"},
+			{name:"써브웨이 가산그레이트밸리점",count:8,amount:80500,bizNo:"564-14-01887"},
+			{name:"큐큐면관 가산직영점",count:26,amount:273000,bizNo:"654-32-01471"},
+			{name:"명가교동짬뽕",count:6,amount:60000,bizNo:"119-22-77182"},
+			{name:"스테이키 퍼블릭가산점",count:22,amount:239100,bizNo:"152-34-01493"},
+			{name:"가산삼계탕",count:8,amount:75000,bizNo:"113-13-44696"},
+			{name:"써브웨이 가산디지털점",count:2,amount:20500,bizNo:"219-23-00414"},
+			{name:"동남집",count:9,amount:97000,bizNo:"372-11-00110"},
+			{name:"명가네삼겹살",count:4,amount:53000,bizNo:"611-20-02091"},
+			{name:"한려수도",count:4,amount:36000,bizNo:"134-22-07273"}
+		],
+		forwardItems:[
+			{name:"인터파크 비즈마켓",count:12,amount:520000,bizNo:"000-00-00000"},
+			{name:"오천집",count:212,amount:1494000,bizNo:"449-34-01612"},
+			{name:"공유주방(솔잎푸드)",count:157,amount:1309000,bizNo:"386-86-03282"},
+			{name:"밥이보약",count:101,amount:795000,bizNo:"781-38-00534"},
+			{name:"슬로우캘리 가산디지털점",count:7,amount:135500,bizNo:"380-44-00803"},
+			{name:"웰빙푸드 (구내식당)",count:141,amount:1001000,bizNo:"135-25-43079"},
+			{name:"따봉돈까스",count:53,amount:448600,bizNo:"408-72-00050"},
+			{name:"빤닭빤닭",count:41,amount:637000,bizNo:"279-02-03155"},
+			{name:"부산 아지매국밥 가산점",count:65,amount:736000,bizNo:"218-10-66198"},
+			{name:"미래더이룸푸드",count:39,amount:286000,bizNo:"354-02-03058"},
+			{name:"도원",count:21,amount:223000,bizNo:"180-49-01018"},
+			{name:"황제",count:99,amount:895400,bizNo:"284-70-00203"},
+			{name:"얌샘김밥 퍼블릭가산",count:35,amount:330200,bizNo:"272-03-03113"},
+			{name:"원조양평서울해장국",count:16,amount:168000,bizNo:"604-07-64601"},
+			{name:"빽다방 퍼블릭가산",count:1,amount:3700,bizNo:"509-06-93556"},
+			{name:"옛날그맛명동칼국수",count:21,amount:177000,bizNo:"119-21-08131"},
+			{name:"김가네 가산갑을그레이트점",count:18,amount:154000,bizNo:"762-10-00989"},
+			{name:"킹콩부대찌개",count:4,amount:50000,bizNo:"325-38-01196"},
+			{name:"써브웨이 가산그레이트밸리점",count:8,amount:80500,bizNo:"564-14-01887"},
+			{name:"큐큐면관 가산직영점",count:26,amount:273000,bizNo:"654-32-01471"},
+			{name:"명가교동짬뽕",count:6,amount:60000,bizNo:"119-22-77182"},
+			{name:"스테이키 퍼블릭가산점",count:22,amount:239100,bizNo:"152-34-01493"},
+			{name:"가산삼계탕",count:8,amount:75000,bizNo:"113-13-44696"},
+			{name:"써브웨이 가산디지털점",count:2,amount:20500,bizNo:"219-23-00414"}
+		],
+		forwardSimpleItems:[
+			{name:"동남집",count:9,amount:97000,bizNo:"372-11-00110"},
+			{name:"명가네삼겹살",count:4,amount:53000,bizNo:"611-20-02091"},
+			{name:"한려수도",count:4,amount:36000,bizNo:"134-22-07273"}
+		]},
+	{name:'한화오션(주)', bizNo:'104-81-57667', ceo:'김희철', email:'valyouable@naver.com',
+		reverseItems:[
+			{name:"팔공티 마곡벨리오점",count:144,amount:543100,bizNo:"733-11-02216"},
+			{name:"트렌드커피(폐업)",count:20,amount:220500,bizNo:"571-22-02050"},
+			{name:"돌체테이블",count:34,amount:226000,bizNo:"324-12-02585"},
+			{name:"소맘김밥",count:17,amount:108300,bizNo:"726-33-01526"},
+			{name:"더베럴스커피",count:8,amount:34000,bizNo:"399-01-03224"},
+			{name:"달콤하우스 마곡점",count:8,amount:130920,bizNo:"501-47-00376"},
+			{name:"김둘레순대국 양천향교점",count:2,amount:37000,bizNo:"519-40-00489"}
+		],
+		forwardItems:[
+			{name:"팔공티 마곡벨리오점",count:144,amount:543100,bizNo:"733-11-02216"},
+			{name:"트렌드커피(폐업)",count:20,amount:220500,bizNo:"571-22-02050"},
+			{name:"돌체테이블",count:34,amount:226000,bizNo:"324-12-02585"},
+			{name:"소맘김밥",count:17,amount:108300,bizNo:"726-33-01526"},
+			{name:"더베럴스커피",count:8,amount:34000,bizNo:"399-01-03224"}
+		],
+		forwardSimpleItems:[
+			{name:"달콤하우스 마곡점",count:8,amount:130920,bizNo:"501-47-00376"},
+			{name:"김둘레순대국 양천향교점",count:2,amount:37000,bizNo:"519-40-00489"}
+		]},
+	{name:'HD현대중공업(주)', bizNo:'252-87-01412', ceo:'이상균', email:'valyouable@naver.com',
+		reverseItems:[
+			{name:"팔공티 마곡벨리오점",count:144,amount:543100,bizNo:"733-11-02216"},
+			{name:"트렌드커피(폐업)",count:20,amount:220500,bizNo:"571-22-02050"},
+			{name:"돌체테이블",count:34,amount:226000,bizNo:"324-12-02585"},
+			{name:"소맘김밥",count:17,amount:108300,bizNo:"726-33-01526"},
+			{name:"더베럴스커피",count:8,amount:34000,bizNo:"399-01-03224"},
+			{name:"달콤하우스 마곡점",count:8,amount:130920,bizNo:"501-47-00376"},
+			{name:"김둘레순대국 양천향교점",count:2,amount:37000,bizNo:"519-40-00489"}
+		],
+		forwardItems:[
+			{name:"팔공티 마곡벨리오점",count:144,amount:543100,bizNo:"733-11-02216"},
+			{name:"트렌드커피(폐업)",count:20,amount:220500,bizNo:"571-22-02050"},
+			{name:"돌체테이블",count:34,amount:226000,bizNo:"324-12-02585"},
+			{name:"소맘김밥",count:17,amount:108300,bizNo:"726-33-01526"},
+			{name:"더베럴스커피",count:8,amount:34000,bizNo:"399-01-03224"}
+		],
+		forwardSimpleItems:[
+			{name:"달콤하우스 마곡점",count:8,amount:130920,bizNo:"501-47-00376"},
+			{name:"김둘레순대국 양천향교점",count:2,amount:37000,bizNo:"519-40-00489"}
+		]}
+];
+var BUYER_SO = {bizNo:'6468800430', name:'주식회사 스마트올리브', ceo:'박현숙', email:'rpa@smart-olive.co.kr', taxEmail:'tax@smart-olive.co.kr'};
+var ciTab = 'hometax';
+
+function bulkDownloadAll(type) {
+	document.querySelectorAll('.bulk-dl-dropdown.show').forEach(function(d){ d.classList.remove('show'); });
+	var arrow = document.querySelector('.bulk-dl-arrow');
+	if (arrow) arrow.style.transform = '';
+	if (type === 'companyIssue') {
+		openCompanyIssue();
+		return;
+	}
+	if (type === 'reverse' || type === 'forward' || type === 'forwardSimple') {
+		openStoreInvoiceDownload(type);
+		return;
+	}
+	if (type === 'transfer') {
+		startBulkTransferDownload();
+		return;
+	}
+	if (type === 'slip') {
+		startBulkSlipDownload();
+		return;
+	}
+}
+
+// 가맹점 세금계산서 일괄 다운로드 (역발행/정발행 일반/정발행 간이)
+var storeInvoiceType = 'reverse';
+function openStoreInvoiceDownload(type) {
+	storeInvoiceType = type;
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	var today = new Date();
+	var todayStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+
+	var typeLabels = {reverse:'가맹점 역발행', forward:'가맹점 정발행 (일반)', forwardSimple:'가맹점 정발행 (간이)'};
+	var itemDefaults = {reverse:'식대', forward:'수수료', forwardSimple:'수수료'};
+	var wiCodes = {reverse:'45710', forward:'40720', forwardSimple:'40710'};
+
+	document.getElementById('ciWriteDate').value = todayStr;
+	document.getElementById('ciTradeDate').value = todayStr;
+	document.getElementById('ciItemName').value = itemDefaults[type];
+	document.getElementById('ciItem2Row').style.display = 'none';
+	document.getElementById('ciAccentLabel').textContent = typeLabels[type] + ' 일괄등록';
+	document.getElementById('ciProgress').style.display = 'none';
+
+	// 체크된 기업의 가맹점 총 수
+	var itemsKey = type === 'reverse' ? 'reverseItems' : type === 'forward' ? 'forwardItems' : 'forwardSimpleItems';
+	var totalStores = 0;
+	checked.forEach(function(c){ totalStores += (c[itemsKey] || []).length; });
+	document.getElementById('ciCheckedInfo').innerHTML = '<div style="margin-bottom:4px;">선택된 기업: ' + checked.map(function(c){return c.name;}).join(', ') + '</div>'
+		+ '<div style="color:#2563eb;">총 가맹점 수: ' + totalStores + '곳</div>';
+
+	// 역발행=10건이하 단일버튼, 정발행=50건/101건 버튼
+	var showSizeBtns = (type === 'forward' || type === 'forwardSimple');
+	document.getElementById('ciDownloadBtn').style.display = showSizeBtns ? 'none' : 'flex';
+	document.getElementById('ciDownloadBtn').setAttribute('onclick', 'startStoreInvoiceDownload()');
+	document.getElementById('ciSizeBtns').style.display = showSizeBtns ? 'flex' : 'none';
+
+	if (showSizeBtns) {
+		// 50건 초과 시 50건 버튼 비활성화, 101건 미만 시 101건 버튼 비활성화
+		var btn50 = document.getElementById('ciBtn50');
+		var btn101 = document.getElementById('ciBtn101');
+		if (totalStores > 50) {
+			btn50.style.opacity = '0.4'; btn50.style.cursor = 'not-allowed'; btn50.disabled = true;
+		} else {
+			btn50.style.opacity = '1'; btn50.style.cursor = 'pointer'; btn50.disabled = false;
+		}
+		if (totalStores <= 100) {
+			btn101.style.opacity = '0.4'; btn101.style.cursor = 'not-allowed'; btn101.disabled = true;
+		} else {
+			btn101.style.opacity = '1'; btn101.style.cursor = 'pointer'; btn101.disabled = false;
+		}
+	}
+
+	setCiTab('hometax');
+	document.getElementById('companyIssueOverlay').style.display = 'flex';
+}
+
+function startStoreInvoiceDownloadSize(size) {
+	storeInvoiceForceLarge = (size === 'large');
+	startStoreInvoiceDownload();
+}
+var storeInvoiceForceLarge = false;
+
+function startStoreInvoiceDownload() {
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	var writeDate = document.getElementById('ciWriteDate').value;
+	var tradeDate = document.getElementById('ciTradeDate').value;
+	var itemName = document.getElementById('ciItemName').value;
+	var receiptType = document.getElementById('ciReceiptType').value;
+	if (writeDate.length !== 8) { alert('작성일자를 YYYYMMDD 형식으로 입력해주세요.'); return; }
+
+	var type = storeInvoiceType;
+	var itemsKey = type === 'reverse' ? 'reverseItems' : type === 'forward' ? 'forwardItems' : 'forwardSimpleItems';
+	var wiCodes = {reverse:'45710', forward:'40720', forwardSimple:'40710'};
+	var isReverse = type === 'reverse';
+
+	// 모든 체크 기업의 가맹점을 합산
+	var allItems = [];
+	checked.forEach(function(co) {
+		(co[itemsKey] || []).forEach(function(item) {
+			var fee = Math.round(item.amount * 0.0275);
+			var bill = isReverse ? item.amount - fee : fee;
+			var tax = Math.ceil(bill / 11);
+			allItems.push({ name:item.name, amount:item.amount, billAmount:bill, supply:bill-tax, tax:tax, note:item.bizNo||'' });
+		});
+	});
+
+	if (allItems.length === 0) { alert('다운로드할 가맹점 데이터가 없습니다.'); return; }
+
+	document.getElementById('ciProgress').style.display = 'block';
+
+	var params = {
+		type: type,
+		companyName: checked.length === 1 ? checked[0].name : '전체',
+		items: allItems,
+		writeDate: writeDate,
+		tradeDate: tradeDate,
+		itemName: itemName,
+		wihagoCode: wiCodes[type],
+		receiptType: receiptType,
+		forceLargeTemplate: storeInvoiceForceLarge,
+		onProgress: function(pct) {
+			document.getElementById('ciProgressFill').style.width = pct + '%';
+			document.getElementById('ciProgressText').textContent = pct + '%';
+			if (pct >= 100) {
+				var dlFmt = ciTab === 'uplus' ? 'uplus' : 'hometax';
+				checked.forEach(function(co){ recordBulkDownload(co.name, type, '원본', dlFmt); });
+				setTimeout(closeCompanyIssue, 500);
+			}
+		}
+	};
+
+	if (ciTab === 'uplus') {
+		generateBulkRegCsv(params);
+	} else {
+		generateBulkRegExcel(params);
+	}
+}
+
+function openCompanyIssue() {
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	// 위하고코드1이 없는 기업 검증
+	var invalid = checked.filter(function(c){ return !c.hasCode1; });
+	if (invalid.length > 0) {
+		alert('위하고 코드가 없는 기업은 선택할 수 없습니다:\n' + invalid.map(function(c){return c.name;}).join(', '));
+		return;
+	}
+	// 위하고코드2 혼합 검증: 코드2 있는 기업과 없는 기업이 섞여있으면 차단
+	var withCode2 = checked.filter(function(c){ return c.hasCode2; });
+	var withoutCode2 = checked.filter(function(c){ return !c.hasCode2; });
+	if (withCode2.length > 0 && withoutCode2.length > 0) {
+		alert('위하고 코드2가 있는 기업과 없는 기업을 함께 선택할 수 없습니다.\n위하고 코드2의 유무가 같은 기업끼리만 선택해주세요.');
+		return;
+	}
+	var today = new Date();
+	var todayStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+	document.getElementById('ciWriteDate').value = todayStr;
+	document.getElementById('ciTradeDate').value = todayStr;
+	document.getElementById('ciProgress').style.display = 'none';
+
+	// 품목1 항상 표시
+	var item1Names = checked.map(function(c){return c.item1Name;}).filter(Boolean);
+	var commonItem1 = item1Names.length > 0 ? item1Names[0] : '식대';
+	document.getElementById('ciItemName').value = commonItem1;
+
+	// 품목2: 코드2가 있는 기업이 하나라도 있으면 표시
+	var hasAnyCode2 = checked.some(function(c){ return c.hasCode2; });
+	document.getElementById('ciItem2Row').style.display = hasAnyCode2 ? 'block' : 'none';
+	if (hasAnyCode2) {
+		document.getElementById('ciItemName2').value = '이용료';
+	}
+
+	// 선택 기업 정보
+	document.getElementById('ciCheckedInfo').innerHTML = checked.map(function(c) {
+		var codes = '<span style="color:#2563eb;">[' + c.wihagoCode1 + '] ' + c.item1Name + '</span>';
+		if (c.hasCode2) codes += ' + <span style="color:#2563eb;">[' + c.wihagoCode2 + '] ' + c.item2Name + '</span>';
+		return '<div style="margin-bottom:4px;">' + c.name + ' — ' + codes + '</div>';
+	}).join('');
+
+	// 다운로드 버튼 동작을 고객사 발행용으로 설정
+	document.getElementById('ciDownloadBtn').style.display = 'flex';
+	document.getElementById('ciDownloadBtn').setAttribute('onclick', 'startCompanyIssueDownload()');
+	document.getElementById('ciSizeBtns').style.display = 'none';
+	document.getElementById('ciAccentLabel').textContent = '고객사 세금계산서 일괄등록';
+	setCiTab('hometax');
+	document.getElementById('companyIssueOverlay').style.display = 'flex';
+}
+function closeCompanyIssue() { document.getElementById('companyIssueOverlay').style.display = 'none'; }
+
+function setCiTab(tab) {
+	ciTab = tab;
+	var isH = tab === 'hometax';
+	document.getElementById('ciTabHometax').style.border = isH ? '1px solid #1D8AFF' : '1px solid #e5e7eb';
+	document.getElementById('ciTabHometax').style.background = isH ? '#EBF5FF' : '#fff';
+	document.getElementById('ciTabHometax').querySelector('span:first-child').style.background = isH ? '#1D8AFF' : '#fff';
+	document.getElementById('ciTabHometax').querySelector('span:first-child').style.border = isH ? 'none' : '2px solid #d1d5db';
+	document.getElementById('ciTabHometax').querySelector('span:first-child').innerHTML = isH ? '<span style="width:8px;height:8px;border-radius:50%;background:#fff;"></span>' : '';
+	document.getElementById('ciTabHometax').querySelector('span:last-child').style.color = isH ? '#1D8AFF' : '#374151';
+	document.getElementById('ciTabHometax').querySelector('span:last-child').style.fontWeight = isH ? '600' : '400';
+
+	document.getElementById('ciTabUplus').style.border = !isH ? '1px solid #e5006a' : '1px solid #e5e7eb';
+	document.getElementById('ciTabUplus').style.background = !isH ? 'rgba(229,0,106,0.06)' : '#fff';
+	document.getElementById('ciTabUplus').querySelector('span:first-child').style.background = !isH ? '#e5006a' : '#fff';
+	document.getElementById('ciTabUplus').querySelector('span:first-child').style.border = !isH ? 'none' : '2px solid #d1d5db';
+	document.getElementById('ciTabUplus').querySelector('span:first-child').innerHTML = !isH ? '<span style="width:8px;height:8px;border-radius:50%;background:#fff;"></span>' : '';
+	document.getElementById('ciTabUplus').querySelector('span:last-child').style.color = !isH ? '#e5006a' : '#374151';
+	document.getElementById('ciTabUplus').querySelector('span:last-child').style.fontWeight = !isH ? '600' : '400';
+
+	document.getElementById('ciAccentLabel').style.color = isH ? '#1D8AFF' : '#e5006a';
+	document.getElementById('ciDownloadBtn').style.background = isH ? '#1a6cf6' : '#e5006a';
+	document.getElementById('ciProgressFill').style.background = isH ? '#1D8AFF' : '#e5006a';
+	document.getElementById('ciProgressText').style.color = isH ? '#1D8AFF' : '#e5006a';
+}
+
+function getCheckedCompanies() {
+	var rows = document.querySelectorAll('.row-check:checked');
+	var result = [];
+	rows.forEach(function(cb) {
+		var tr = cb.closest('tr');
+		var tds = tr.querySelectorAll('td');
+		var nameEl = tr.querySelector('td:nth-child(4) a');
+		if (nameEl) {
+			var name = nameEl.textContent;
+			var cd = companyData.find(function(c){return c.name === name;});
+			if (cd) {
+				var code1Text = tds[7] ? tds[7].textContent.trim() : '';
+				var code2Text = tds[8] ? tds[8].textContent.trim() : '';
+				var hasCode1 = code1Text && code1Text !== '-';
+				var hasCode2 = code2Text && code2Text !== '-';
+				var code1Match = code1Text.match(/\[(\d+)\]/);
+				var code2Match = code2Text.match(/\[(\d+)\]/);
+				var item1Name = code1Text.replace(/\[\d+\]\s*/, '');
+				var item2Name = code2Text.replace(/\[\d+\]\s*/, '');
+				result.push({
+					name: cd.name, bizNo: cd.bizNo, ceo: cd.ceo, email: cd.email,
+					reverseItems: cd.reverseItems || [],
+					forwardItems: cd.forwardItems || [],
+					forwardSimpleItems: cd.forwardSimpleItems || [],
+					wihagoCode1: code1Match ? code1Match[1] : '',
+					wihagoCode2: code2Match ? code2Match[1] : '',
+					item1Name: hasCode1 ? item1Name : '',
+					item2Name: hasCode2 ? item2Name : '',
+					hasCode1: hasCode1,
+					hasCode2: hasCode2
+				});
+			}
+		}
+	});
+	return result;
+}
+
+function startCompanyIssueDownload() {
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	var writeDate = document.getElementById('ciWriteDate').value;
+	var tradeDate = document.getElementById('ciTradeDate').value;
+	var itemName = document.getElementById('ciItemName').value;
+	var receiptType = document.getElementById('ciReceiptType').value;
+	if (writeDate.length !== 8) { alert('작성일자를 YYYYMMDD 형식으로 입력해주세요.'); return; }
+
+	document.getElementById('ciProgress').style.display = 'block';
+	var writeDay = writeDate.slice(6,8);
+
+	if (ciTab === 'uplus') {
+		startCompanyIssueCsv(checked, writeDate, tradeDate, itemName, receiptType);
+	} else {
+		startCompanyIssueExcel(checked, writeDate, writeDay, itemName, receiptType);
+	}
+}
+
+// 가맹점 지급 (대량이체) 일괄 다운로드
+function startBulkTransferDownload() {
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	// 모든 체크 기업의 reverseItems 합산
+	var allItems = [];
+	checked.forEach(function(co) {
+		(co.reverseItems || []).forEach(function(item) { allItems.push(item); });
+	});
+	if (allItems.length === 0) { alert('다운로드할 가맹점 데이터가 없습니다.'); return; }
+	var companyName = checked.length === 1 ? checked[0].name : '전체';
+	var year = new Date().getFullYear().toString();
+	var month = String(new Date().getMonth()+1).padStart(2,'0');
+	generateTransferExcel(allItems, companyName, year, month);
+	checked.forEach(function(co){ recordBulkDownload(co.name, 'transfer', '원본'); });
+}
+
+// 회계전표 일괄 다운로드 (기업별 외상매출금 포함)
+function startBulkSlipDownload() {
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	if (checked.length === 1) {
+		var co = checked[0];
+		var year = new Date().getFullYear().toString();
+		var month = String(new Date().getMonth()+1).padStart(2,'0');
+		generateSlipExcel(co.reverseItems || [], co.name, year, month);
+		recordBulkDownload(co.name, 'slip', '원본');
+		return;
+	}
+	// 복수 기업: 기업별로 가맹점 차변 + 고객사 대변 묶어서 생성
+	var today = new Date();
+	var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+	var mon = today.getMonth()+1;
+
+	var ss = [];
+	function ssIdx(str){ var s=String(str); var i=ss.indexOf(s); if(i>=0) return i; ss.push(s); return ss.length-1; }
+	var headers = ["월","일","구분","Code","계정과목","거래처코드","거래처","차변","대변","거래처","적요"];
+	headers.forEach(ssIdx);
+
+	var rowsXml = '';
+	rowsXml += '<row r="1" spans="1:11" ht="20" customHeight="1">';
+	headers.forEach(function(h,c){ rowsXml += '<c r="'+String.fromCharCode(65+c)+'1" s="3" t="s"><v>'+ssIdx(h)+'</v></c>'; });
+	rowsXml += '</row>';
+
+	var rowNum = 2;
+	checked.forEach(function(co) {
+		var items = co.reverseItems || [];
+		var totalBill = 0;
+		// 가맹점별 차변
+		items.forEach(function(item) {
+			var fee = Math.round(item.amount * 0.0275);
+			var bill = item.amount - fee;
+			totalBill += bill;
+			rowsXml += '<row r="'+rowNum+'" spans="1:11" ht="16.5" customHeight="1">';
+			rowsXml += '<c r="A'+rowNum+'" s="2"><v>'+mon+'</v></c>';
+			rowsXml += '<c r="B'+rowNum+'" s="1"/>';
+			rowsXml += '<c r="C'+rowNum+'" s="1" t="s"><v>'+ssIdx("차변")+'</v></c>';
+			rowsXml += '<c r="D'+rowNum+'" s="2"><v>27500</v></c>';
+			rowsXml += '<c r="E'+rowNum+'" s="1" t="s"><v>'+ssIdx("가맹점예수금")+'</v></c>';
+			rowsXml += '<c r="F'+rowNum+'" s="1"/>';
+			rowsXml += '<c r="G'+rowNum+'" s="1" t="s"><v>'+ssIdx(item.name)+'</v></c>';
+			rowsXml += '<c r="H'+rowNum+'" s="2"><v>'+bill+'</v></c>';
+			rowsXml += '<c r="I'+rowNum+'" s="1"/>';
+			rowsXml += '<c r="J'+rowNum+'" s="1"/>';
+			rowsXml += '<c r="K'+rowNum+'" s="1" t="s"><v>'+ssIdx(mon+"월 "+item.name)+'</v></c>';
+			rowsXml += '</row>';
+			rowNum++;
+		});
+		// 고객사 대변 (외상매출금)
+		rowsXml += '<row r="'+rowNum+'" spans="1:11" ht="16.5" customHeight="1">';
+		rowsXml += '<c r="A'+rowNum+'" s="2"><v>'+mon+'</v></c>';
+		rowsXml += '<c r="B'+rowNum+'" s="1"/>';
+		rowsXml += '<c r="C'+rowNum+'" s="1" t="s"><v>'+ssIdx("대변")+'</v></c>';
+		rowsXml += '<c r="D'+rowNum+'" s="2"><v>34500</v></c>';
+		rowsXml += '<c r="E'+rowNum+'" s="1" t="s"><v>'+ssIdx("외상매출금")+'</v></c>';
+		rowsXml += '<c r="F'+rowNum+'" s="1"/>';
+		rowsXml += '<c r="G'+rowNum+'" s="1" t="s"><v>'+ssIdx(co.name)+'</v></c>';
+		rowsXml += '<c r="H'+rowNum+'" s="1"/>';
+		rowsXml += '<c r="I'+rowNum+'" s="2"><v>'+totalBill+'</v></c>';
+		rowsXml += '<c r="J'+rowNum+'" s="1"/>';
+		rowsXml += '<c r="K'+rowNum+'" s="1" t="s"><v>'+ssIdx(mon+"월 식대 이용료")+'</v></c>';
+		rowsXml += '</row>';
+		rowNum++;
+	});
+
+	// JSZip으로 xlsx 생성
+	var sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+		+'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+		+'<cols><col min="1" max="1" width="6"/><col min="2" max="2" width="6"/><col min="3" max="3" width="6"/><col min="4" max="4" width="8"/><col min="5" max="5" width="14"/><col min="6" max="6" width="12"/><col min="7" max="7" width="24"/><col min="8" max="8" width="14"/><col min="9" max="9" width="14"/><col min="10" max="10" width="16"/><col min="11" max="11" width="30"/></cols>'
+		+'<sheetData>'+rowsXml+'</sheetData></worksheet>';
+	var ssXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+		+'<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="'+ss.length+'" uniqueCount="'+ss.length+'">'
+		+ss.map(function(s){return '<si><t>'+escXml(s)+'</t></si>';}).join('')+'</sst>';
+	var stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0"/></numFmts><fonts count="2"><font><sz val="10"/><name val="맑은 고딕"/></font><font><b/><sz val="10"/><name val="맑은 고딕"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF0F1F2"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color auto="1"/></left><right style="thin"><color auto="1"/></right><top style="thin"><color auto="1"/></top><bottom style="thin"><color auto="1"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/></cellXfs></styleSheet>';
+	var zip = new JSZip();
+	zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>');
+	zip.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+	zip.file('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="전표" sheetId="1" r:id="rId1"/></sheets></workbook>');
+	zip.file('xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>');
+	zip.file('xl/worksheets/sheet1.xml', sheetXml);
+	zip.file('xl/styles.xml', stylesXml);
+	zip.file('xl/sharedStrings.xml', ssXml);
+	zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}).then(function(blob){
+		downloadBlob(blob, '전체_회계전표_'+dateStr+'.xlsx');
+		checked.forEach(function(co){ recordBulkDownload(co.name, 'slip', '원본'); });
+	});
+}
+
+function startCompanyIssueExcel(companies, writeDate, writeDay, itemName, receiptType) {
+	var onProg = function(pct) {
+		document.getElementById('ciProgressFill').style.width = pct + '%';
+		document.getElementById('ciProgressText').textContent = pct + '%';
+		if (pct >= 100) setTimeout(closeCompanyIssue, 500);
+	};
+	onProg(10);
+	// 정발행(일반) 50건 템플릿 사용 (고객사=공급자, 스마트올리브=공급받는자)
+	fetch('../resources/templates/forward_50.xlsx').then(function(r){return r.arrayBuffer();}).then(function(buf){
+		return JSZip.loadAsync(buf);
+	}).then(function(zip){
+		onProg(20);
+		return zip.file('xl/styles.xml').async('string').then(function(stylesXml){
+			zip.file('xl/styles.xml', stylesXml.replace(/<sz val="11"\/>/g, '<sz val="9"/>'));
+			return zip.file('xl/sharedStrings.xml').async('string');
+		}).then(function(ssXml){
+			var ssItems = [];
+			var siRegex = /<si>([\s\S]*?)<\/si>/g, m;
+			while ((m = siRegex.exec(ssXml)) !== null) ssItems.push(m[1]);
+			function addSS(t) { var e=escXml(t); ssItems.push('<t>'+e+'</t>'); return ssItems.length-1; }
+
+			return zip.file('xl/worksheets/sheet1.xml').async('string').then(function(sheetXml){
+				onProg(30);
+				var row7Match = sheetXml.match(/<row r="7"[^>]*>([\s\S]*?)<\/row>/);
+				var styleMap = {};
+				if (row7Match) { var cr=/<c r="([A-Z]+)7" s="(\d+)"\/>/g, cm; while((cm=cr.exec(row7Match[1]))!==null) styleMap[cm[1]]=cm[2]; }
+
+				var colLetters = colLettersUpTo(58);
+				var itemText = '[41210] ' + itemName;
+				var newRows = [];
+
+				for (var i = 0; i < companies.length; i++) {
+					var co = companies[i];
+					// 정산서 데이터에서 최근 식대(meal) 가져오기
+					var saved = localStorage.getItem('settlement-rev-' + co.name);
+					var mealAmount = 0;
+					if (saved) {
+						var revData = JSON.parse(saved);
+						var firstRow = revData[Object.keys(revData)[0]];
+						if (firstRow && firstRow.usage) mealAmount = parseInt(String(firstRow.usage).replace(/,/g,'')) || 0;
+					}
+					// 없으면 기본값
+					if (!mealAmount) mealAmount = 28000000;
+					var tax = Math.ceil(mealAmount / 11);
+					var supply = mealAmount - tax;
+
+					var rowNum = 7 + i;
+					var vals = {};
+					vals[0] = {type:'s', value:'01'};
+					vals[1] = {type:'s', value: writeDate};
+					vals[2] = {type:'s', value: co.bizNo.replace(/-/g,'')};
+					vals[4] = {type:'s', value: co.name};
+					vals[5] = {type:'s', value: co.ceo};
+					vals[9] = {type:'s', value: co.email};
+					vals[10] = {type:'s', value: BUYER_SO.bizNo};
+					vals[12] = {type:'s', value: BUYER_SO.name};
+					vals[13] = {type:'s', value: BUYER_SO.ceo};
+					vals[17] = {type:'s', value: BUYER_SO.taxEmail};
+					vals[19] = {type:'n', value: supply};
+					vals[20] = {type:'n', value: tax};
+					vals[22] = {type:'s', value: writeDay};
+					vals[23] = {type:'s', value: itemText};
+					vals[27] = {type:'n', value: supply};
+					vals[28] = {type:'n', value: tax};
+					vals[58] = {type:'s', value: receiptType};
+
+					var cells = '';
+					for (var c = 0; c <= 58; c++) {
+						var col = colLetters[c];
+						var ref = col + rowNum;
+						var s = styleMap[col] ? ' s="' + styleMap[col] + '"' : '';
+						var v = vals[c];
+						if (v && String(v.value) !== '') {
+							if (v.type === 'n') cells += '<c r="'+ref+'"'+s+'><v>'+v.value+'</v></c>';
+							else { var si = addSS(String(v.value)); cells += '<c r="'+ref+'"'+s+' t="s"><v>'+si+'</v></c>'; }
+						} else cells += '<c r="'+ref+'"'+s+'/>';
+					}
+					newRows.push('<row r="'+rowNum+'" spans="1:59" ht="24" customHeight="1">'+cells+'</row>');
+					onProg(30 + Math.round((i+1)/companies.length*50));
+				}
+
+				var updSheet = sheetXml
+					.replace(/<dimension ref="[^"]*"/, '<dimension ref="A1:BG'+Math.max(6+companies.length,106)+'"')
+					.replace(/(<row r="7"[\s\S]*?)(<\/sheetData>)/, newRows.join('')+'$2')
+					.replace(/ bestFit="1"/g, '');
+				var newSs = ssXml
+					.replace(/<sst[^>]*>/, '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="'+ssItems.length+'" uniqueCount="'+ssItems.length+'">')
+					.replace(/<si>[\s\S]*<\/sst>/, ssItems.map(function(s){return '<si>'+s+'</si>';}).join('')+'</sst>');
+				zip.file('xl/worksheets/sheet1.xml', updSheet);
+				zip.file('xl/sharedStrings.xml', newSs);
+				onProg(95);
+				return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+			});
+		});
+	}).then(function(blob){
+		downloadBlob(blob, '고객사_세금계산서_일괄등록_' + writeDate + '.xlsx');
+		companies.forEach(function(co){ recordBulkDownload(co.name, null, '원본', 'hometax'); });
+		onProg(100);
+	}).catch(function(e){ console.error(e); alert('다운로드 실패: ' + e.message); });
+}
+
+function startCompanyIssueCsv(companies, writeDate, tradeDate, itemName, receiptType) {
+	var onProg = function(pct) {
+		document.getElementById('ciProgressFill').style.width = pct + '%';
+		document.getElementById('ciProgressText').textContent = pct + '%';
+		if (pct >= 100) setTimeout(closeCompanyIssue, 500);
+	};
+	onProg(10);
+	var csvHeader = [
+		"작성일자","문서관리번호","세금계산서종류","세금계산서분류","영수청구구분",
+		"수정코드","권","번호","일련번호","수입신고번호","일괄발급시작일","일괄발급종료일","수입총건",
+		"공급자사업자등록번호","공급자종사업장번호","공급자상호","공급자대표자성명","공급자주소","공급자업태","공급자업종",
+		"공급자담당부서명","공급자담당자명","공급자전화번호","공급자이메일",
+		"공급받는자구분코드","공급받는자사업자등록번호","공급받는자종사업장번호","공급받는자상호","공급받는자대표자성명",
+		"공급받는자주소","공급받는자업태","공급받는자업종","공급받는자담당부서명","공급받는자담당자명","공급받는자전화번호","공급받는자이메일",
+		"공급받는자담당부서명2","공급받는자담당자명2","공급받는자전화번호2","공급받는자이메일2",
+		"수탁자사업자등록번호","수탁자종사업장번호","수탁자상호","수탁자대표자성명","수탁자주소","수탁자업태","수탁자업종",
+		"수탁자부서명","수탁자담당자명","수탁자전화번호","수탁자이메일",
+		"현금결제금액","수표결제금액","어음결제금액","외상결제금액",
+		"공급가액합계","세액합계","총금액","매출매입구분","수기여부","비고",
+		"공급자담당자사번","공급받는자담당자사번",
+		"상품일련번호","거래일자","품목명","규격","수량","단가","공급가액","세액","거래비고","당초승인번호"
+	];
+	onProg(20);
+	var esc = function(v){if(!v)return '';if(v.indexOf(',')>=0||v.indexOf('"')>=0||v.indexOf('\n')>=0)return '"'+v.replace(/"/g,'""')+'"';return v;};
+	var uplusReceipt = receiptType === '01' ? '1' : '2';
+	var itemText = '[41210] ' + itemName;
+	var csvRows = [];
+
+	for (var i = 0; i < companies.length; i++) {
+		var co = companies[i];
+		var saved = localStorage.getItem('settlement-rev-' + co.name);
+		var mealAmount = 0;
+		if (saved) {
+			var revData = JSON.parse(saved);
+			var firstRow = revData[Object.keys(revData)[0]];
+			if (firstRow && firstRow.usage) mealAmount = parseInt(String(firstRow.usage).replace(/,/g,'')) || 0;
+		}
+		if (!mealAmount) mealAmount = 28000000;
+		var tax = Math.ceil(mealAmount / 11);
+		var supply = mealAmount - tax;
+		var total = supply + tax;
+
+		var vals = new Array(csvHeader.length).fill('');
+		vals[0] = writeDate; vals[2] = '1'; vals[3] = '1'; vals[4] = uplusReceipt;
+		vals[13] = co.bizNo.replace(/-/g,''); vals[15] = co.name; vals[16] = co.ceo; vals[23] = co.email;
+		vals[25] = BUYER_SO.bizNo; vals[27] = BUYER_SO.name; vals[28] = BUYER_SO.ceo; vals[35] = BUYER_SO.taxEmail;
+		vals[55] = String(supply); vals[56] = String(tax); vals[57] = String(total);
+		vals[58] = '1';
+		vals[64] = tradeDate; vals[65] = itemText;
+		vals[69] = String(supply); vals[70] = String(tax);
+		csvRows.push(vals.map(esc).join(','));
+		onProg(20 + Math.round((i+1)/companies.length*60));
+	}
+	onProg(90);
+	var csvContent = csvHeader.map(esc).join(',') + '\n' + csvRows.join('\n') + '\n';
+	var encoder = createEucKrEncoder();
+	var encoded = encoder(csvContent);
+	var blob = new Blob([encoded], {type:'text/csv'});
+	downloadBlob(blob, '고객사_세금계산서_일괄등록_전자문서_' + writeDate + '.csv');
+	companies.forEach(function(co){ recordBulkDownload(co.name, null, '원본', 'uplus'); });
+	onProg(100);
+}
+
+// 전체 체크
+function toggleCheckAll(el) {
+	document.querySelectorAll('.row-check').forEach(function(cb) { cb.checked = el.checked; });
+}
+
+// 드래그 앤 드롭 행 이동
+var dragRow = null;
+function dragStart(e) {
+	dragRow = e.target.closest('tr');
+	e.dataTransfer.effectAllowed = 'move';
+	setTimeout(function(){ dragRow.style.opacity = '0.4'; }, 0);
+}
+function dragOver(e) {
+	e.preventDefault();
+	var tr = e.target.closest('tr');
+	if (!tr || tr === dragRow) return;
+	var tbody = tr.parentNode;
+	var rows = Array.from(tbody.querySelectorAll('tr'));
+	var dragIdx = rows.indexOf(dragRow);
+	var targetIdx = rows.indexOf(tr);
+	if (dragIdx < targetIdx) tbody.insertBefore(dragRow, tr.nextSibling);
+	else tbody.insertBefore(dragRow, tr);
+}
+function drop(e) {
+	e.preventDefault();
+	if (dragRow) dragRow.style.opacity = '1';
+	dragRow = null;
+}
+document.addEventListener('dragend', function() {
+	if (dragRow) dragRow.style.opacity = '1';
+	dragRow = null;
+});
+</script>
 </body>
 </html>
