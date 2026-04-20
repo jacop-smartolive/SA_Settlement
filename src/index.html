@@ -8,6 +8,26 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 	<script src="assets/js/bulk-registration.js?v=10"></script>
 	<style>
+		/* Popup/Modal 공통 스타일 */
+		.amd-panel { position:relative; background:#fff; border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06); overflow:hidden; max-height:90vh; display:flex; flex-direction:column; margin:0 16px; }
+		.amd-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #f3f4f6; flex-shrink:0; }
+		.amd-header h2, .amd-header h3 { font-size:16px; font-weight:700; color:#111827; margin:0; line-height:1.3; }
+		.amd-body { padding:20px 24px; overflow-y:auto; flex:1; }
+		.amd-footer { display:flex; align-items:center; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid #f3f4f6; background:rgba(249,250,251,0.5); flex-shrink:0; }
+		.amd-close { width:32px; height:32px; border-radius:8px; border:none; background:#f3f4f6; cursor:pointer; color:#6b7280; display:flex; align-items:center; justify-content:center; font-size:16px; line-height:1; }
+		.amd-close:hover { background:#e5e7eb; color:#374151; }
+		.amd-btn { height:42px; padding:0 22px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:background .15s; }
+		.amd-btn-primary { background:#1D8AFF; color:#fff; }
+		.amd-btn-primary:hover { background:#1a6cf6; }
+		.amd-btn-success { background:#10b981; color:#fff; }
+		.amd-btn-success:hover { background:#059669; }
+		.amd-btn-danger { background:#ef4444; color:#fff; }
+		.amd-btn-danger:hover { background:#dc2626; }
+		.amd-btn-secondary { height:42px; padding:0 20px; border-radius:10px; border:1.5px solid #e5e7eb; background:#fff; font-size:14px; font-weight:500; color:#374151; cursor:pointer; font-family:inherit; transition:background .15s; }
+		.amd-btn-secondary:hover { background:#f9fafb; }
+		.amd-input { padding:10px 14px; border:1px solid #e5e7eb; border-radius:8px; font-size:14px; font-family:inherit; color:#111827; width:100%; box-sizing:border-box; }
+		.amd-input:focus { outline:none; border-color:#1D8AFF; box-shadow:0 0 0 3px rgba(29,138,255,0.12); }
+
 		/* Reset */
 		* { margin: 0; padding: 0; box-sizing: border-box; }
 		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
@@ -130,8 +150,23 @@
 		.countBox .leftArea { float: left; color: #666; font-size: 13px; }
 		.countBox .leftArea .to_result { display: inline-flex; align-items: center; padding: 0 15px; border: 1px solid #ddd; vertical-align: middle; height: 40px; }
 		.countBox .leftArea .to_result + .to_result { margin-left: -1px; }
-		.countBox .leftArea .to_result.label_cell { background: #f0f1f2; color: #333; font-weight: 700; }
+		.countBox .leftArea .to_result.label_cell { border-top-left-radius: 6px; border-bottom-left-radius: 6px; background: #f0f1f2; color: #333; font-weight: 700; }
+		.countBox .leftArea .to_result:last-of-type,
+		.countBox .leftArea .to_result:has(+ .to_result.label_cell) { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
 		.countBox .leftArea .to_result b { margin: 0 0 0 4px; color: #000; }
+
+		/* 커스텀 셀렉트: 화살표 우측에 여백 */
+		select.sel-arrow {
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			appearance: none;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+			background-repeat: no-repeat;
+			background-position: right 12px center;
+			background-size: 14px 14px;
+			padding-right: 34px !important;
+		}
+		select.sel-arrow::-ms-expand { display: none; }
 		.countBox .rightArea { float: right; color: #666; font-size: 13px; }
 		.countBox .rightArea .tit { position: relative; padding: 0 10px; font-weight: normal; }
 		.countBox .rightArea .tit:before { display: block; position: absolute; left: 0; top: 50%; width: 3px; height: 3px; margin-top: -2px; background: #727887; content: ''; }
@@ -336,48 +371,45 @@
 					</div>
 					<!-- //subTabBox -->
 
-					<!-- formBox -->
-					<div class="formBox type01">
-						<h2 class="blind">검색하기</h2>
-						<ul class="form_table">
-							<li>
-								<div class="tit_outer">
-									<div class="tit_inner">
-										<div class="tit">검색</div>
-									</div>
-								</div>
-								<div class="inner">
-									<div class="searchBox">
-										<div class="selectBox">
-											<label for="searchType">기업체명</label>
-											<select id="searchType" name="searchType">
-												<option value="companyName">기업체명</option>
-												<option value="businessNo">사업자번호</option>
-												<option value="corporateNo">법인번호</option>
-											</select>
-										</div>
-										<input id="searchKeyword" name="searchKeyword" placeholder="검색어를 입력하세요" type="text" value="">
-									</div>
-								</div>
-							</li>
-						</ul>
-					</div>
-					<!-- //formBox -->
 
-					<div class="btn_area first type01" style="display:flex;gap:8px;align-items:center;justify-content:flex-end;">
-						<button type="button" class="htcbtnMd type02" onclick="fnViewPage('1');"><span>검색</span></button>
+					<!-- 검색바 + 일괄 다운로드 (한 박스) -->
+					<div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid #e5e7eb;background:#fafafa;border-radius:6px;margin:20px 0;">
+						<strong style="font-size:13px;color:#333;margin-right:4px;">검색</strong>
+						<select id="searchType" name="searchType" class="sel-arrow" style="height:36px;padding:0 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+							<option value="companyName">기업체명</option>
+							<option value="businessNo">사업자번호</option>
+							<option value="corporateNo">법인번호</option>
+						</select>
+						<input id="searchKeyword" name="searchKeyword" placeholder="검색어를 입력하세요" type="text" style="width:260px;height:36px;padding:0 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;" onkeydown="if(event.key==='Enter'){fnViewPage('1');return false;}">
+						<button type="button" class="htcbtnMd type02" onclick="fnViewPage('1');" style="height:36px;display:inline-flex;align-items:center;border-radius:6px;"><span>검색</span></button>
+						<button type="button" onclick="openGmailModal()" style="margin-left:auto;height:36px;padding:0 14px;background:#fff;border:1px solid #d1d5db;color:#111;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+							회신메일 확인
+						</button>
 						<div style="position:relative;display:inline-block;">
-							<button type="button" class="htcbtnMd type02 bulk-dl-btn" onclick="toggleBulkDl(this)" style="padding:0 18px 0 8px;position:relative;">
-								<span>일괄 다운로드</span>
-								<svg class="bulk-dl-arrow" style="position:absolute;right:5px;top:50%;margin-top:-5px;transition:transform .2s;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+							<button type="button" class="bulk-dl-btn" onclick="toggleBulkDl(this)" style="height:36px;padding:0 28px 0 14px;background:#d1fae5;border:1px solid #a7f3d0;color:#047857;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;position:relative;">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+								일괄 다운로드
+								<svg class="bulk-dl-arrow" style="position:absolute;right:8px;top:50%;margin-top:-5px;transition:transform .2s;" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
 							</button>
-							<div class="bulk-dl-dropdown" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;min-width:100%;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;padding:4px 0;">
-								<a href="#" onclick="bulkDownloadAll('companyIssue'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">고객사 발행</a>
-								<a href="#" onclick="bulkDownloadAll('reverse'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 역발행</a>
-								<a href="#" onclick="bulkDownloadAll('forward'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 정발행 (일반)</a>
-								<a href="#" onclick="bulkDownloadAll('forwardSimple'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 정발행 (간이)</a>
-								<a href="#" onclick="bulkDownloadAll('transfer'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">가맹점 지급</a>
-								<a href="#" onclick="bulkDownloadAll('slip'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;">회계전표</a>
+							<div class="bulk-dl-dropdown" style="display:none;position:absolute;top:100%;right:0;margin-top:4px;min-width:100%;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;padding:4px 0;">
+								<a href="#" onclick="bulkDownloadAll('companyIssue'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;white-space:nowrap;">고객사 발행</a>
+								<a href="#" onclick="bulkDownloadAll('reverse'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;white-space:nowrap;">가맹점 역발행</a>
+								<a href="#" onclick="bulkDownloadAll('forward'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;white-space:nowrap;">가맹점 정발행 (일반)</a>
+								<a href="#" onclick="bulkDownloadAll('forwardSimple'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;white-space:nowrap;">가맹점 정발행 (간이)</a>
+								<a href="#" onclick="bulkDownloadAll('transfer'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;white-space:nowrap;">가맹점 지급</a>
+								<a href="#" onclick="bulkDownloadAll('slip'); return false;" style="display:block;padding:8px 16px;font-size:12px;color:#333;text-decoration:none;white-space:nowrap;">회계전표</a>
+							</div>
+						</div>
+						<div style="position:relative;display:inline-block;">
+							<button type="button" onclick="toggleSettleMenu(this)" class="settle-menu-btn" style="height:36px;padding:0 32px 0 14px;border:none;border-radius:6px;background:#10b981;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;position:relative;">
+								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+								정산완료
+								<svg class="settle-menu-arrow" style="position:absolute;right:10px;top:50%;margin-top:-5px;transition:transform .2s;" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+							</button>
+							<div class="settle-menu-dropdown" style="display:none;position:absolute;top:100%;right:0;margin-top:4px;min-width:140px;background:#fff;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;padding:4px 0;">
+								<a href="#" onclick="openSettlementCompletePopup('complete'); return false;" style="display:block;padding:8px 16px;font-size:13px;color:#333;text-decoration:none;white-space:nowrap;">정산완료 처리</a>
+								<a href="#" onclick="openSettlementCompletePopup('withdraw'); return false;" style="display:block;padding:8px 16px;font-size:13px;color:#333;text-decoration:none;white-space:nowrap;">정산완료 철회</a>
 							</div>
 						</div>
 					</div>
@@ -386,7 +418,7 @@
 					<div class="countBox">
 						<div class="leftArea">
 							<span class="to_result label_cell">결과</span><span class="to_result"><b>4</b></span>
-							<select id="sortFilter" onchange="applySortFilter()" style="margin-left:12px;height:40px;padding:0 10px;border:1px solid #ddd;font-size:13px;color:#333;vertical-align:middle;">
+							<select id="sortFilter" onchange="applySortFilter()" class="sel-arrow" style="margin-left:12px;height:40px;padding:0 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;color:#333;vertical-align:middle;">
 								<option value="">기본 순</option>
 								<option value="dl_settlement">정산서 일괄 순</option>
 								<option value="dl_reverse">가맹점 역발행 일괄 순</option>
@@ -396,11 +428,9 @@
 								<option value="dl_slip">회계전표 일괄 순</option>
 							</select>
 						</div>
-						<div class="rightArea" style="display:flex;align-items:center;gap:16px;">
-							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#2563eb;"><span style="width:8px;height:8px;border-radius:50%;background:#2563eb;display:inline-block;"></span>다운로드</span>
-							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#e5006a;"><span style="width:8px;height:8px;border-radius:50%;background:#e5006a;display:inline-block;"></span>수정본 업로드</span>
-							<strong class="tit">목록개수</strong>
-							<select id="pageSize" name="pageSize" onchange="fnViewPage('1');">
+						<div class="rightArea" style="display:flex;align-items:center;gap:8px;">
+							<strong style="font-size:13px;color:#666;font-weight:normal;">목록개수</strong>
+							<select id="pageSize" name="pageSize" onchange="fnViewPage('1');" class="sel-arrow" style="height:40px;padding:0 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;color:#333;">
 								<option value="10">10</option>
 								<option value="20" selected="selected">20</option>
 								<option value="50">50</option>
@@ -438,7 +468,8 @@
 									<th scope="row">세금계산서 발행 이메일</th>
 									<th scope="row">위하고 코드1</th>
 									<th scope="row">위하고 코드2</th>
-									<th scope="row">최근 다운로드</th>
+									<th scope="row">최근 다운로드/업로드</th>
+									<th scope="row">최근 완료내역</th>
 									<th scope="row">정산 완료 건수</th>
 									<th scope="row">마지막 정산 완료일</th>
 								</tr>
@@ -455,6 +486,7 @@
 									<td>[41210] 식대</td>
 									<td>[41210] 1인당 과금</td>
 									<td class="dl-history" data-company="한화에어로스페이스 (주)"></td>
+									<td class="done-history" data-company="한화에어로스페이스 (주)"></td>
 									<td><a href="pages/detail-hanwha-aerospace.html">77</a></td>
 									<td>2026.03.31</td>
 								</tr>
@@ -469,6 +501,7 @@
 									<td>[41210] 식대</td>
 									<td>[41330] 정액제</td>
 									<td class="dl-history" data-company="두산에너빌리티 (주)"></td>
+									<td class="done-history" data-company="두산에너빌리티 (주)"></td>
 									<td><a href="pages/detail-doosan-enerbility.html">76</a></td>
 									<td>2026.03.31</td>
 								</tr>
@@ -483,6 +516,7 @@
 									<td>[41210] 식대</td>
 									<td>[41210] 1인당 과금</td>
 									<td class="dl-history" data-company="한화오션(주)"></td>
+									<td class="done-history" data-company="한화오션(주)"></td>
 									<td><a href="pages/detail-hanwha-ocean.html">56</a></td>
 									<td>2026.03.31</td>
 								</tr>
@@ -497,6 +531,7 @@
 									<td>[41210] 식대</td>
 									<td>-</td>
 									<td class="dl-history" data-company="HD현대중공업(주)"></td>
+									<td class="done-history" data-company="HD현대중공업(주)"></td>
 									<td><a href="pages/detail-hd-hyundai.html">74</a></td>
 									<td>2026.03.31</td>
 								</tr>
@@ -521,17 +556,108 @@
 	</section>
 </div>
 
+<!-- 정산완료 처리 팝업 -->
+<div id="scOverlay" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;">
+	<div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);" onclick="closeSettlementCompletePopup()"></div>
+	<div class="amd-panel" style="width:480px;max-width:calc(100vw - 32px);">
+		<div class="amd-header">
+			<h2>정산완료 처리</h2>
+			<button onclick="closeSettlementCompletePopup()" class="amd-close">✕</button>
+		</div>
+		<div class="amd-body">
+			<div id="scCompanyRow" onclick="openScCompanyListPopup()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;cursor:pointer;margin-bottom:16px;">
+				<span style="font-size:13px;color:#6b7280;">선택 기업</span>
+				<div style="display:flex;align-items:center;gap:6px;">
+					<b id="scCompanyCount" style="font-size:14px;color:#111827;">0개</b>
+					<span style="color:#9ca3af;">›</span>
+				</div>
+			</div>
+			<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+				<span style="font-size:13px;color:#374151;font-weight:500;">완료 처리할 단계 선택</span>
+				<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#6b7280;cursor:pointer;user-select:none;">
+					<input type="checkbox" id="scSelectAll" onchange="scToggleAllSteps(this.checked)" style="accent-color:#10b981;">
+					모두 선택
+				</label>
+			</div>
+			<div id="scStepList" style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;"></div>
+		</div>
+		<div class="amd-footer">
+			<button onclick="closeSettlementCompletePopup()" class="amd-btn-secondary">취소</button>
+			<button id="scConfirmBtn" onclick="confirmSettlementComplete()" class="amd-btn amd-btn-success">완료 처리</button>
+		</div>
+	</div>
+</div>
+
+<!-- 정산완료 기업 리스트 서브 팝업 -->
+<div id="scCompanyListOverlay" style="display:none;position:fixed;inset:0;z-index:210;align-items:center;justify-content:center;">
+	<div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);" onclick="closeScCompanyListPopup()"></div>
+	<div class="amd-panel" style="width:420px;max-width:calc(100vw - 32px);">
+		<div class="amd-header">
+			<h3>선택 기업</h3>
+			<button onclick="closeScCompanyListPopup()" class="amd-close">✕</button>
+		</div>
+		<div class="amd-body" id="scCompanyListBody" style="padding:0;max-height:60vh;"></div>
+		<div class="amd-footer">
+			<button onclick="closeScCompanyListPopup()" class="amd-btn-secondary">닫기</button>
+		</div>
+	</div>
+</div>
+
+<!-- 회신메일 확인 모달 -->
+<div id="gmailOverlay" style="display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;">
+	<div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);" onclick="closeGmailModal()"></div>
+	<div class="amd-panel" style="width:640px;max-width:calc(100vw - 32px);">
+		<div id="gmailHead" class="amd-header">
+			<div id="gmailHeadLeft" style="display:flex;align-items:center;gap:12px;">
+				<span id="gmailTitle" style="font-size:16px;font-weight:700;color:#111827;">회신메일 확인</span>
+			</div>
+			<button onclick="closeGmailModal()" class="amd-close">✕</button>
+		</div>
+		<div id="gmailBody" class="amd-body"></div>
+		<div id="gmailFoot" class="amd-footer">
+			<button onclick="closeGmailModal()" class="amd-btn-secondary">닫기</button>
+		</div>
+	</div>
+</div>
+
+<!-- 최근 완료 내역 팝업 -->
+<div id="doneHistoryOverlay" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+	<div class="amd-panel" style="width:640px;max-width:calc(100vw - 32px);">
+		<div class="amd-header">
+			<div>
+				<h2>최근 완료 내역</h2>
+				<p id="doneHistorySubtitle" style="margin:4px 0 0;font-size:13px;color:#6B7280;"></p>
+			</div>
+			<button onclick="closeDoneHistoryPopup()" class="amd-close">✕</button>
+		</div>
+		<div class="amd-body">
+			<table style="width:100%;border-collapse:collapse;font-size:13px;">
+				<thead>
+					<tr style="background:#f8f9fa;">
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;width:40%;">유형</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">완료 일시</th>
+					</tr>
+				</thead>
+				<tbody id="doneHistoryBody"></tbody>
+			</table>
+		</div>
+		<div class="amd-footer">
+			<button onclick="closeDoneHistoryPopup()" class="amd-btn-secondary">닫기</button>
+		</div>
+	</div>
+</div>
+
 <!-- 최근 다운로드 이력 팝업 -->
 <div id="dlHistoryOverlay" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
-	<div style="width:720px;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.12);overflow:hidden;margin:auto;">
-		<div style="padding:24px 28px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+	<div class="amd-panel" style="width:720px;max-width:calc(100vw - 32px);">
+		<div class="amd-header">
 			<div>
-				<h2 id="dlHistoryTitle" style="font-size:18px;font-weight:700;color:#111827;margin:0;">최근 다운로드 일시</h2>
-				<p id="dlHistorySubtitle" style="margin:6px 0 0;font-size:13px;color:#6B7280;"></p>
+				<h2 id="dlHistoryTitle">최근 다운로드/업로드 일시</h2>
+				<p id="dlHistorySubtitle" style="margin:4px 0 0;font-size:13px;color:#6B7280;"></p>
 			</div>
-			<button onclick="closeDlHistoryPopup()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;cursor:pointer;color:#6b7280;display:flex;align-items:center;justify-content:center;">✕</button>
+			<button onclick="closeDlHistoryPopup()" class="amd-close">✕</button>
 		</div>
-		<div style="padding:20px 28px;">
+		<div class="amd-body">
 			<table id="dlHistoryTable" style="width:100%;border-collapse:collapse;font-size:13px;">
 				<thead>
 					<tr style="background:#f8f9fa;">
@@ -545,9 +671,8 @@
 				<tbody id="dlHistoryBody"></tbody>
 			</table>
 		</div>
-		<div style="height:1px;background:#f3f4f6;"></div>
-		<div style="padding:16px 28px;display:flex;justify-content:flex-end;">
-			<button onclick="closeDlHistoryPopup()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">닫기</button>
+		<div class="amd-footer">
+			<button onclick="closeDlHistoryPopup()" class="amd-btn-secondary">닫기</button>
 		</div>
 	</div>
 </div>
@@ -575,30 +700,42 @@
 				</button>
 			</div>
 			<!-- 입력 필드 -->
+			<div id="ciCountRow" style="margin-bottom:16px;display:grid;grid-template-columns:1fr;gap:12px;">
+				<div>
+					<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">기업 수</p>
+					<div id="ciCompanyCount" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;background:#f9fafb;color:#111827;box-sizing:border-box;display:flex;align-items:center;">0곳</div>
+				</div>
+				<div id="ciStoreCountWrap" style="display:none;">
+					<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">가맹점 수</p>
+					<div id="ciStoreCount" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;background:#f9fafb;color:#111827;box-sizing:border-box;display:flex;align-items:center;">0곳</div>
+				</div>
+			</div>
+			<!-- 홈택스 안내 문구 -->
+			<div id="ciAlert" style="display:none;margin-bottom:16px;font-size:12px;color:#E53E3E;line-height:1.6;font-weight:500;background:#FEF2F2;border-radius:8px;padding:10px 14px;white-space:pre-line;"></div>
 			<div style="margin-bottom:16px;">
 				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">작성일자</p>
-				<input id="ciWriteDate" type="text" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;" placeholder="YYYYMMDD">
+				<input id="ciWriteDate" type="text" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;" placeholder="YYYYMMDD">
 			</div>
 			<div style="margin-bottom:16px;">
 				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">거래일자</p>
-				<input id="ciTradeDate" type="text" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;" placeholder="YYYYMMDD">
+				<input id="ciTradeDate" type="text" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;" placeholder="YYYYMMDD">
 			</div>
 			<div style="margin-bottom:16px;">
 				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">품목1</p>
-				<input id="ciItemName" type="text" value="식대" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
+				<input id="ciItemName" type="text" value="식대" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
 			</div>
 			<div id="ciItem2Row" style="margin-bottom:16px;display:none;">
 				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">품목2</p>
-				<input id="ciItemName2" type="text" value="이용료" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
+				<input id="ciItemName2" type="text" value="이용료" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
 			</div>
 			<div style="margin-bottom:16px;">
 				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">영수/청구</p>
-				<select id="ciReceiptType" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;">
+				<select id="ciReceiptType" class="sel-arrow" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
 					<option value="01">영수(01)</option>
 					<option value="02" selected>청구(02)</option>
 				</select>
 			</div>
-			<div id="ciCheckedInfo" style="font-size:12px;color:#6b7280;margin-bottom:16px;"></div>
+			<div id="ciCheckedInfo" style="display:none;"></div>
 			<!-- 프로그레스 -->
 			<div id="ciProgress" style="display:none;margin-bottom:16px;">
 				<div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
@@ -619,6 +756,84 @@
 				<button id="ciBtn50" onclick="startStoreInvoiceDownloadSize('small')" style="height:42px;padding:0 18px;border-radius:10px;border:none;background:#1a6cf6;font-size:13px;font-weight:600;color:#fff;cursor:pointer;">50건 이하</button>
 				<button id="ciBtn101" onclick="startStoreInvoiceDownloadSize('large')" style="height:42px;padding:0 18px;border-radius:10px;border:none;background:#1a6cf6;font-size:13px;font-weight:600;color:#fff;cursor:pointer;">101~1,000건</button>
 			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 회계전표 일괄 다운로드 팝업 -->
+<div id="slipOverlay" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+	<div style="width:440px;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.12);overflow:hidden;margin:auto;">
+		<div style="padding:24px 28px 16px;background:#f9fafb;">
+			<div style="display:flex;justify-content:space-between;align-items:flex-start;">
+				<div>
+					<div style="font-size:11px;font-weight:600;color:#1a6cf6;letter-spacing:0.06em;margin-bottom:4px;">회계 전표 등록</div>
+					<h2 style="font-size:18px;font-weight:700;color:#111827;margin:0;">회계전표 일괄 다운로드</h2>
+				</div>
+				<button onclick="closeSlipPopup()" style="width:32px;height:32px;border-radius:8px;border:none;background:#e5e7eb;cursor:pointer;color:#6b7280;display:flex;align-items:center;justify-content:center;">✕</button>
+			</div>
+		</div>
+		<div style="height:1px;background:#e5e7eb;"></div>
+		<div style="padding:20px 28px 24px;">
+			<p style="font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.5;">선택된 기업의 회계전표 파일을 다운로드합니다.</p>
+			<div style="border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+				<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;">
+					<span style="font-size:13px;font-weight:500;color:#6b7280;">대변 (기업)</span>
+					<span style="font-size:13px;font-weight:500;color:#374151;">총 <b id="slCreditCount" style="color:#111827;">0</b>곳 · <b id="slCreditTotal" style="color:#1a6cf6;">0</b>원</span>
+				</div>
+				<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;">
+					<span style="font-size:13px;font-weight:500;color:#6b7280;">차변 (가맹점)</span>
+					<span style="font-size:13px;font-weight:500;color:#374151;">총 <b id="slDebitCount" style="color:#111827;">0</b>곳 · <b id="slDebitTotal" style="color:#1a6cf6;">0</b>원</span>
+				</div>
+			</div>
+		</div>
+		<div style="height:1px;background:#f3f4f6;"></div>
+		<div style="padding:16px 28px;display:flex;justify-content:flex-end;gap:10px;">
+			<button onclick="closeSlipPopup()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">취소</button>
+			<button onclick="confirmSlipDownload()" style="height:42px;padding:0 22px;border-radius:10px;border:none;background:#1a6cf6;font-size:14px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;">
+				<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+				다운로드
+			</button>
+		</div>
+	</div>
+</div>
+
+<!-- 가맹점 정산지급 (대량이체) 일괄 다운로드 팝업 -->
+<div id="transferOverlay" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+	<div style="width:440px;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.12);overflow:hidden;margin:auto;">
+		<div style="padding:24px 28px 16px;background:#f9fafb;">
+			<div style="display:flex;justify-content:space-between;align-items:flex-start;">
+				<div>
+					<div style="font-size:11px;font-weight:600;color:#1a6cf6;letter-spacing:0.06em;margin-bottom:4px;">가맹점 정산지급</div>
+					<h2 style="font-size:18px;font-weight:700;color:#111827;margin:0;">대량이체 일괄 다운로드</h2>
+				</div>
+				<button onclick="closeTransferPopup()" style="width:32px;height:32px;border-radius:8px;border:none;background:#e5e7eb;cursor:pointer;color:#6b7280;display:flex;align-items:center;justify-content:center;">✕</button>
+			</div>
+		</div>
+		<div style="height:1px;background:#e5e7eb;"></div>
+		<div style="padding:20px 28px 24px;">
+			<p style="font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.5;">선택된 기업의 대량이체 파일을 다운로드합니다.</p>
+			<div style="border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+				<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;">
+					<span style="font-size:13px;font-weight:500;color:#6b7280;">선택 기업 수</span>
+					<span id="tfCompanyCount" style="font-size:13px;font-weight:600;color:#111827;">0곳</span>
+				</div>
+				<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #f3f4f6;">
+					<span style="font-size:13px;font-weight:500;color:#6b7280;">가맹점 수</span>
+					<span id="tfStoreCount" style="font-size:13px;font-weight:600;color:#111827;">0곳</span>
+				</div>
+				<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;">
+					<span style="font-size:13px;font-weight:500;color:#6b7280;">총 지급 금액</span>
+					<span id="tfTotalAmount" style="font-size:13px;font-weight:600;color:#1a6cf6;">0원</span>
+				</div>
+			</div>
+		</div>
+		<div style="height:1px;background:#f3f4f6;"></div>
+		<div style="padding:16px 28px;display:flex;justify-content:flex-end;gap:10px;">
+			<button onclick="closeTransferPopup()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">취소</button>
+			<button onclick="confirmTransferDownload()" style="height:42px;padding:0 22px;border-radius:10px;border:none;background:#1a6cf6;font-size:14px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;">
+				<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+				다운로드
+			</button>
 		</div>
 	</div>
 </div>
@@ -647,6 +862,25 @@ function fnViewPage(pageNo) {
 </script>
 
 <script>
+// dl_* 엔트리 파서 (신규/구식 포맷 호환)
+// 신규: "YYYY-MM-DD|HH:MM|원본 다운로드 (일괄)"
+// 구식: "YYYY-MM-DD|HH:MM 원본 (일괄) [DL]"
+function parseDlEntry(v) {
+	var parts = v.split('|');
+	var date = parts[0];
+	var time, action;
+	if (parts.length >= 3) {
+		time = parts[1];
+		action = parts[2] || '';
+	} else {
+		var info = parts[1] || '';
+		time = info.substring(0, 5);
+		var rest = info.substring(6);
+		var isUpload = rest.indexOf('[UP]') >= 0;
+		action = rest.replace(/\s*\[DL\]/, '').replace(/\s*\[UP\]/, '') + (isUpload ? ' 업로드' : ' 다운로드');
+	}
+	return { date: date, time: time, action: action };
+}
 // 최근 다운로드 이력 표시
 (function loadDlHistory() {
 	var labels = {
@@ -668,12 +902,8 @@ function fnViewPage(pageNo) {
 			var row = revData[rowNo];
 			keys.forEach(function(k) {
 				if (row[k]) {
-					var parts = row[k].split('|');
-					var dateVal = parts[0];
-					var infoVal = parts[1] || '';
-					var timePart = infoVal.substring(0, 5);
-					var typePart = infoVal.substring(6);
-					items.push({ label: labels[k], date: dateVal, time: timePart, type: typePart, raw: dateVal + ' ' + timePart });
+					var p = parseDlEntry(row[k]);
+					items.push({ label: labels[k], date: p.date, time: p.time, type: p.action, raw: p.date + ' ' + p.time });
 				}
 			});
 		});
@@ -681,14 +911,700 @@ function fnViewPage(pageNo) {
 		// 가장 최근 1개만 2줄로 표시 + 클릭 팝업
 		items.sort(function(a, b) { return b.raw.localeCompare(a.raw); });
 		var it = items[0];
-		var isUpload = (it.type.indexOf('[UP]') >= 0);
-		var dlColor = isUpload ? '#e5006a' : '#2563eb';
-		var displayType = it.type.replace(' [DL]','').replace(' [UP]','');
-		td.innerHTML = '<div onclick="openDlHistoryPopup(\''+company.replace(/'/g,"\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;color:'+dlColor+';cursor:pointer;text-decoration:underline;text-underline-offset:2px;">'
-			+ it.date + ' ' + it.time + '<br>'
-			+ it.label + ' : ' + displayType + '</div>';
+		td.innerHTML = '<div onclick="openDlHistoryPopup(\''+company.replace(/'/g,"\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;cursor:pointer;font-weight:700;">'
+			+ '<span style="color:#10b981;">' + it.date.slice(2) + ' ' + it.time + '</span><br>'
+			+ '<span style="color:#111;text-decoration:underline;text-underline-offset:2px;">' + it.label + ' : ' + it.type + '</span>'
+		+ '</div>';
 		td.setAttribute('data-all-items', JSON.stringify(items));
 	});
+})();
+
+// 최근 완료 내역 표시 (재호출 가능)
+var DONE_HISTORY_LABELS = {
+	done_settlement: '정산서 확정',
+	mail_sent: '메일 발송',
+	done_customerForward: '고객 발행완료',
+	done_reverse: '가맹점 역발행완료',
+	done_forward: '가맹점 발행완료 (일반)',
+	done_forwardSimple: '가맹점 발행완료 (간이)',
+	done_transfer: '가맹점 지급완료',
+	done_slip: '회계전표 등록완료'
+};
+var DONE_CHECK_KEYS = ['done_settlement','mail_sent','done_customerForward','done_reverse','done_forward','done_forwardSimple','done_transfer','done_slip'];
+function loadDoneHistory() {
+	var keys = Object.keys(DONE_HISTORY_LABELS);
+	document.querySelectorAll('.done-history').forEach(function(td) {
+		var company = td.getAttribute('data-company');
+		var saved = localStorage.getItem('settlement-rev-' + company);
+		if (!saved) { td.innerHTML = ''; return; }
+		var revData;
+		try { revData = JSON.parse(saved); } catch(e) { td.innerHTML = ''; return; }
+
+		// 1) 전체 8단계 완료된 행이 있는지 확인 → 정산완료 표시
+		var allDoneTs = null;
+		Object.keys(revData).forEach(function(rowNo) {
+			var row = revData[rowNo];
+			var isAllDone = DONE_CHECK_KEYS.every(function(k) {
+				if (k === 'mail_sent') return !!(row.mail_sent || row.done_settlement);
+				return !!row[k];
+			});
+			if (!isAllDone) return;
+			// 해당 행 내 최신 타임스탬프 찾기
+			var latestInRow = null;
+			DONE_CHECK_KEYS.forEach(function(k) {
+				var v = (k === 'mail_sent') ? (row.mail_sent || row.done_settlement) : row[k];
+				if (!v) return;
+				var parts = v.split('|');
+				var raw = parts[0] + ' ' + parts[1];
+				if (!latestInRow || raw > latestInRow.raw) latestInRow = { date: parts[0], time: parts[1], raw: raw };
+			});
+			if (latestInRow && (!allDoneTs || latestInRow.raw > allDoneTs.raw)) allDoneTs = latestInRow;
+		});
+
+		if (allDoneTs) {
+			var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;vertical-align:-3px;"><circle cx="12" cy="12" r="10" fill="#10b981"/><polyline points="8 12.5 11 15.5 16.5 9.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+			td.innerHTML = '<div onclick="openDoneHistoryPopup(\''+company.replace(/\'/g,"\\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;cursor:pointer;font-weight:700;">'
+				+ '<span style="color:#9ca3af;">' + allDoneTs.date.slice(2) + ' ' + allDoneTs.time + '</span><br>'
+				+ '<span style="color:#10b981;">' + checkIcon + ' <span style="text-decoration:underline;text-underline-offset:2px;">정산완료</span></span>'
+			+ '</div>';
+			return;
+		}
+
+		// 2) 아니면 최근 완료 액션 1건 표시
+		var latest = null;
+		Object.keys(revData).forEach(function(rowNo) {
+			var row = revData[rowNo];
+			keys.forEach(function(k) {
+				var v = row[k];
+				if (!v) return;
+				var parts = v.split('|');
+				var raw = parts[0] + ' ' + parts[1];
+				if (!latest || raw > latest.raw) {
+					latest = { date: parts[0], time: parts[1], label: DONE_HISTORY_LABELS[k], raw: raw };
+				}
+			});
+		});
+		if (latest) {
+			td.innerHTML = '<div onclick="openDoneHistoryPopup(\''+company.replace(/\'/g,"\\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;cursor:pointer;font-weight:700;">'
+				+ '<span style="color:#10b981;">' + latest.date.slice(2) + ' ' + latest.time + '</span><br>'
+				+ '<span style="color:#111;text-decoration:underline;text-underline-offset:2px;">' + latest.label + '</span>'
+			+ '</div>';
+		} else {
+			td.innerHTML = '';
+		}
+	});
+}
+loadDoneHistory();
+
+// 최근 완료 내역 팝업
+function openDoneHistoryPopup(companyName) {
+	var rows = [
+		{ type: '정산서', key: 'done_settlement', action: '정산서 확정' },
+		{ type: '메일 발송', key: 'mail_sent', action: '메일 발송' },
+		{ type: '고객 발행', key: 'done_customerForward', action: '발행완료' },
+		{ type: '가맹점 역발행', key: 'done_reverse', action: '역발행완료' },
+		{ type: '가맹점 정발행 (일)', key: 'done_forward', action: '발행완료' },
+		{ type: '가맹점 정발행 (간)', key: 'done_forwardSimple', action: '발행완료' },
+		{ type: '가맹점 지급', key: 'done_transfer', action: '지급완료' },
+		{ type: '회계전표', key: 'done_slip', action: '등록완료' }
+	];
+	var saved = localStorage.getItem('settlement-rev-' + companyName);
+	var revData = {};
+	if (saved) { try { revData = JSON.parse(saved); } catch(e) {} }
+	// 각 유형별 최신 타임스탬프 수집
+	var latest = {};
+	Object.keys(revData).forEach(function(rowNo) {
+		var row = revData[rowNo];
+		rows.forEach(function(r) {
+			var v = row[r.key];
+			if (!v) return;
+			var parts = v.split('|');
+			var raw = parts[0] + ' ' + parts[1];
+			if (!latest[r.key] || raw > latest[r.key].raw) {
+				latest[r.key] = { date: parts[0], time: parts[1], raw: raw };
+			}
+		});
+	});
+	document.getElementById('doneHistorySubtitle').textContent = companyName;
+	var html = '';
+	rows.forEach(function(r) {
+		var entry = latest[r.key];
+		if (entry) {
+			html += '<tr>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;">' + r.type + '</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;white-space:nowrap;"><b style="color:#111;">' + r.action + '</b><span style="color:#111;">,</span> <span style="color:#10b981;">' + entry.date + ' ' + entry.time + '</span></td>'
+			+ '</tr>';
+		} else {
+			html += '<tr>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:#ccc;">' + r.type + '</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:#ccc;">-</td>'
+			+ '</tr>';
+		}
+	});
+	document.getElementById('doneHistoryBody').innerHTML = html;
+	document.getElementById('doneHistoryOverlay').style.display = 'flex';
+}
+function closeDoneHistoryPopup() { document.getElementById('doneHistoryOverlay').style.display = 'none'; }
+
+// ============================================
+// 정산완료 처리 팝업
+// ============================================
+var SC_STEPS = [
+	{ key: 'done_settlement', label: '1. 정산서 확정' },
+	{ key: 'mail_sent',        label: '2. 메일 발송' },
+	{ key: 'done_customerForward', label: '3. 고객 발행' },
+	{ key: 'done_reverse',     label: '4. 가맹 역발행' },
+	{ key: 'done_forward',     label: '5. 가맹 발행 (일)' },
+	{ key: 'done_forwardSimple', label: '6. 가맹 발행 (간)' },
+	{ key: 'done_transfer',    label: '7. 가맹 지급' },
+	{ key: 'done_slip',        label: '8. 회계전표' },
+];
+var scState = { companies: [], stats: [], checked: new Set(), mode: 'complete' };
+
+function toggleSettleMenu(btn) {
+	var dd = btn.nextElementSibling;
+	var arrow = btn.querySelector('.settle-menu-arrow');
+	var open = dd.style.display === 'block';
+	dd.style.display = open ? 'none' : 'block';
+	if (arrow) arrow.style.transform = open ? '' : 'rotate(180deg)';
+}
+document.addEventListener('click', function(e) {
+	if (!e.target.closest('.settle-menu-btn') && !e.target.closest('.settle-menu-dropdown')) {
+		document.querySelectorAll('.settle-menu-dropdown').forEach(function(d) {
+			d.style.display = 'none';
+			var arrow = d.previousElementSibling && d.previousElementSibling.querySelector('.settle-menu-arrow');
+			if (arrow) arrow.style.transform = '';
+		});
+	}
+});
+
+function openSettlementCompletePopup(mode) {
+	scState.mode = mode || 'complete';
+	// 1. 체크된 기업 수집
+	var pickedNames = [];
+	document.querySelectorAll('.bbs_list tbody tr').forEach(function(row) {
+		var cb = row.querySelector('.row-check');
+		if (cb && cb.checked) {
+			var link = row.querySelector('td:nth-child(4) a');
+			if (link) pickedNames.push(link.textContent.trim());
+		}
+	});
+	if (pickedNames.length === 0) {
+		alert('목록에서 정산완료 처리할 기업을 선택해 주세요.');
+		return;
+	}
+	// 2. 기업별 latestNo/period 로드
+	scState.companies = pickedNames.map(function(name) {
+		var meta = localStorage.getItem('settlement-meta-' + name);
+		var m = {};
+		try { m = meta ? JSON.parse(meta) : {}; } catch(e) {}
+		return {
+			companyName: name,
+			latestNo: m.latestNo || 1,
+			ps: m.ps || '',
+			pe: m.pe || ''
+		};
+	});
+	// 3. 단계별 상태 집계
+	scState.stats = SC_STEPS.map(function(step) {
+		var doneCount = 0;
+		scState.companies.forEach(function(c) {
+			var saved = localStorage.getItem('settlement-rev-' + c.companyName);
+			if (!saved) return;
+			var d; try { d = JSON.parse(saved); } catch(e) { return; }
+			var row = d[c.latestNo];
+			if (row && row[step.key]) doneCount++;
+		});
+		return { step: step, doneCount: doneCount, total: scState.companies.length };
+	});
+	scState.checked = new Set();
+	document.getElementById('scCompanyCount').textContent = pickedNames.length + '개';
+	// 모드별 타이틀/버튼 텍스트/색상 갱신
+	var titleEl = document.querySelector('#scOverlay h2');
+	var btn = document.getElementById('scConfirmBtn');
+	if (scState.mode === 'withdraw') {
+		if (titleEl) titleEl.textContent = '정산완료 철회';
+		if (btn) { btn.textContent = '철회'; btn.className = 'amd-btn amd-btn-danger'; }
+	} else {
+		if (titleEl) titleEl.textContent = '정산완료 처리';
+		if (btn) { btn.textContent = '완료 처리'; btn.className = 'amd-btn amd-btn-success'; }
+	}
+	renderScStepList();
+	document.getElementById('scOverlay').style.display = 'flex';
+	// 드롭다운 닫기
+	document.querySelectorAll('.settle-menu-dropdown').forEach(function(d){ d.style.display = 'none'; });
+}
+function closeSettlementCompletePopup() { document.getElementById('scOverlay').style.display = 'none'; }
+
+function renderScStepList() {
+	var html = '';
+	var isWithdraw = scState.mode === 'withdraw';
+	scState.stats.forEach(function(st, idx) {
+		var allDone = st.doneCount === st.total;
+		var noneDone = st.doneCount === 0;
+		// complete 모드: 전체완료(N/N)면 disabled
+		// withdraw 모드: 미완료(0/N)면 disabled
+		var disabled = isWithdraw ? noneDone : allDone;
+		var isChecked = disabled ? (isWithdraw ? false : true) : scState.checked.has(st.step.key);
+		var rowStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;'+(idx<scState.stats.length-1?'border-bottom:1px solid #f3f4f6;':'')+'cursor:'+(disabled?'default':'pointer')+';opacity:'+(disabled?'0.55':'1')+';';
+		var countColor;
+		if (isWithdraw) {
+			countColor = noneDone ? '#9ca3af' : (allDone ? '#ef4444' : '#f59e0b');
+		} else {
+			countColor = allDone ? '#10b981' : (st.doneCount > 0 ? '#2563eb' : '#9ca3af');
+		}
+		var accentColor = isWithdraw ? '#ef4444' : '#10b981';
+		html += '<label style="'+rowStyle+'">'
+			+ '<div style="display:flex;align-items:center;gap:10px;">'
+				+ '<input type="checkbox" '+(isChecked?'checked':'')+' '+(disabled?'disabled':'')+' onchange="scToggleStep(\''+st.step.key+'\', this.checked)" style="width:16px;height:16px;accent-color:'+accentColor+';cursor:'+(disabled?'default':'pointer')+';">'
+				+ '<span style="font-size:14px;color:#111827;font-weight:500;">'+st.step.label+'</span>'
+			+ '</div>'
+			+ '<span style="font-size:13px;color:'+countColor+';font-weight:600;"><b>'+st.doneCount+'</b> / '+st.total+'</span>'
+		+ '</label>';
+	});
+	document.getElementById('scStepList').innerHTML = html;
+	updateScSelectAllState();
+}
+
+function scSelectableSteps() {
+	return scState.stats.filter(function(s){
+		return scState.mode === 'withdraw' ? s.doneCount > 0 : s.doneCount < s.total;
+	});
+}
+function updateScSelectAllState() {
+	var selectable = scSelectableSteps();
+	var allChecked = selectable.length > 0 && selectable.every(function(s){ return scState.checked.has(s.step.key); });
+	var el = document.getElementById('scSelectAll');
+	if (el) { el.checked = allChecked; el.disabled = selectable.length === 0; }
+}
+
+function scToggleStep(key, checked) {
+	if (checked) scState.checked.add(key);
+	else scState.checked.delete(key);
+	updateScSelectAllState();
+}
+
+function scToggleAllSteps(checked) {
+	var selectable = scSelectableSteps();
+	if (checked) selectable.forEach(function(s){ scState.checked.add(s.step.key); });
+	else selectable.forEach(function(s){ scState.checked.delete(s.step.key); });
+	renderScStepList();
+}
+
+function confirmSettlementComplete() {
+	var isWithdraw = scState.mode === 'withdraw';
+	var actionLabel = isWithdraw ? '철회' : '완료 처리';
+	if (scState.checked.size === 0) {
+		alert(actionLabel + '할 단계를 선택해 주세요.');
+		return;
+	}
+	var stepLabels = [];
+	scState.checked.forEach(function(k) {
+		var s = SC_STEPS.find(function(x){return x.key===k;});
+		if (s) stepLabels.push(s.label.replace(/^\d+\.\s*/, ''));
+	});
+	var confirmMsg = isWithdraw
+		? '선택한 ' + scState.companies.length + '개 기업의 ' + scState.checked.size + '개 단계(' + stepLabels.join(', ') + ')를 철회하시겠습니까?\n* 이미 미완료인 기업은 변경되지 않습니다.'
+		: '선택한 ' + scState.companies.length + '개 기업의 ' + scState.checked.size + '개 단계(' + stepLabels.join(', ') + ')를 완료 처리하시겠습니까?\n* 이미 완료된 기업은 덮어쓰지 않습니다.';
+	if (!confirm(confirmMsg)) return;
+
+	var now = new Date();
+	var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+	var timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+	var ts = dateStr + '|' + timeStr;
+	var totalUpdated = 0;
+
+	scState.companies.forEach(function(c) {
+		var key = 'settlement-rev-' + c.companyName;
+		var saved = localStorage.getItem(key);
+		var revData = {}; try { if (saved) revData = JSON.parse(saved); } catch(e) {}
+		if (!revData[c.latestNo]) revData[c.latestNo] = {};
+		scState.checked.forEach(function(stepKey) {
+			if (isWithdraw) {
+				if (revData[c.latestNo][stepKey]) {
+					delete revData[c.latestNo][stepKey];
+					totalUpdated++;
+				}
+			} else {
+				if (!revData[c.latestNo][stepKey]) {
+					revData[c.latestNo][stepKey] = ts;
+					totalUpdated++;
+				}
+			}
+		});
+		localStorage.setItem(key, JSON.stringify(revData));
+	});
+	alert(totalUpdated + '건의 단계가 ' + actionLabel + '되었습니다.');
+	closeSettlementCompletePopup();
+	loadDoneHistory();
+}
+
+function openScCompanyListPopup() {
+	var html = scState.companies.map(function(c) {
+		var period = (c.ps && c.pe) ? (c.ps + ' ~ ' + c.pe) : '(정산 기간 정보 없음)';
+		return '<div style="padding:14px 22px;border-bottom:1px solid #f3f4f6;">'
+			+ '<div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:4px;">' + c.companyName + '</div>'
+			+ '<div style="font-size:12px;color:#6b7280;">' + period + '</div>'
+		+ '</div>';
+	}).join('');
+	if (!html) html = '<div style="padding:28px 22px;text-align:center;color:#9ca3af;font-size:13px;">선택된 기업이 없습니다.</div>';
+	document.getElementById('scCompanyListBody').innerHTML = html;
+	document.getElementById('scCompanyListOverlay').style.display = 'flex';
+}
+function closeScCompanyListPopup() { document.getElementById('scCompanyListOverlay').style.display = 'none'; }
+
+// ============================================
+// 회신메일 확인 (Gmail IMAP)
+// ============================================
+var gmailState = { results: null, selected: null, detail: null, loading: false, detailLoading: false, checked: new Set(), companies: [] };
+
+// detail 페이지를 pre-fetch하여 settlement-meta 채우기 (회신메일 액션카드에 정산 기간 표시용)
+(function preloadSettlementMeta() {
+	var companies = [
+		{ name: '한화에어로스페이스 (주)', url: 'pages/detail-hanwha-aerospace.html' },
+		{ name: '두산에너빌리티 (주)', url: 'pages/detail-doosan-enerbility.html' },
+		{ name: '한화오션(주)', url: 'pages/detail-hanwha-ocean.html' },
+		{ name: 'HD현대중공업(주)', url: 'pages/detail-hd-hyundai.html' },
+	];
+	companies.forEach(function(c) {
+		fetch(c.url).then(function(r){ return r.text(); }).then(function(html) {
+			// `var data = [` 이후 첫 오브젝트 파싱
+			var m = html.match(/var\s+data\s*=\s*\[\s*\{([^}]*)\}/);
+			if (!m) return;
+			var first = m[1];
+			var no = (first.match(/no:\s*(\d+)/) || [])[1];
+			var ps = (first.match(/ps:\s*["']([^"']+)["']/) || [])[1];
+			var pe = (first.match(/pe:\s*["']([^"']+)["']/) || [])[1];
+			if (no && ps && pe) {
+				localStorage.setItem('settlement-meta-' + c.name, JSON.stringify({ latestNo: parseInt(no), ps: ps, pe: pe }));
+			}
+		}).catch(function(){});
+	});
+})();
+
+function openGmailModal() {
+	gmailState.results = null;
+	gmailState.selected = null;
+	gmailState.detail = null;
+	gmailState.searchError = '';
+	// 표 목록에서 체크된 기업 추출 (기존 함수 미사용: name 필드 충돌 방지)
+	var pickedNames = [];
+	document.querySelectorAll('.bbs_list tbody tr').forEach(function(row) {
+		var cb = row.querySelector('.row-check');
+		if (cb && cb.checked) {
+			var link = row.querySelector('td:nth-child(4) a');
+			if (link) pickedNames.push(link.textContent.trim());
+		}
+	});
+	if (pickedNames.length === 0) {
+		alert('목록에서 기업을 선택한 후 회신메일 확인을 눌러주세요.');
+		return;
+	}
+	gmailState.companies = pickedNames.map(function(name) {
+		var cd = (typeof companyData !== 'undefined') ? companyData.find(function(c){ return c.name === name; }) : null;
+		var bizNo = cd ? cd.bizNo : '';
+		var key = 'settlement-recipients-' + name + '-' + bizNo;
+		var raw = localStorage.getItem(key);
+		var recipients = [];
+		if (raw) {
+			try {
+				var arr = JSON.parse(raw);
+				recipients = arr.map(function(r){ return { person: r.person || r.name, email: r.email, phone: r.phone || '' }; });
+			} catch(e) {}
+		}
+		return { companyName: name, bizNo: bizNo, recipients: recipients };
+	});
+	gmailState.checked = new Set(gmailState.companies.map(function(g){ return g.companyName; }));
+	document.getElementById('gmailOverlay').style.display = 'flex';
+	renderGmailList();
+	// 자동 검색
+	var allRecips = gmailState.companies.reduce(function(a, g) { return a.concat(g.recipients); }, []);
+	if (allRecips.length > 0) {
+		var parts = allRecips.map(function(r){ return 'from:' + r.email; }).join(' OR ');
+		var q = '(' + parts + ') to:rpa@smart-olive.co.kr';
+		doGmailSearch(q);
+	} else {
+		gmailState.results = [];
+		gmailState.searchError = '선택된 기업의 등록된 수신자가 없습니다. 정산 상세 페이지에서 수신자를 먼저 등록해 주세요.';
+		renderGmailList();
+	}
+}
+function closeGmailModal() {
+	document.getElementById('gmailOverlay').style.display = 'none';
+	gmailState.selected = null;
+	gmailState.detail = null;
+}
+
+async function doGmailSearch(query) {
+	gmailState.loading = true;
+	gmailState.results = null;
+	renderGmailList();
+	try {
+		var res = await fetch('/api/gmail-search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ query: query }) });
+		var data = await res.json();
+		gmailState.results = data.results || [];
+		if (data.error) gmailState.searchError = data.error;
+	} catch (e) {
+		gmailState.results = [];
+		gmailState.searchError = '메일 서버에 연결할 수 없습니다.';
+	} finally {
+		gmailState.loading = false;
+		renderGmailList();
+	}
+}
+
+async function fetchGmailDetail(msg) {
+	gmailState.selected = msg;
+	gmailState.detail = null;
+	gmailState.detailLoading = true;
+	renderGmailDetail();
+	try {
+		var res = await fetch('/api/gmail-detail', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ uid: msg.uid }) });
+		var data = await res.json();
+		gmailState.detail = data.detail || { subject: msg.subject, from: msg.from, to: '', date: msg.date, body: data.error || '본문을 불러올 수 없습니다.', attachments: [] };
+	} catch (e) {
+		gmailState.detail = { subject: msg.subject, from: msg.from, to: '', date: msg.date, body: '메일 내용을 불러올 수 없습니다.', attachments: [] };
+	} finally {
+		gmailState.detailLoading = false;
+		renderGmailDetail();
+	}
+}
+
+function backToList() { gmailState.selected = null; gmailState.detail = null; renderGmailList(); }
+
+function renderGmailList() {
+	document.getElementById('gmailTitle').textContent = '회신메일 확인';
+	document.getElementById('gmailHeadLeft').innerHTML = '<span id="gmailTitle" style="font-size:16px;font-weight:700;color:#111827;">회신메일 확인</span>';
+	var body = document.getElementById('gmailBody');
+	var html = '';
+	// 기업 선택 칩
+	if (gmailState.companies.length > 0) {
+		html += '<div style="margin-bottom:16px;"><p style="font-size:12px;color:#9ca3af;margin-bottom:8px;">기업 선택</p><div style="display:flex;flex-wrap:wrap;gap:8px;">';
+		gmailState.companies.forEach(function(g) {
+			var isChecked = gmailState.checked.has(g.companyName);
+			html += '<button onclick="toggleGmailCompany(\''+g.companyName.replace(/\'/g,"\\\'")+'\')" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;border:1px solid '+(isChecked?'#10b981':'#e5e7eb')+';border-radius:999px;padding:8px 14px;cursor:pointer;background:'+(isChecked?'#d1fae5':'#fff')+';color:'+(isChecked?'#059669':'#4b5563')+';">'+g.companyName+'</button>';
+		});
+		html += '</div></div>';
+	}
+	// 수신자 테이블
+	var filteredRecips = [];
+	gmailState.companies.forEach(function(g) {
+		if (gmailState.checked.has(g.companyName)) {
+			g.recipients.forEach(function(r) { filteredRecips.push({ companyName: g.companyName, person: r.person, phone: r.phone, email: r.email }); });
+		}
+	});
+	html += '<div style="margin-bottom:16px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#fff;"><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">기업</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">이름</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">연락처</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">이메일</th></tr></thead><tbody>';
+	if (filteredRecips.length === 0) {
+		html += '<tr><td colspan="4" style="padding:32px 16px;text-align:center;font-size:13px;color:#9ca3af;">선택된 기업의 수신자가 없습니다</td></tr>';
+	} else {
+		filteredRecips.forEach(function(r) {
+			html += '<tr style="background:#fff;"><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #d1fae5;">'+r.companyName+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;font-weight:500;border-bottom:1px solid #d1fae5;">'+r.person+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #d1fae5;">'+(r.phone||'-')+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #d1fae5;">'+r.email+'</td></tr>';
+		});
+	}
+	html += '</tbody></table></div>';
+	// 로딩
+	if (gmailState.loading) {
+		html += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0;"><div style="width:24px;height:24px;border:3px solid #10b981;border-top-color:transparent;border-radius:50%;animation:gmailspin 1s linear infinite;"></div><p style="font-size:14px;color:#6b7280;margin-top:12px;">Gmail 수신함 검색 중...</p></div>';
+	}
+	// 검색 결과
+	if (gmailState.results && !gmailState.loading) {
+		html += '<div><div style="margin-bottom:12px;"><p style="font-size:12px;color:#6b7280;">검색 결과 <span style="font-weight:600;color:#374151;">'+gmailState.results.length+'건</span></p></div>';
+		if (gmailState.results.length === 0) {
+			html += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0;text-align:center;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;"><p style="font-size:14px;color:'+(gmailState.searchError?'#ef4444':'#9ca3af')+';">'+(gmailState.searchError||'검색 결과가 없습니다')+'</p></div>';
+		} else {
+			html += '<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">';
+			gmailState.results.forEach(function(m, i) {
+				var attachIcon = m.hasAttachment ? '<span style="color:#d1d5db;flex-shrink:0;">📎</span>' : '';
+				html += '<div onclick="fetchGmailDetailByIdx('+i+')" style="padding:12px 16px;background:#fff;'+(i<gmailState.results.length-1?'border-bottom:1px solid #f3f4f6;':'')+'cursor:pointer;" onmouseenter="this.style.background=\'rgba(249,250,251,0.5)\'" onmouseleave="this.style.background=\'#fff\'">'
+					+ '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;"><p style="font-size:14px;font-weight:500;color:#111827;flex:1;margin-right:12px;margin:0;">'+escapeHtmlStr(m.subject)+'</p>'+attachIcon+'</div>'
+					+ '<div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#9ca3af;"><span>'+escapeHtmlStr(m.from)+'</span><span>'+m.date+'</span></div>'
+				+ '</div>';
+			});
+			html += '</div>';
+		}
+		html += '</div>';
+	}
+	body.innerHTML = html;
+	document.getElementById('gmailFoot').innerHTML = '<button onclick="closeGmailModal()" class="amd-btn-secondary">닫기</button>';
+	document.getElementById('gmailFoot').style.justifyContent = 'flex-end';
+}
+
+function escapeHtmlStr(s) {
+	return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+}
+
+function toggleGmailCompany(name) {
+	if (gmailState.checked.has(name)) gmailState.checked.delete(name);
+	else gmailState.checked.add(name);
+	renderGmailList();
+}
+
+function fetchGmailDetailByIdx(i) {
+	if (gmailState.results && gmailState.results[i]) fetchGmailDetail(gmailState.results[i]);
+}
+
+function findMatchedCompany(fromEmail) {
+	if (!fromEmail || !gmailState.companies) return null;
+	var fromLower = fromEmail.toLowerCase();
+	for (var i = 0; i < gmailState.companies.length; i++) {
+		var g = gmailState.companies[i];
+		for (var j = 0; j < (g.recipients || []).length; j++) {
+			var re = g.recipients[j] && g.recipients[j].email;
+			if (re && fromLower.indexOf(re.toLowerCase()) >= 0) return g;
+		}
+	}
+	return null;
+}
+function getCompanyInfoFromList(companyName) {
+	var rows = document.querySelectorAll('.bbs_list tbody tr');
+	for (var i = 0; i < rows.length; i++) {
+		var link = rows[i].querySelector('td:nth-child(4) a');
+		if (link && link.textContent.trim() === companyName) {
+			var tds = rows[i].querySelectorAll('td');
+			var countTd = tds[tds.length - 2];
+			var latestNo = 1;
+			if (countTd) {
+				var a = countTd.querySelector('a');
+				var txt = (a || countTd).textContent.trim();
+				latestNo = parseInt(txt) || 1;
+			}
+			// localStorage meta에서 정산 기간 읽기
+			var ps = '', pe = '';
+			try {
+				var meta = localStorage.getItem('settlement-meta-' + companyName);
+				if (meta) {
+					var m = JSON.parse(meta);
+					if (m.latestNo) latestNo = m.latestNo;
+					ps = m.ps || ''; pe = m.pe || '';
+				}
+			} catch(e) {}
+			return { detailUrl: link.getAttribute('href'), latestNo: latestNo, ps: ps, pe: pe };
+		}
+	}
+	return null;
+}
+function isSettlementDone(companyName, rowNo) {
+	try {
+		var saved = localStorage.getItem('settlement-rev-' + companyName);
+		if (!saved) return false;
+		var d = JSON.parse(saved);
+		return !!(d[rowNo] && d[rowNo].done_settlement);
+	} catch(e) { return false; }
+}
+function gmailAction_preview(companyName) {
+	var info = getCompanyInfoFromList(companyName);
+	if (!info) { alert('기업 정보를 찾을 수 없습니다.'); return; }
+	window.open(info.detailUrl + '?action=preview&no=' + info.latestNo, '_blank');
+}
+function gmailAction_download(companyName) {
+	var today = new Date();
+	var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+	var fileName = companyName + '_정산서_' + dateStr + '.xlsx';
+	fetch('resources/samples/settlement_per_person.xlsx').then(function(r){return r.blob();}).then(function(blob){
+		var link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = fileName;
+		document.body.appendChild(link); link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(link.href);
+	}).catch(function(){ alert('다운로드 중 오류가 발생했습니다.'); });
+}
+function gmailAction_confirm(companyName, rowNo) {
+	var key = 'settlement-rev-' + companyName;
+	var saved = localStorage.getItem(key);
+	var revData = saved ? JSON.parse(saved) : {};
+	var alreadyDone = !!(revData[rowNo] && revData[rowNo].done_settlement);
+	if (alreadyDone) {
+		if (!confirm('정산서 확정을 해제하시겠습니까?')) return;
+		delete revData[rowNo].done_settlement;
+		if (Object.keys(revData[rowNo]).length === 0) delete revData[rowNo];
+	} else {
+		if (!confirm('해당 기업의 최근 월 정산서를 확정 처리하시겠습니까?')) return;
+		var now = new Date();
+		var d = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+		var t = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+		if (!revData[rowNo]) revData[rowNo] = {};
+		revData[rowNo].done_settlement = d + '|' + t;
+	}
+	localStorage.setItem(key, JSON.stringify(revData));
+	renderGmailDetail();
+	// 목록의 최근 완료내역 섹션도 갱신 필요 시 페이지 리로드 권장
+}
+
+function renderGmailDetail() {
+	document.getElementById('gmailHeadLeft').innerHTML = '<button onclick="backToList()" style="width:32px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#9ca3af;font-size:18px;">‹</button><span style="font-size:16px;font-weight:700;color:#111827;">회신메일</span>';
+	var body = document.getElementById('gmailBody');
+	var html = '';
+	if (gmailState.detailLoading) {
+		html = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;"><div style="width:24px;height:24px;border:3px solid #10b981;border-top-color:transparent;border-radius:50%;animation:gmailspin 1s linear infinite;"></div><p style="font-size:14px;color:#6b7280;margin-top:12px;">메일 내용 불러오는 중...</p></div>';
+	} else if (gmailState.detail) {
+		var d = gmailState.detail;
+		// 정산서 액션 카드 (상단) - 매칭된 기업 전용
+		var matched = findMatchedCompany(d.from);
+		if (matched) {
+			var info = getCompanyInfoFromList(matched.companyName);
+			var latestNo = info ? info.latestNo : 1;
+			var done = isSettlementDone(matched.companyName, latestNo);
+			var cnEsc = matched.companyName.replace(/\'/g,"\\\'");
+			html += '<div style="margin-bottom:20px;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">';
+			// 상단: 아이콘 + 제목 + 메타
+			html += '<div style="padding:16px 20px;display:flex;align-items:center;gap:14px;">';
+			html += '<div style="flex-shrink:0;width:44px;height:44px;background:#d1fae5;border-radius:10px;display:flex;align-items:center;justify-content:center;">';
+			html += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+			html += '</div>';
+			html += '<div style="flex:1;min-width:0;">';
+			html += '<div style="font-size:15px;font-weight:700;color:#111827;line-height:1.3;">'+escapeHtmlStr(matched.companyName)+' 정산서</div>';
+			var periodText = (info && info.ps && info.pe) ? (info.ps + ' ~ ' + info.pe) : '(정산 기간 정보 없음)';
+			html += '<div style="font-size:12px;color:#6b7280;margin-top:3px;">'+periodText+'</div>';
+			html += '</div>';
+			if (done) {
+				html += '<span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:#d1fae5;color:#065f46;border-radius:999px;font-size:11px;font-weight:600;">✓ 확정됨</span>';
+			}
+			html += '</div>';
+			// 하단: 액션 (구분선 + 배경 연회색)
+			html += '<div style="border-top:1px solid #f3f4f6;padding:12px 20px;background:#fafafa;display:flex;align-items:center;justify-content:flex-end;gap:6px;">';
+			var linkStyle = 'display:inline-flex;align-items:center;height:32px;padding:0 12px;font-size:13px;font-weight:500;color:#059669;background:none;border:none;cursor:pointer;border-radius:6px;font-family:inherit;';
+			html += '<button onclick="gmailAction_preview(\''+cnEsc+'\')" style="'+linkStyle+'" onmouseenter="this.style.background=\'#ecfdf5\'" onmouseleave="this.style.background=\'none\'">미리보기</button>';
+			html += '<button onclick="gmailAction_download(\''+cnEsc+'\')" style="'+linkStyle+'" onmouseenter="this.style.background=\'#ecfdf5\'" onmouseleave="this.style.background=\'none\'">다운로드</button>';
+			var primaryBtn = 'margin-left:4px;display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 18px;font-size:13px;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;border:none;';
+			primaryBtn += done ? 'background:#fff;color:#065f46;border:1px solid #10b981;' : 'background:#10b981;color:#fff;';
+			html += '<button onclick="gmailAction_confirm(\''+cnEsc+'\', '+latestNo+')" style="'+primaryBtn+'">'+(done?'확정 해제':'정산서 확정')+'</button>';
+			html += '</div>';
+			html += '</div>';
+		}
+		// 메일 본문 카드 (제목+메타 + divider + 본문)
+		html += '<div style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff;">';
+		html += '<div style="padding:16px 20px;">';
+		html += '<h3 style="font-size:15px;font-weight:700;color:#111827;margin:0 0 12px;line-height:1.4;">'+escapeHtmlStr(d.subject)+'</h3>';
+		html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+		html += '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span style="color:#9ca3af;width:56px;flex-shrink:0;">보낸사람</span><span style="color:#374151;font-weight:500;">'+escapeHtmlStr(d.from)+'</span></div>';
+		if (d.to) html += '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span style="color:#9ca3af;width:56px;flex-shrink:0;">받는사람</span><span style="color:#374151;">'+escapeHtmlStr(d.to)+'</span></div>';
+		html += '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span style="color:#9ca3af;width:56px;flex-shrink:0;">날짜</span><span style="color:#374151;">'+escapeHtmlStr(d.date)+'</span></div>';
+		html += '</div>';
+		html += '</div>';
+		html += '<div style="border-top:1px solid #e5e7eb;padding:16px 20px;background:#fafbfc;font-size:14px;color:#1f2937;white-space:pre-line;line-height:1.7;min-height:120px;">'+escapeHtmlStr(d.body)+'</div>';
+		html += '</div>';
+		if (d.attachments && d.attachments.length > 0) {
+			html += '<div style="border-top:1px solid #f3f4f6;margin:20px 0;"></div>';
+			html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><span style="color:#9ca3af;">📎</span><span style="font-size:14px;font-weight:600;color:#111827;">첨부파일</span><span style="font-size:12px;color:#9ca3af;">'+d.attachments.length+'개</span></div>';
+			html += '<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">';
+			d.attachments.forEach(function(f, i) {
+				html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;'+(i<d.attachments.length-1?'border-bottom:1px solid #f3f4f6;':'')+'"><span style="color:#9ca3af;">📎</span><span style="font-size:14px;color:#1f2937;">'+escapeHtmlStr(f)+'</span></div>';
+			});
+			html += '</div>';
+		}
+	}
+	body.innerHTML = html;
+	document.getElementById('gmailFoot').innerHTML = '<button onclick="backToList()" style="font-size:14px;color:#6b7280;font-weight:500;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;">‹ 목록으로</button><button onclick="closeGmailModal()" class="amd-btn-secondary" style="margin-left:auto;">닫기</button>';
+	document.getElementById('gmailFoot').style.justifyContent = 'space-between';
+}
+
+(function addGmailSpinStyle() {
+	if (document.getElementById('gmail-spin-style')) return;
+	var s = document.createElement('style');
+	s.id = 'gmail-spin-style';
+	s.textContent = '@keyframes gmailspin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }';
+	document.head.appendChild(s);
 })();
 
 // 필터 정렬: 일괄 다운로드 일시 기준 (미완료 → 최근순)
@@ -729,10 +1645,9 @@ function getBulkDlDate(companyName, dlKey) {
 		Object.keys(revData).forEach(function(rowNo) {
 			var row = revData[rowNo];
 			if (row[dlKey]) {
-				var parts = row[dlKey].split('|');
-				var info = parts[1] || '';
-				if (info.indexOf('(일괄)') >= 0) {
-					var raw = parts[0] + ' ' + info.substring(0, 5);
+				var p = parseDlEntry(row[dlKey]);
+				if (p.action.indexOf('(일괄)') >= 0) {
+					var raw = p.date + ' ' + p.time;
 					if (raw > latest) latest = raw;
 				}
 			}
@@ -761,12 +1676,10 @@ function openDlHistoryPopup(companyName) {
 		var row = revData[rowNo];
 		keys.forEach(function(k) {
 			if (row[k]) {
-				var parts = row[k].split('|');
-				var dateVal = parts[0];
-				var infoVal = parts[1] || '';
-				var raw = dateVal + ' ' + infoVal.substring(0,5);
+				var p = parseDlEntry(row[k]);
+				var raw = p.date + ' ' + p.time;
 				if (!latest[k] || raw > latest[k].raw) {
-					latest[k] = { date: dateVal, info: infoVal, raw: raw };
+					latest[k] = { date: p.date, time: p.time, action: p.action, raw: raw };
 				}
 			}
 		});
@@ -778,17 +1691,16 @@ function openDlHistoryPopup(companyName) {
 		var label = labels[k];
 		var entry = latest[k];
 		if (entry) {
-			var info = entry.info;
-			var isRevision = info.indexOf('수정본') >= 0;
-			var isUpload = info.indexOf('[UP]') >= 0;
-			var isBulk = info.indexOf('(일괄)') >= 0;
-			var timeOnly = info.replace(/원본/g,'').replace(/수정본/g,'').replace(/다운로드/g,'').replace(/업로드/g,'').replace(/\(개별\)/g,'').replace(/\(일괄\)/g,'').replace(/ \[DL\]/g,'').replace(/ \[UP\]/g,'').trim();
+			var action = entry.action;
+			var isRevision = action.indexOf('수정본') >= 0;
+			var isUpload = action.indexOf('업로드') >= 0;
+			var isBulk = action.indexOf('(일괄)') >= 0;
 			rows.push({
 				type: label,
 				variant: isRevision ? '수정본' : '원본',
 				method: isBulk ? '일괄' : '개별',
 				action: isUpload ? '업로드' : '다운로드',
-				datetime: entry.date + ' ' + timeOnly
+				datetime: entry.date + ' ' + entry.time
 			});
 		} else {
 			rows.push({ type: label, variant: '-', method: '-', action: '-', datetime: '-' });
@@ -799,7 +1711,7 @@ function openDlHistoryPopup(companyName) {
 	var html = '';
 	rows.forEach(function(r) {
 		var color = r.datetime === '-' ? '#ccc' : '#333';
-		var dtColor = r.datetime === '-' ? '#ccc' : (r.action === '업로드' ? '#e5006a' : '#2563eb');
+		var dtColor = r.datetime === '-' ? '#ccc' : (r.action === '업로드' ? '#ea580c' : (r.variant === '수정본' ? '#2563eb' : '#111'));
 		html += '<tr>'
 			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.type+'</td>'
 			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.variant+'</td>'
@@ -1033,6 +1945,7 @@ var companyData = [
 ];
 var BUYER_SO = {bizNo:'6468800430', name:'주식회사 스마트올리브', ceo:'박현숙', email:'rpa@smart-olive.co.kr', taxEmail:'tax@smart-olive.co.kr'};
 var ciTab = 'hometax';
+var ciMode = 'customerForward'; // 'customerForward' | 'reverse' | 'forward' | 'forwardSimple'
 
 function bulkDownloadAll(type) {
 	document.querySelectorAll('.bulk-dl-dropdown.show').forEach(function(d){ d.classList.remove('show'); });
@@ -1047,11 +1960,11 @@ function bulkDownloadAll(type) {
 		return;
 	}
 	if (type === 'transfer') {
-		startBulkTransferDownload();
+		openTransferPopup();
 		return;
 	}
 	if (type === 'slip') {
-		startBulkSlipDownload();
+		openSlipPopup();
 		return;
 	}
 }
@@ -1080,29 +1993,28 @@ function openStoreInvoiceDownload(type) {
 	var itemsKey = type === 'reverse' ? 'reverseItems' : type === 'forward' ? 'forwardItems' : 'forwardSimpleItems';
 	var totalStores = 0;
 	checked.forEach(function(c){ totalStores += (c[itemsKey] || []).length; });
-	document.getElementById('ciCheckedInfo').innerHTML = '<div style="margin-bottom:4px;">선택된 기업: ' + checked.map(function(c){return c.name;}).join(', ') + '</div>'
-		+ '<div style="color:#2563eb;">총 가맹점 수: ' + totalStores + '곳</div>';
+	// 2열 레이아웃: 기업 수 / 가맹점 수
+	document.getElementById('ciCountRow').style.gridTemplateColumns = '1fr 1fr';
+	document.getElementById('ciStoreCountWrap').style.display = 'block';
+	document.getElementById('ciCompanyCount').textContent = checked.length + '곳';
+	document.getElementById('ciStoreCount').textContent = totalStores + '곳';
 
-	// 역발행=10건이하 단일버튼, 정발행=50건/101건 버튼
-	var showSizeBtns = (type === 'forward' || type === 'forwardSimple');
-	document.getElementById('ciDownloadBtn').style.display = showSizeBtns ? 'none' : 'flex';
+	// 모드: reverse(역발행, 10건 이하 단일버튼), forward/forwardSimple(정발행, 50건/101건)
+	ciMode = type;
 	document.getElementById('ciDownloadBtn').setAttribute('onclick', 'startStoreInvoiceDownload()');
-	document.getElementById('ciSizeBtns').style.display = showSizeBtns ? 'flex' : 'none';
 
-	if (showSizeBtns) {
-		// 50건 초과 시 50건 버튼 비활성화, 101건 미만 시 101건 버튼 비활성화
-		var btn50 = document.getElementById('ciBtn50');
-		var btn101 = document.getElementById('ciBtn101');
-		if (totalStores > 50) {
-			btn50.style.opacity = '0.4'; btn50.style.cursor = 'not-allowed'; btn50.disabled = true;
-		} else {
-			btn50.style.opacity = '1'; btn50.style.cursor = 'pointer'; btn50.disabled = false;
-		}
-		if (totalStores <= 100) {
-			btn101.style.opacity = '0.4'; btn101.style.cursor = 'not-allowed'; btn101.disabled = true;
-		} else {
-			btn101.style.opacity = '1'; btn101.style.cursor = 'pointer'; btn101.disabled = false;
-		}
+	// 50건/101건 버튼 활성화 상태
+	var btn50 = document.getElementById('ciBtn50');
+	var btn101 = document.getElementById('ciBtn101');
+	if (totalStores > 50) {
+		btn50.style.opacity = '0.4'; btn50.style.cursor = 'not-allowed'; btn50.disabled = true;
+	} else {
+		btn50.style.opacity = '1'; btn50.style.cursor = 'pointer'; btn50.disabled = false;
+	}
+	if (totalStores <= 100) {
+		btn101.style.opacity = '0.4'; btn101.style.cursor = 'not-allowed'; btn101.disabled = true;
+	} else {
+		btn101.style.opacity = '1'; btn101.style.cursor = 'pointer'; btn101.disabled = false;
 	}
 
 	setCiTab('hometax');
@@ -1216,17 +2128,14 @@ function openCompanyIssue() {
 		document.getElementById('ciItemName2').value = '이용료';
 	}
 
-	// 선택 기업 정보
-	document.getElementById('ciCheckedInfo').innerHTML = checked.map(function(c) {
-		var codes = '<span style="color:#2563eb;">[' + c.wihagoCode1 + '] ' + c.item1Name + '</span>';
-		if (c.hasCode2) codes += ' + <span style="color:#2563eb;">[' + c.wihagoCode2 + '] ' + c.item2Name + '</span>';
-		return '<div style="margin-bottom:4px;">' + c.name + ' — ' + codes + '</div>';
-	}).join('');
+	// 1열 레이아웃: 기업 수만
+	document.getElementById('ciCountRow').style.gridTemplateColumns = '1fr';
+	document.getElementById('ciStoreCountWrap').style.display = 'none';
+	document.getElementById('ciCompanyCount').textContent = checked.length + '곳';
 
 	// 다운로드 버튼 동작을 고객사 발행용으로 설정
-	document.getElementById('ciDownloadBtn').style.display = 'flex';
+	ciMode = 'customerForward';
 	document.getElementById('ciDownloadBtn').setAttribute('onclick', 'startCompanyIssueDownload()');
-	document.getElementById('ciSizeBtns').style.display = 'none';
 	document.getElementById('ciAccentLabel').textContent = '고객사 세금계산서 일괄등록';
 	setCiTab('hometax');
 	document.getElementById('companyIssueOverlay').style.display = 'flex';
@@ -1256,6 +2165,62 @@ function setCiTab(tab) {
 	document.getElementById('ciDownloadBtn').style.background = isH ? '#1a6cf6' : '#e5006a';
 	document.getElementById('ciProgressFill').style.background = isH ? '#1D8AFF' : '#e5006a';
 	document.getElementById('ciProgressText').style.color = isH ? '#1D8AFF' : '#e5006a';
+
+	// 모드+탭별 다운로드 버튼 분기
+	// - U+ (uplus): 항상 '다운로드' 단일 버튼 (분홍)
+	// - 홈택스 (hometax):
+	//   · reverse: '10건 이하' 단일 버튼 (파랑)
+	//   · forward/forwardSimple/customerForward: '50건 이하' + '101~1000건' 2버튼 (파랑)
+	var dlBtn = document.getElementById('ciDownloadBtn');
+	var sizeBtns = document.getElementById('ciSizeBtns');
+	var btn50 = document.getElementById('ciBtn50');
+	var btn101 = document.getElementById('ciBtn101');
+	var dlIcon = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
+
+	// 홈택스 안내 문구 (홈택스 탭에서만 표시)
+	var alertEl = document.getElementById('ciAlert');
+	if (isH) {
+		var alertMsg = (ciMode === 'reverse')
+			? '*엑셀 : 업로드 제한 없음 / 계산서 : 10건씩 끊어서 발행'
+			: '*엑셀 : 업로드 제한 없음\n*계산서 : 50건씩 끊어서 발행하거나, 101~1,000건까지 한 번에 발행';
+		alertEl.textContent = alertMsg;
+		alertEl.style.display = 'block';
+	} else {
+		alertEl.style.display = 'none';
+	}
+
+	if (!isH) {
+		// U+ 탭: 단일 다운로드 버튼
+		dlBtn.style.display = 'flex';
+		dlBtn.innerHTML = dlIcon + '다운로드';
+		sizeBtns.style.display = 'none';
+	} else {
+		// 홈택스 탭: 모드별 버튼
+		if (ciMode === 'reverse') {
+			dlBtn.style.display = 'flex';
+			dlBtn.innerHTML = dlIcon + '10건 이하';
+			sizeBtns.style.display = 'none';
+		} else {
+			// forward / forwardSimple / customerForward
+			dlBtn.style.display = 'none';
+			sizeBtns.style.display = 'flex';
+			// 모드별 onclick 분기
+			if (ciMode === 'customerForward') {
+				btn50.setAttribute('onclick', "startCompanyIssueDownloadSize('small')");
+				btn101.setAttribute('onclick', "startCompanyIssueDownloadSize('large')");
+			} else {
+				btn50.setAttribute('onclick', "startStoreInvoiceDownloadSize('small')");
+				btn101.setAttribute('onclick', "startStoreInvoiceDownloadSize('large')");
+			}
+		}
+	}
+}
+
+// 고객사 발행 사이즈별 다운로드
+var companyIssueForceLarge = false;
+function startCompanyIssueDownloadSize(size) {
+	companyIssueForceLarge = (size === 'large');
+	startCompanyIssueDownload();
 }
 
 function getCheckedCompanies() {
@@ -1312,6 +2277,58 @@ function startCompanyIssueDownload() {
 	} else {
 		startCompanyIssueExcel(checked, writeDate, writeDay, itemName, receiptType);
 	}
+}
+
+// 회계전표 팝업 오픈
+function openSlipPopup() {
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	var debitCount = 0, debitTotal = 0, creditTotal = 0;
+	checked.forEach(function(co) {
+		var revItems = getRevisionItems(co.name, 'slip');
+		var items = revItems || co.reverseItems || [];
+		var companyBill = 0;
+		items.forEach(function(item) {
+			var fee = Math.round((item.amount || 0) * 0.0275);
+			var bill = (item.amount || 0) - fee;
+			companyBill += bill;
+			debitCount++;
+			debitTotal += bill;
+		});
+		creditTotal += companyBill;
+	});
+	document.getElementById('slCreditCount').textContent = checked.length;
+	document.getElementById('slCreditTotal').textContent = creditTotal.toLocaleString('ko-KR');
+	document.getElementById('slDebitCount').textContent = debitCount;
+	document.getElementById('slDebitTotal').textContent = debitTotal.toLocaleString('ko-KR');
+	document.getElementById('slipOverlay').style.display = 'flex';
+}
+function closeSlipPopup() { document.getElementById('slipOverlay').style.display = 'none'; }
+function confirmSlipDownload() {
+	closeSlipPopup();
+	startBulkSlipDownload();
+}
+
+// 가맹점 정산지급 팝업 오픈
+function openTransferPopup() {
+	var checked = getCheckedCompanies();
+	if (checked.length === 0) { alert('기업을 선택해주세요.'); return; }
+	var totalStores = 0, totalAmount = 0;
+	checked.forEach(function(co) {
+		var revItems = getRevisionItems(co.name, 'transfer');
+		var items = revItems || co.reverseItems || [];
+		totalStores += items.length;
+		items.forEach(function(item) { totalAmount += (item.amount || 0); });
+	});
+	document.getElementById('tfCompanyCount').textContent = checked.length + '곳';
+	document.getElementById('tfStoreCount').textContent = totalStores + '곳';
+	document.getElementById('tfTotalAmount').textContent = totalAmount.toLocaleString('ko-KR') + '원';
+	document.getElementById('transferOverlay').style.display = 'flex';
+}
+function closeTransferPopup() { document.getElementById('transferOverlay').style.display = 'none'; }
+function confirmTransferDownload() {
+	closeTransferPopup();
+	startBulkTransferDownload();
 }
 
 // 가맹점 지급 (대량이체) 일괄 다운로드

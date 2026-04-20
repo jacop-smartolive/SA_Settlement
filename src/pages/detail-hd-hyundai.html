@@ -8,6 +8,8 @@
 	<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 	<script src="../assets/js/bulk-registration.js?v=10"></script>
+	<link rel="stylesheet" href="../assets/css/mail-send-modal.css">
+	<script src="../assets/js/mail-send-modal.js"></script>
 	<style>
 		* { margin: 0; padding: 0; box-sizing: border-box; }
 		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
@@ -69,12 +71,27 @@
 		.countBox .leftArea .to_result + .to_result { margin-left: -1px; }
 		.countBox .leftArea .to_result + .to_result.label_cell { margin-left: 10px; }
 		.countBox .leftArea .to_result.label_cell + .to_result { margin-left: -1px; }
-		.countBox .leftArea .to_result.label_cell { background: #f0f1f2; color: #333; font-weight: 700; }
+		.countBox .leftArea .to_result.label_cell { border-top-left-radius: 6px; border-bottom-left-radius: 6px; background: #f0f1f2; color: #333; font-weight: 700; }
+		.countBox .leftArea .to_result:last-of-type,
+		.countBox .leftArea .to_result:has(+ .to_result.label_cell) { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
 		.countBox .leftArea .to_result.radio_box { padding: 0 15px; }
 		.countBox .leftArea .to_result.radio_box label { margin-right: 10px; cursor: pointer; }
 		.countBox .leftArea .to_result.radio_box input[type="radio"] { margin-right: 3px; cursor: pointer; }
 		.countBox .leftArea .to_result.radio_box input[type="radio"]:checked + label { font-weight: 700; color: #000; }
 		.countBox .leftArea .to_result b { margin: 0 0 0 4px; color: #000; }
+
+		/* 커스텀 셀렉트: 화살표 우측에 여백 */
+		select.sel-arrow {
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			appearance: none;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+			background-repeat: no-repeat;
+			background-position: right 12px center;
+			background-size: 14px 14px;
+			padding-right: 34px !important;
+		}
+		select.sel-arrow::-ms-expand { display: none; }
 		.countBox .rightArea { float: right; color: #666; font-size: 13px; }
 		.countBox .rightArea .tit { position: relative; padding: 0 10px; font-weight: normal; }
 		.countBox .rightArea .tit:before { display: block; position: absolute; left: 0; top: 50%; width: 3px; height: 3px; margin-top: -2px; background: #727887; content: ''; }
@@ -100,6 +117,19 @@
 		.htcbtnMd.btn-black { background: #666; border-color: #666; }
 		.htcbtnMd.btn-black span { color: #fff; }
 		.htcbtnMd.btn-black.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
+		.htcbtnMd.btn-blue { background: #2563eb; border-color: #2563eb; }
+		.htcbtnMd.btn-blue span { color: #fff; }
+		.htcbtnMd.btn-blue.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
+		.htcbtnMd.btn-light-blue { background: #dbeafe; border-color: #bfdbfe; }
+		.htcbtnMd.btn-light-blue span { color: #2563eb; }
+		.htcbtnMd.btn-light-blue.ico_down:after { border-right-color: #2563eb; border-bottom-color: #2563eb; }
+		.htcbtnMd.btn-outline { background: #f3f4f6; border-color: #d1d5db; }
+		.htcbtnMd.btn-outline span { color: #111; }
+		.htcbtnMd.btn-outline.ico_down:after { border-right-color: #111; border-bottom-color: #111; }
+		.htcbtnMd.btn-green { background: #10b981; border-color: #10b981; }
+		.htcbtnMd.btn-green span { color: #fff; }
+		.htcbtnMd.btn-green.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
+		.btn-dropdown .divider { height: 1px; background: #e5e7eb; margin: 4px 0; padding: 0; }
 		/* 수정본 비활성화 (파일 미첨부) */
 		.htcbtnMd.btn-inactive { background: #e0e0e0; border-color: #ccc; }
 		.htcbtnMd.btn-inactive span { color: #aaa; }
@@ -274,19 +304,19 @@
 					<input id="pageIndex" name="pageIndex" type="hidden" value="1">
 					<input id="companyId" name="companyId" type="hidden" value="100">
 
-					<div class="titBox first">
-						<h2 class="tit_name">HD현대중공업(주)</h2>
+					<div class="titBox first" style="display:flex;align-items:center;gap:12px;">
+						<h2 class="tit_name" style="margin:0;">HD현대중공업(주)</h2>
+						<span id="settledBadge" style="display:none;padding:8px 14px;height:40px;align-items:center;gap:6px;background:#d1fae5;color:#065f46;border-radius:999px;font-size:13px;font-weight:700;">✓ 정산완료</span>
 					</div>
 
 					<div class="countBox">
 						<div class="leftArea">
 							<span class="to_result label_cell">결과</span><span class="to_result"><b>76</b></span><span class="to_result label_cell">조회</span><span class="to_result radio_box"><input type="radio" name="viewType" id="viewTotal" checked><label for="viewTotal">총금액</label> <input type="radio" name="viewType" id="viewTax"><label for="viewTax">세금계산서 발행</label></span>
+							<span class="to_result label_cell" style="margin-left:20px;">단계 완료</span><span class="to_result"><b id="progressCount">0</b>&nbsp;/ 8</span>
 						</div>
-						<div class="rightArea" style="display:flex;align-items:center;gap:16px;">
-							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#2563eb;"><span style="width:8px;height:8px;border-radius:50%;background:#2563eb;display:inline-block;"></span>다운로드</span>
-							<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#e5006a;"><span style="width:8px;height:8px;border-radius:50%;background:#e5006a;display:inline-block;"></span>수정본 업로드</span>
-							<strong class="tit">목록개수</strong>
-							<select id="pageSize" name="pageSize">
+						<div class="rightArea" style="display:flex;align-items:center;gap:8px;">
+							<strong style="font-size:13px;color:#666;font-weight:normal;">목록개수</strong>
+							<select id="pageSize" name="pageSize" class="sel-arrow" style="height:40px;padding:0 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;color:#333;">
 								<option value="10">10</option>
 								<option value="20">20</option>
 								<option value="50">50</option>
@@ -310,12 +340,14 @@
 									<th class="pad-data">간편결제</th>
 									<th class="col-hide pad-data">복지몰</th>
 									<th class="col-hide pad-data">기프티콘</th>
-									<th class="pad-data">정산서</th>
-									<th class="pad-data">가맹점 역발행</th>
-									<th>가맹점 정발행 (일반)</th>
-									<th>가맹점 정발행 (간이)</th>
-									<th class="pad-data">가맹점 지급</th>
-									<th class="pad-data">회계전표</th>
+									<th class="pad-data">1. 정산서</th>
+									<th class="pad-data">2. 메일 발송</th>
+									<th class="pad-data">3. 고객 발행</th>
+									<th class="pad-data">4. 가맹 역발행</th>
+									<th>5. 가맹 발행 (일)</th>
+									<th>6. 가맹 발행 (간)</th>
+									<th class="pad-data">7. 가맹 지급</th>
+									<th class="pad-data">8. 회계전표</th>
 									<th class="pad-data">삭제</th>
 									<th class="pad-data">요청일</th>
 									<th style="min-width:30px;border:none;background:none;"></th>
@@ -341,6 +373,37 @@
 <!-- 하단 고정 가로 스크롤바 -->
 <div class="hscroll-bar" id="hscrollBar">
 	<div class="hscroll-inner" id="hscrollInner"></div>
+</div>
+
+<!-- 최근 다운로드 이력 팝업 -->
+<div id="dlHistoryOverlay" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+	<div style="width:720px;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.12);overflow:hidden;margin:auto;">
+		<div style="padding:24px 28px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+			<div>
+				<h2 style="font-size:18px;font-weight:700;color:#111827;margin:0;">최근 다운로드/업로드 일시</h2>
+				<p id="dlHistorySubtitle" style="margin:6px 0 0;font-size:13px;color:#6B7280;"></p>
+			</div>
+			<button onclick="closeDlHistoryPopup()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;cursor:pointer;color:#6b7280;display:flex;align-items:center;justify-content:center;">✕</button>
+		</div>
+		<div style="padding:20px 28px;">
+			<table style="width:100%;border-collapse:collapse;font-size:13px;">
+				<thead>
+					<tr style="background:#f8f9fa;">
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">유형</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">수정유무</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">등록방식</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">다운로드/업로드</th>
+						<th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#374151;text-align:center;">최근 일시</th>
+					</tr>
+				</thead>
+				<tbody id="dlHistoryBody"></tbody>
+			</table>
+		</div>
+		<div style="height:1px;background:#f3f4f6;"></div>
+		<div style="padding:16px 28px;display:flex;justify-content:flex-end;">
+			<button onclick="closeDlHistoryPopup()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">닫기</button>
+		</div>
+	</div>
 </div>
 
 <!-- 양식 선택 팝업 -->
@@ -608,7 +671,46 @@ function renderTable() {
 		+ '<td class="pad-data">' + easyDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + welfareDisplay + '</td>'
 		+ '<td class="col-hide pad-data">' + giftDisplay + '</td>'
-		+ '<td class="btn-cell pad-data">' + getDlLabel(r, null) + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown"><a href="#" onclick="downloadSettlement(' + r.no + '); return false;">다운로드</a><a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">미리보기</a></div></span></div><div style="margin-top:5px;">' + (r.hasRevision ? '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">미리보기</a><a href="#" onclick="return attachFile(this)">파일수정</a><a href="#" onclick="downloadRevision(' + r.no + '); recordDownload(' + r.no + ',null,\'수정본\'); return false;">다운로드</a><a href="#" onclick="return confirmDelete(this)">삭제</a></div></span>' : '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown"><a href="#" onclick="return attachFile(this)">파일첨부</a></div></span>') + '</div></td>'
+		+ (function() {
+			var isDone = !!r.done_settlement;
+			var btnClass, btnLabel;
+			if (isDone) { btnClass = 'btn-green'; btnLabel = '완료'; }
+			else if (r.hasRevision) { btnClass = 'btn-blue'; btnLabel = '수정본'; }
+			else { btnClass = 'btn-outline'; btnLabel = '원본'; }
+			var fileMenu = r.hasRevision
+				? '<a href="#" onclick="openRowPreview(' + r.no + ',true); return false;">수정본 미리보기</a>'
+					+ '<a href="#" onclick="downloadRevision(' + r.no + '); recordDownload(' + r.no + ',null,\'수정본\'); return false;">수정본 다운로드</a>'
+					+ '<a href="#" onclick="return attachFile(this)">수정본 파일변경</a>'
+					+ '<a href="#" onclick="return confirmDelete(this)">수정본 삭제</a>'
+					+ '<div class="divider"></div>'
+					+ '<a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">원본 미리보기</a>'
+					+ '<a href="#" onclick="downloadSettlement(' + r.no + '); return false;">원본 다운로드</a>'
+				: '<a href="#" onclick="openRowPreview(' + r.no + ',false); return false;">원본 미리보기</a>'
+					+ '<a href="#" onclick="downloadSettlement(' + r.no + '); return false;">원본 다운로드</a>'
+					+ '<div class="divider"></div>'
+					+ '<a href="#" onclick="return attachFile(this)">수정본 첨부</a>';
+			var completeItem = '<div class="divider"></div>'
+				+ '<a href="#" onclick="markComplete(' + r.no + ',\'settlement\'); return false;">' + (isDone ? '확정 해제' : '정산서 확정') + '</a>';
+			return '<td class="btn-cell pad-data">' + getDlLabel(r, null) + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down ' + btnClass + '" onclick="toggleDrop(this)"><span>' + btnLabel + '</span></button><div class="btn-dropdown">' + fileMenu + completeItem + '</div></span></div></td>';
+		})()
+		+ (function() {
+			var isSettlementDone = !!r.done_settlement;
+			var btnClass, btnLabel;
+			if (isSettlementDone) { btnClass = 'btn-green'; btnLabel = '완료'; }
+			else if (r.mail_sent) { btnClass = 'btn-blue'; btnLabel = '재발송'; }
+			else { btnClass = 'btn-outline'; btnLabel = '발송'; }
+			var sendLabel = r.mail_sent ? '재발송' : '메일 발송';
+			var menu = '<a href="#" onclick="sendSettlementMail(' + r.no + '); return false;">' + sendLabel + '</a>'
+				+ '<a href="#" onclick="openSendHistory(' + r.no + '); return false;">발송 내역</a>';
+			return '<td class="btn-cell pad-data" style="vertical-align:top;">' + getMailLabel(r) + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down ' + btnClass + '" onclick="toggleDrop(this)"><span>' + btnLabel + '</span></button><div class="btn-dropdown">' + menu + '</div></span></div></td>';
+		})()
+		+ (function() {
+			var isDone = !!r.done_customerForward;
+			var btnClass = isDone ? 'btn-green' : 'btn-outline';
+			var btnLabel = isDone ? '완료' : '확인';
+			var menuItem = '<a href="#" onclick="markComplete(' + r.no + ',\'customerForward\'); return false;">' + (isDone ? '발행취소' : '발행완료') + '</a>';
+			return '<td class="btn-cell pad-data" style="vertical-align:top;">' + getDlLabel(r, 'customerForward') + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down ' + btnClass + '" onclick="toggleDrop(this)"><span>' + btnLabel + '</span></button><div class="btn-dropdown">' + menuItem + '</div></span></div></td>';
+		})()
 		+ buildColBtns(r, 'reverse', '가맹점 역발행', true)
 		+ buildColBtns(r, 'forward', '가맹점 정발행 (일반)', true)
 		+ buildColBtns(r, 'forwardSimple', '가맹점 정발행 (간이)', true)
@@ -620,6 +722,7 @@ function renderTable() {
 		+ '</tr>';
 	});
 	tbody.innerHTML = html;
+	if (typeof updateSummary === 'function') updateSummary();
 }
 // 하단 고정 가로 스크롤바 동기화
 var wrapper = document.querySelector('.scroll-wrapper');
@@ -632,6 +735,27 @@ function syncScrollWidth() {
 
 renderTable();
 syncScrollWidth();
+
+(function saveSettlementMeta() {
+	try {
+		if (!data.length) return;
+		var companyName = document.querySelector('.tit_name').textContent;
+		var top = data[0];
+		localStorage.setItem('settlement-meta-' + companyName, JSON.stringify({ latestNo: top.no, ps: top.ps, pe: top.pe }));
+	} catch(e) {}
+})();
+
+// URL 파라미터로 자동 미리보기 트리거 (?action=preview&no=XX)
+(function handleUrlAction() {
+	try {
+		var params = new URLSearchParams(window.location.search);
+		if (params.get('action') === 'preview') {
+			var no = parseInt(params.get('no'));
+			if (!no && data.length) no = data[0].no;
+			if (no) setTimeout(function() { if (typeof openRowPreview === 'function') openRowPreview(no, false); }, 300);
+		}
+	} catch(e) {}
+})();
 
 var syncing = false;
 hbar.addEventListener('scroll', function() {
@@ -678,7 +802,9 @@ function saveRevisions() {
 		data.forEach(function(row) {
 			var hasDl = ['settlement','reverse','forward','forwardSimple','transfer','slip'].some(function(k){ return !!row['dl_'+k]; });
 			var hasRev = row.hasRevision || ['reverse','forward','forwardSimple','transfer','slip'].some(function(ct){ return !!row['rev_'+ct]; });
-			if (hasRev || hasDl) {
+			var hasMail = !!row.mail_sent;
+			var hasDone = ['settlement','reverse','forward','forwardSimple','transfer','slip','customerForward'].some(function(k){ return !!row['done_'+k]; });
+			if (hasRev || hasDl || hasMail || hasDone) {
 				var save = {
 					_original: row._original,
 					_stores: row._stores,
@@ -708,6 +834,14 @@ function saveRevisions() {
 				// 다운로드 이력 저장
 				['settlement','reverse','forward','forwardSimple','transfer','slip'].forEach(function(k) {
 					var dk = 'dl_' + k;
+					if (row[dk]) save[dk] = row[dk];
+				});
+				// 메일 발송 이력 저장
+				if (row.mail_sent) save.mail_sent = row.mail_sent;
+				if (row.mail_history && row.mail_history.length) save.mail_history = row.mail_history;
+				// 처리완료 상태 저장
+				['settlement','reverse','forward','forwardSimple','transfer','slip','customerForward'].forEach(function(k){
+					var dk = 'done_' + k;
 					if (row[dk]) save[dk] = row[dk];
 				});
 				revData[row.no] = save;
@@ -761,6 +895,13 @@ function saveRevisions() {
 					['settlement','reverse','forward','forwardSimple','transfer','slip'].forEach(function(k){
 						if (rev['dl_'+k]) row['dl_'+k] = rev['dl_'+k];
 					});
+				});
+				// 메일 발송 이력 복원
+				if (rev.mail_sent) row.mail_sent = rev.mail_sent;
+				if (rev.mail_history) row.mail_history = rev.mail_history;
+				// 처리완료 상태 복원
+				['settlement','reverse','forward','forwardSimple','transfer','slip','customerForward'].forEach(function(k){
+					if (rev['done_'+k]) row['done_'+k] = rev['done_'+k];
 				});
 			}
 		});
@@ -1036,9 +1177,10 @@ function recordDownload(rowNo, colType, type, fmt, source, action) {
 	var fmtLabel = '';
 	if (fmt === 'uplus' || fmt === 'lguplus') fmtLabel = 'LG U+ ';
 	else if (fmt === 'hometax' || fmt === 'hometax50' || fmt === 'hometax101') fmtLabel = '홈텍스 ';
-	var srcLabel = source === 'bulk' ? '(일괄) ' : '(개별) ';
-	var actLabel = action === 'upload' ? '[UP]' : '[DL]';
-	var val = dateStr + '|' + timeStr + ' ' + srcLabel + fmtLabel + type + ' ' + actLabel;
+	var suffix = source === 'bulk' ? ' (일괄)' : '';
+	var actText = action === 'upload' ? '업로드' : '다운로드';
+	var actionStr = fmtLabel + type + ' ' + actText + suffix;
+	var val = dateStr + '|' + timeStr + '|' + actionStr;
 	var row = rowNo ? data.find(function(d){return d.no==rowNo;}) : null;
 	if (row) row[key] = val;
 	saveRevisions();
@@ -1047,46 +1189,234 @@ function recordDownload(rowNo, colType, type, fmt, source, action) {
 }
 
 function hasDlAny(r) {
-	return ['settlement','reverse','forward','forwardSimple','transfer','slip'].some(function(k){ return !!r['dl_'+k]; });
+	var types = ['settlement','reverse','forward','forwardSimple','transfer','slip','customerForward'];
+	return types.some(function(k){ return !!r['dl_'+k] || !!r['done_'+k]; }) || !!r.mail_sent;
 }
 function getDlLabel(r, colType) {
-	var key = colType ? 'dl_'+colType : 'dl_settlement';
+	var colKey = colType || 'settlement';
+	var doneLabel = getDoneLabel(r, colKey);
+	if (doneLabel) return doneLabel;
+	var key = 'dl_' + colKey;
 	var hasAny = hasDlAny(r);
 	if (!r[key]) return hasAny ? '<div style="height:30px;"></div>' : '';
 	var parts = r[key].split('|');
-	var isUpload = (r[key].indexOf('[UP]') >= 0);
-	var color = isUpload ? '#e5006a' : '#2563eb';
-	var display = parts[1].replace(' [DL]','').replace(' [UP]','');
-	return '<div style="font-size:12px;color:'+color+';line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+parts[0]+'<br>'+display+'</div>';
+	var date = parts[0].slice(2);
+	var time, action;
+	if (parts.length >= 3) { time = parts[1]; action = parts[2]; }
+	else {
+		var combined = parts[1].replace(' [DL]','').replace(' [UP]','');
+		var sp = combined.indexOf(' ');
+		time = combined.slice(0, sp);
+		action = combined.slice(sp+1) + (r[key].indexOf('[UP]') >= 0 ? ' 업로드' : ' 다운로드');
+	}
+	var isUpload = action.indexOf('업로드') >= 0;
+	var isRev = action.indexOf('수정본') >= 0;
+	var color = isUpload ? '#ea580c' : (isRev ? '#2563eb' : '#4b5563');
+	return '<div style="font-size:12px;color:'+color+';line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+date+' '+time+'<br>'+action+'</div>';
+}
+// 메일 발송 이력 기록
+function recordMailSent(rowNo, info) {
+	var now = new Date();
+	var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+	var timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+	var row = data.find(function(d){return d.no==rowNo;});
+	if (row) {
+		row.mail_sent = dateStr + '|' + timeStr;
+		if (!row.mail_history) row.mail_history = [];
+		if (info) {
+			row.mail_history.unshift({
+				id: Date.now(),
+				date: dateStr + ' ' + timeStr,
+				subject: info.subject || '',
+				to: (info.recipients || []).map(function(r){ return r.name; }),
+				emails: (info.recipients || []).map(function(r){ return r.email; }),
+				status: info.status || '성공',
+				files: info.files || 0
+			});
+		}
+	}
+	saveRevisions();
+	renderTable();
+	if (typeof syncScrollWidth === 'function') syncScrollWidth();
+}
+function openSendHistory(rowNo) {
+	var row = data.find(function(d){return d.no==rowNo;});
+	SendHistoryModal.open({ history: (row && row.mail_history) || [] });
+}
+function getMailLabel(r) {
+	var hasAny = hasDlAny(r);
+	if (!r.mail_sent) {
+		if (r.done_settlement) {
+			var dp = r.done_settlement.split('|');
+			return '<div style="font-size:12px;color:#10b981;line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+dp[0].slice(2)+' '+dp[1]+'<br>정산서 확정</div>';
+		}
+		return hasAny ? '<div style="height:30px;"></div>' : '';
+	}
+	var parts = r.mail_sent.split('|');
+	var color = r.done_settlement ? '#10b981' : '#ea580c';
+	return '<div style="font-size:12px;color:'+color+';line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+parts[0].slice(2)+' '+parts[1]+'<br>메일 발송</div>';
+}
+function getCompleteLabel(colType) {
+	var map = { settlement:'정산서 확정', customerForward:'발행완료', reverse:'역발행완료', forward:'발행완료', forwardSimple:'발행완료', transfer:'지급완료', slip:'등록완료' };
+	return map[colType] || '완료';
+}
+function updateSummary() {
+	try {
+		var top = (data && data.length) ? data[0] : null;
+		var cnt = 0;
+		if (top) {
+			if (top.done_settlement) cnt++;
+			if (top.mail_sent || top.done_settlement) cnt++;
+			if (top.done_customerForward) cnt++;
+			if (top.done_reverse) cnt++;
+			if (top.done_forward) cnt++;
+			if (top.done_forwardSimple) cnt++;
+			if (top.done_transfer) cnt++;
+			if (top.done_slip) cnt++;
+		}
+		var el = document.getElementById('progressCount');
+		if (el) el.textContent = cnt;
+		var badge = document.getElementById('settledBadge');
+		if (badge) badge.style.display = (cnt >= 8) ? 'inline-flex' : 'none';
+		var latest = null;
+		var typeLabels = { settlement:'정산서', customerForward:'고객 발행', reverse:'가맹 역발행', forward:'가맹 발행 (일)', forwardSimple:'가맹 발행 (간)', transfer:'가맹 지급', slip:'회계전표' };
+		data.forEach(function(r) {
+			['settlement','customerForward','reverse','forward','forwardSimple','transfer','slip'].forEach(function(ct) {
+				var v = r['done_' + ct]; if (!v) return;
+				var parts = v.split('|'); var ts = parts[0] + ' ' + parts[1];
+				if (!latest || ts > latest.ts) latest = { ts: ts, date: parts[0], time: parts[1], label: getCompleteLabel(ct), color: '#10b981' };
+			});
+			['settlement','reverse','forward','forwardSimple','transfer','slip'].forEach(function(ct) {
+				var v = r['dl_' + ct]; if (!v) return;
+				var parts = v.split('|'); var time, action;
+				if (parts.length >= 3) { time = parts[1]; action = parts[2]; }
+				else { var info = parts[1]||''; time = info.substring(0,5); var rest = info.substring(6); var isUp = rest.indexOf('[UP]')>=0; action = rest.replace(/\s*\[DL\]/,'').replace(/\s*\[UP\]/,'') + (isUp?' 업로드':' 다운로드'); }
+				var ts = parts[0] + ' ' + time;
+				var isUpload = action.indexOf('업로드') >= 0;
+				var isRev = action.indexOf('수정본') >= 0;
+				var color = isUpload ? '#ea580c' : (isRev ? '#2563eb' : '#111');
+				if (!latest || ts > latest.ts) latest = { ts: ts, date: parts[0], time: time, label: typeLabels[ct] + ' ' + action, color: color };
+			});
+			if (r.mail_sent) {
+				var mp = r.mail_sent.split('|'); var mts = mp[0] + ' ' + mp[1];
+				var mcolor = r.done_settlement ? '#10b981' : '#ea580c';
+				if (!latest || mts > latest.ts) latest = { ts: mts, date: mp[0], time: mp[1], label: '메일 발송', color: mcolor };
+			}
+		});
+		var actEl = document.getElementById('recentAction');
+		var timeEl = document.getElementById('recentTime');
+		if (latest) {
+			if (actEl) { actEl.textContent = latest.label; actEl.style.color = latest.color; }
+			if (timeEl) timeEl.textContent = latest.date.slice(2) + ' ' + latest.time;
+		} else {
+			if (actEl) { actEl.textContent = '-'; actEl.style.color = '#10b981'; }
+			if (timeEl) timeEl.textContent = '-';
+		}
+	} catch (e) { console.error('updateSummary error:', e); }
+}
+function openDlHistoryPopup() {
+	var labels = { settlement:'정산서', reverse:'가맹점 역발행', forward:'가맹점 정발행 (일반)', forwardSimple:'가맹점 정발행 (간이)', transfer:'가맹점 지급', slip:'회계전표' };
+	var keys = ['settlement','reverse','forward','forwardSimple','transfer','slip'];
+	var latest = {};
+	data.forEach(function(r) {
+		keys.forEach(function(k) {
+			var v = r['dl_' + k]; if (!v) return;
+			var parts = v.split('|'); var raw = parts[0] + ' ' + parts[1];
+			if (!latest[k] || raw > latest[k].raw) latest[k] = { date: parts[0], time: parts[1], action: parts[2] || '', raw: raw };
+		});
+	});
+	var companyName = document.querySelector('.tit_name').textContent;
+	document.getElementById('dlHistorySubtitle').textContent = companyName;
+	var html = '';
+	keys.forEach(function(k) {
+		var entry = latest[k];
+		if (entry) {
+			var isRev = entry.action.indexOf('수정본') >= 0;
+			var isUpload = entry.action.indexOf('업로드') >= 0;
+			var isBulk = entry.action.indexOf('(일괄)') >= 0;
+			var dtColor = isUpload ? '#ea580c' : (isRev ? '#2563eb' : '#111');
+			html += '<tr>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;">'+labels[k]+'</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;">'+(isRev?'수정본':'원본')+'</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;">'+(isBulk?'일괄':'개별')+'</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;">'+(isUpload?'업로드':'다운로드')+'</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+dtColor+';white-space:nowrap;">'+entry.date+' '+entry.time+'</td>'
+			+ '</tr>';
+		} else {
+			html += '<tr>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:#ccc;">'+labels[k]+'</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:#ccc;">-</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:#ccc;">-</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:#ccc;">-</td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:#ccc;">-</td>'
+			+ '</tr>';
+		}
+	});
+	document.getElementById('dlHistoryBody').innerHTML = html;
+	document.getElementById('dlHistoryOverlay').style.display = 'flex';
+}
+function closeDlHistoryPopup() { document.getElementById('dlHistoryOverlay').style.display = 'none'; }
+// 처리완료 토글
+function markComplete(rowNo, colType) {
+	var row = data.find(function(d){return d.no==rowNo;});
+	if (!row) return;
+	var key = 'done_' + colType;
+	if (row[key]) {
+		if (!confirm('완료 상태를 해제하시겠습니까?')) return;
+		delete row[key];
+	} else {
+		var now = new Date();
+		var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+		var timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+		row[key] = dateStr + '|' + timeStr;
+	}
+	saveRevisions();
+	renderTable();
+	if (typeof syncScrollWidth === 'function') syncScrollWidth();
+}
+function getDoneLabel(r, colType) {
+	var key = 'done_' + colType;
+	if (!r[key]) return '';
+	var parts = r[key].split('|');
+	return '<div style="font-size:12px;color:#10b981;line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+parts[0].slice(2)+' '+parts[1]+'<br>'+getCompleteLabel(colType)+'</div>';
 }
 
 // 열별 원본/수정본 버튼 빌더
 function buildColBtns(r, colType, label, hasBulk) {
 	var revKey = 'rev_' + colType;
-	// 원본 버튼 드롭다운
-	var origMenu = '';
-	if (hasBulk) origMenu += '<a href="#" onclick="openBulkPopup(\'' + colType + '\'); return false;">다운로드</a>';
-	else if (colType === 'transfer') origMenu += '<a href="#" onclick="downloadTransfer(" + r.no + "); return false;">다운로드</a>';
-	else origMenu += '<a href="#" onclick="downloadSlip(" + r.no + "); return false;">다운로드</a>';
-	origMenu += '<a href="#" onclick="openColPreview(\'' + colType + '\'); return false;">미리보기</a>';
+	var doneKey = 'done_' + colType;
+	var hasRev = !!r[revKey];
+	var isDone = !!r[doneKey];
 
-	// 수정본 버튼 드롭다운
-	var revMenu = '';
-	var isTaxInv = (colType === 'reverse' || colType === 'forward' || colType === 'forwardSimple');
-	if (r[revKey]) {
-		revMenu = '<span class="btn-wrap"><button class="htcbtnMd ico_down" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown">'
-			+ '<a href="#" onclick="openColPreview(\'' + colType + '\',true,' + r.no + '); return false;">미리보기</a>'
-			+ '<a href="#" onclick="return attachColFile(this,\'' + colType + '\')">파일수정</a>'
-			+ '<a href="#" onclick="downloadColRevision(' + r.no + ',\'' + colType + '\'); return false;">다운로드</a>'
-			+ (isTaxInv ? '' : '<a href="#" onclick="return deleteColRevision(this,\'' + colType + '\')">삭제</a>')
-			+ '</div></span>';
+	var origDl;
+	if (hasBulk) origDl = '<a href="#" onclick="openBulkPopup(\'' + colType + '\'); return false;">원본 다운로드</a>';
+	else if (colType === 'transfer') origDl = '<a href="#" onclick="downloadTransfer(' + r.no + '); return false;">원본 다운로드</a>';
+	else origDl = '<a href="#" onclick="downloadSlip(' + r.no + '); return false;">원본 다운로드</a>';
+	var origPreview = '<a href="#" onclick="openColPreview(\'' + colType + '\'); return false;">원본 미리보기</a>';
+
+	var fileMenu;
+	if (hasRev) {
+		fileMenu = '<a href="#" onclick="openColPreview(\'' + colType + '\',true,' + r.no + '); return false;">수정본 미리보기</a>'
+			+ '<a href="#" onclick="downloadColRevision(' + r.no + ',\'' + colType + '\'); return false;">수정본 다운로드</a>'
+			+ '<a href="#" onclick="return attachColFile(this,\'' + colType + '\')">수정본 파일변경</a>'
+			+ '<a href="#" onclick="return deleteColRevision(this,\'' + colType + '\')">수정본 삭제</a>'
+			+ '<div class="divider"></div>'
+			+ origPreview + origDl;
 	} else {
-		revMenu = '<span class="btn-wrap"><button class="htcbtnMd ico_down btn-inactive" onclick="toggleDrop(this)"><span>수정본</span></button><div class="btn-dropdown">'
-			+ '<a href="#" onclick="return attachColFile(this,\'' + colType + '\')">파일첨부</a>'
-			+ '</div></span>';
+		fileMenu = origPreview + origDl
+			+ '<div class="divider"></div>'
+			+ '<a href="#" onclick="return attachColFile(this,\'' + colType + '\')">수정본 첨부</a>';
 	}
 
-	return '<td class="btn-cell pad-data">' + getDlLabel(r, colType) + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down btn-black" onclick="toggleDrop(this)"><span>원본</span></button><div class="btn-dropdown">' + origMenu + '</div></span></div><div style="margin-top:5px;">' + revMenu + '</div></td>';
+	var completeItem = '<div class="divider"></div>'
+		+ '<a href="#" onclick="markComplete(' + r.no + ',\'' + colType + '\'); return false;">' + (isDone ? '완료 해제' : getCompleteLabel(colType)) + '</a>';
+
+	var btnClass, btnLabel;
+	if (isDone) { btnClass = 'btn-green'; btnLabel = '완료'; }
+	else if (hasRev) { btnClass = 'btn-blue'; btnLabel = '수정본'; }
+	else { btnClass = 'btn-outline'; btnLabel = '원본'; }
+
+	return '<td class="btn-cell pad-data">' + getDlLabel(r, colType) + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down ' + btnClass + '" onclick="toggleDrop(this)"><span>' + btnLabel + '</span></button><div class="btn-dropdown">' + fileMenu + completeItem + '</div></span></div></td>';
 }
 
 // 열별 파일 파싱 + 저장
@@ -1232,7 +1562,11 @@ function deleteFmtFile(colType, fmt) {
 	delete row['revFile'+suf]; delete row['revBase64'+suf]; delete row['revData'+suf];
 	if (row['revFmt_'+colType] === fmt) delete row['revFmt_'+colType];
 	var hasAny = ['hometax','hometax50','hometax101','uplus'].some(function(f){ return !!row['revBase64_'+colType+'_'+f]; });
-	if (!hasAny) row['rev_'+colType] = false;
+	if (!hasAny) {
+		row['rev_'+colType] = false;
+		var dlKey = 'dl_' + colType;
+		if (row[dlKey] && row[dlKey].indexOf('수정본') >= 0) delete row[dlKey];
+	}
 	saveRevisions(); renderTable(); if (typeof syncScrollWidth === 'function') syncScrollWidth();
 	// 팝업 갱신
 	var mode = document.getElementById('fmtPickOverlay').getAttribute('data-mode');
@@ -1388,6 +1722,9 @@ function deleteColRevision(el, colType) {
 				delete row['revBase64'+suf];
 				delete row['revData'+suf];
 			});
+			// 수정본 관련 다운로드/업로드 기록 제거
+			var dlKey = 'dl_' + colType;
+			if (row[dlKey] && row[dlKey].indexOf('수정본') >= 0) delete row[dlKey];
 			renderTable();
 			syncScrollWidth();
 			saveRevisions();
@@ -2071,6 +2408,25 @@ function closePreview() {
 	document.getElementById('previewModal').classList.remove('show');
 }
 
+// 정산서 메일 발송
+function sendSettlementMail(rowNo) {
+	var row = data.find(function(d){return d.no==rowNo;});
+	if (!row) return;
+	var companyName = document.querySelector('.tit_name').textContent;
+	var today = new Date();
+	var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+	MailSendModal.open({
+		companyName: companyName,
+		bizNo: BUYER.bizNo,
+		attachmentName: companyName + '_정산서_' + dateStr + '.xlsx',
+		fetchAttachment: function() {
+			return fetch('../../resources/samples/settlement_per_person.xlsx').then(function(r) { return r.blob(); });
+		},
+		onShowPreview: function() { openRowPreview(rowNo, row.hasRevision === true); },
+		onSuccess: function(info) { recordMailSent(rowNo, info); },
+	});
+}
+
 // 정산서 다운로드
 function downloadSettlement(rowNo) {
 	var companyName = document.querySelector('.tit_name').textContent;
@@ -2131,6 +2487,11 @@ function confirmDelete(el) {
 			delete row._original;
 		}
 		row.hasRevision = false;
+		delete row._parsedData;
+		delete row._stores;
+		delete row._fileBase64;
+		delete row._fileName;
+		if (row.dl_settlement && row.dl_settlement.indexOf('수정본') >= 0) delete row.dl_settlement;
 		renderTable();
 		syncScrollWidth();
 		saveRevisions();

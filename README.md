@@ -3,13 +3,24 @@
 Olive Ticket Service Admin — **정산 관리** 영역 프런트엔드.
 
 ## 빠른 시작
-브라우저로 `src/index.html` 을 연다. (서버 없이 동작, 단 엑셀 다운로드는 fetch 사용 → 로컬 서버 권장)
+
+Node 기반 정적 서버 + 메일 발송 API(Nodemailer + Gmail SMTP)를 제공한다.
 
 ```bash
-# 예: Python 간이 서버
-cd SA_Settlement && python -m http.server 8080
+cd SA_Settlement
+npm install
+npm run dev
 # http://localhost:8080/src/index.html
 ```
+
+`.env`에 SMTP 자격증명 필요 (이미 로컬에 설정됨):
+```
+SMTP_USER=rpa@smart-olive.co.kr
+SMTP_PASS=<Gmail 앱 비밀번호>
+PORT=8080
+```
+
+API: `POST /api/send-email` (FormData — `recipients` JSON, `subject`, `body`, `attachments`)
 
 ## 폴더 개요
 ```
