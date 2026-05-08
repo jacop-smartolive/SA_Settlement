@@ -800,12 +800,27 @@ function openSettlementPreview(no, isRev) {
 	// 디와이피엔에프(주) 최신 행 (원본) 또는 수정본 첨부됨 → Excel 명세 형태
 	var rsForPv = (typeof rowStates !== 'undefined' && rowStates[no]) ? rowStates[no] : null;
 	var revData = (isRev && rsForPv && rsForPv.revData) ? rsForPv.revData : null;
+
+	// stale revData 자동 복구: 모든 합계가 0이고 stores도 비어있으면 → 디와이피엔에프 원본으로 대체
+	if (revData) {
+		var totalRevVal = (revData.pointUsed||0) + (revData.companyDeposit||0) + (revData.mobileCoupon||0) + (revData.storeRevenue||0);
+		var hasStores = revData.stores && revData.stores.length > 0;
+		if (totalRevVal === 0 && !hasStores && companyName === '디와이피엔에프(주)') {
+			console.warn('[Preview] stale revData 감지 → DYPNF_APRIL_2026으로 자동 복구');
+			revData = JSON.parse(JSON.stringify(DYPNF_APRIL_2026));
+			// 영구 복구: localStorage에도 저장
+			rsForPv.revData = revData;
+			saveStates();
+			refreshDataRow(no);
+		}
+	}
+
 	var isDypnfApril = (companyName === '디와이피엔에프(주)' && no === totalCount && !isRev);
 	// 수정본 첨부됨 + 어떤 형태든 데이터 있으면 풍부한 모드 (가맹점 명세 우선, 없으면 합계만)
 	var useRich = isDypnfApril || (revData && (
 		(revData.stores && revData.stores.length > 0) ||
-		revData.pointUsed != null ||
-		revData.companyDeposit != null
+		(revData.pointUsed||0) > 0 ||
+		(revData.companyDeposit||0) > 0
 	));
 	// 디버그
 	console.log('[openPreview]', {
