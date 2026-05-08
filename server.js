@@ -8,7 +8,7 @@ const { simpleParser } = require('mailparser');
 
 const app = express();
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 } });
-const PORT = process.env.PORT || 8081;
+const PORT = process.env.PORT || 8080;
 
 app.use(express.static(path.join(__dirname)));
 app.use(express.json({ limit: '5mb' }));
