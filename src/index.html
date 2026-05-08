@@ -19,9 +19,9 @@
 		.amd-btn { height:42px; padding:0 22px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:background .15s; }
 		.amd-btn-primary { background:#1D8AFF; color:#fff; }
 		.amd-btn-primary:hover { background:#1a6cf6; }
-		.amd-btn-success { background:#10b981; color:#fff; }
+		.amd-btn-success { background:#059669; color:#fff; }
 		.amd-btn-success:hover { background:#059669; }
-		.amd-btn-danger { background:#ef4444; color:#fff; }
+		.amd-btn-danger { background:#dc2626; color:#fff; }
 		.amd-btn-danger:hover { background:#dc2626; }
 		.amd-btn-secondary { height:42px; padding:0 20px; border-radius:10px; border:1.5px solid #e5e7eb; background:#fff; font-size:14px; font-weight:500; color:#374151; cursor:pointer; font-family:inherit; transition:background .15s; }
 		.amd-btn-secondary:hover { background:#f9fafb; }
@@ -60,8 +60,8 @@
 		.localMenu > li { position: relative; border-bottom: 1px solid #384353; }
 		.localMenu > li > a { display: block; position: relative; height: 60px; padding: 0 0 0 20px; color: #9ba9bf; font-weight: 700; font-size: 16px; line-height: 60px; }
 		.localMenu > li > a:after { display: block; position: absolute; right: 21px; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #9ba9bf; content: ''; }
-		.localMenu > li.on > a { color: #ff2b33; }
-		.localMenu > li.on > a:after { right: 18px; margin-top: -3px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ff2b33; border-bottom: 0; width: 0; height: 0; }
+		.localMenu > li.on > a { color: #ed1b24; }
+		.localMenu > li.on > a:after { right: 18px; margin-top: -3px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ed1b24; border-bottom: 0; width: 0; height: 0; }
 		.localMenu > li:hover > a { color: #fff; }
 
 		/* subMenuBox */
@@ -193,7 +193,7 @@
 		.pagenation span a,
 		.pagenation span strong { display: inline-block; width: auto; min-width: 31px; height: 31px; border: 1px solid #ddd; background: #fff; color: #666; font-weight: 700; font-size: 14px; line-height: 31px; text-align: center; }
 		.pagenation span a:hover,
-		.pagenation span strong { border-color: #ed3e39; background: #ed3e39; color: #fff; }
+		.pagenation span strong { border-color: #ed1b24; background: #ed1b24; color: #fff; }
 		.pagenation > a { display: inline-block; width: 33px; height: 33px; border: 1px solid #ddd; background: #fff; color: #666; font-size: 14px; line-height: 31px; text-align: center; vertical-align: top; }
 		.pagenation > a:hover { border-color: #999; color: #333; }
 
@@ -387,7 +387,7 @@
 							회신메일 확인
 						</button>
 						<div style="position:relative;display:inline-block;">
-							<button type="button" class="bulk-dl-btn" onclick="toggleBulkDl(this)" style="height:36px;padding:0 28px 0 14px;background:#d1fae5;border:1px solid #a7f3d0;color:#047857;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;position:relative;">
+							<button type="button" class="bulk-dl-btn" onclick="toggleBulkDl(this)" style="height:36px;padding:0 28px 0 14px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;position:relative;">
 								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
 								일괄 다운로드
 								<svg class="bulk-dl-arrow" style="position:absolute;right:8px;top:50%;margin-top:-5px;transition:transform .2s;" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -402,7 +402,7 @@
 							</div>
 						</div>
 						<div style="position:relative;display:inline-block;">
-							<button type="button" onclick="toggleSettleMenu(this)" class="settle-menu-btn" style="height:36px;padding:0 32px 0 14px;border:none;border-radius:6px;background:#10b981;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;position:relative;">
+							<button type="button" onclick="toggleSettleMenu(this)" class="settle-menu-btn" style="height:36px;padding:0 32px 0 14px;border:none;border-radius:6px;background:#059669;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;position:relative;">
 								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
 								정산완료
 								<svg class="settle-menu-arrow" style="position:absolute;right:10px;top:50%;margin-top:-5px;transition:transform .2s;" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -575,7 +575,7 @@
 			<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
 				<span style="font-size:13px;color:#374151;font-weight:500;">완료 처리할 단계 선택</span>
 				<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#6b7280;cursor:pointer;user-select:none;">
-					<input type="checkbox" id="scSelectAll" onchange="scToggleAllSteps(this.checked)" style="accent-color:#10b981;">
+					<input type="checkbox" id="scSelectAll" onchange="scToggleAllSteps(this.checked)" style="accent-color:#059669;">
 					모두 선택
 				</label>
 			</div>
@@ -711,7 +711,7 @@
 				</div>
 			</div>
 			<!-- 홈택스 안내 문구 -->
-			<div id="ciAlert" style="display:none;margin-bottom:16px;font-size:12px;color:#E53E3E;line-height:1.6;font-weight:500;background:#FEF2F2;border-radius:8px;padding:10px 14px;white-space:pre-line;"></div>
+			<div id="ciAlert" style="display:none;margin-bottom:16px;font-size:12px;color:#dc2626;line-height:1.6;font-weight:500;background:#FEF2F2;border-radius:8px;padding:10px 14px;white-space:pre-line;"></div>
 			<div style="margin-bottom:16px;">
 				<p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">작성일자</p>
 				<input id="ciWriteDate" type="text" style="width:100%;height:42px;padding:0 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;" placeholder="YYYYMMDD">
@@ -766,7 +766,7 @@
 		<div style="padding:24px 28px 16px;background:#f9fafb;">
 			<div style="display:flex;justify-content:space-between;align-items:flex-start;">
 				<div>
-					<div style="font-size:11px;font-weight:600;color:#1a6cf6;letter-spacing:0.06em;margin-bottom:4px;">회계 전표 등록</div>
+					<div style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:0.06em;margin-bottom:4px;">회계 전표 등록</div>
 					<h2 style="font-size:18px;font-weight:700;color:#111827;margin:0;">회계전표 일괄 다운로드</h2>
 				</div>
 				<button onclick="closeSlipPopup()" style="width:32px;height:32px;border-radius:8px;border:none;background:#e5e7eb;cursor:pointer;color:#6b7280;display:flex;align-items:center;justify-content:center;">✕</button>
@@ -778,18 +778,18 @@
 			<div style="border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;">
 				<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;">
 					<span style="font-size:13px;font-weight:500;color:#6b7280;">대변 (기업)</span>
-					<span style="font-size:13px;font-weight:500;color:#374151;">총 <b id="slCreditCount" style="color:#111827;">0</b>곳 · <b id="slCreditTotal" style="color:#1a6cf6;">0</b>원</span>
+					<span style="font-size:13px;font-weight:500;color:#374151;">총 <b id="slCreditCount" style="color:#111827;">0</b>곳 · <b id="slCreditTotal" style="color:#111827;">0</b>원</span>
 				</div>
 				<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;">
 					<span style="font-size:13px;font-weight:500;color:#6b7280;">차변 (가맹점)</span>
-					<span style="font-size:13px;font-weight:500;color:#374151;">총 <b id="slDebitCount" style="color:#111827;">0</b>곳 · <b id="slDebitTotal" style="color:#1a6cf6;">0</b>원</span>
+					<span style="font-size:13px;font-weight:500;color:#374151;">총 <b id="slDebitCount" style="color:#111827;">0</b>곳 · <b id="slDebitTotal" style="color:#111827;">0</b>원</span>
 				</div>
 			</div>
 		</div>
 		<div style="height:1px;background:#f3f4f6;"></div>
 		<div style="padding:16px 28px;display:flex;justify-content:flex-end;gap:10px;">
 			<button onclick="closeSlipPopup()" style="height:42px;padding:0 20px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:500;color:#374151;cursor:pointer;">취소</button>
-			<button onclick="confirmSlipDownload()" style="height:42px;padding:0 22px;border-radius:10px;border:none;background:#1a6cf6;font-size:14px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;">
+			<button onclick="confirmSlipDownload()" style="height:42px;padding:0 22px;border-radius:10px;border:none;background:#111827;font-size:14px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;">
 				<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
 				다운로드
 			</button>
@@ -912,7 +912,7 @@ function parseDlEntry(v) {
 		items.sort(function(a, b) { return b.raw.localeCompare(a.raw); });
 		var it = items[0];
 		td.innerHTML = '<div onclick="openDlHistoryPopup(\''+company.replace(/'/g,"\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;cursor:pointer;font-weight:700;">'
-			+ '<span style="color:#10b981;">' + it.date.slice(2) + ' ' + it.time + '</span><br>'
+			+ '<span style="color:#059669;">' + it.date.slice(2) + ' ' + it.time + '</span><br>'
 			+ '<span style="color:#111;text-decoration:underline;text-underline-offset:2px;">' + it.label + ' : ' + it.type + '</span>'
 		+ '</div>';
 		td.setAttribute('data-all-items', JSON.stringify(items));
@@ -962,10 +962,10 @@ function loadDoneHistory() {
 		});
 
 		if (allDoneTs) {
-			var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;vertical-align:-3px;"><circle cx="12" cy="12" r="10" fill="#10b981"/><polyline points="8 12.5 11 15.5 16.5 9.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+			var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;vertical-align:-3px;"><circle cx="12" cy="12" r="10" fill="#059669"/><polyline points="8 12.5 11 15.5 16.5 9.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
 			td.innerHTML = '<div onclick="openDoneHistoryPopup(\''+company.replace(/\'/g,"\\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;cursor:pointer;font-weight:700;">'
 				+ '<span style="color:#9ca3af;">' + allDoneTs.date.slice(2) + ' ' + allDoneTs.time + '</span><br>'
-				+ '<span style="color:#10b981;">' + checkIcon + ' <span style="text-decoration:underline;text-underline-offset:2px;">정산완료</span></span>'
+				+ '<span style="color:#059669;">' + checkIcon + ' <span style="text-decoration:underline;text-underline-offset:2px;">정산완료</span></span>'
 			+ '</div>';
 			return;
 		}
@@ -986,7 +986,7 @@ function loadDoneHistory() {
 		});
 		if (latest) {
 			td.innerHTML = '<div onclick="openDoneHistoryPopup(\''+company.replace(/\'/g,"\\\'")+'\')" style="font-size:12px;line-height:1.5;white-space:nowrap;cursor:pointer;font-weight:700;">'
-				+ '<span style="color:#10b981;">' + latest.date.slice(2) + ' ' + latest.time + '</span><br>'
+				+ '<span style="color:#059669;">' + latest.date.slice(2) + ' ' + latest.time + '</span><br>'
 				+ '<span style="color:#111;text-decoration:underline;text-underline-offset:2px;">' + latest.label + '</span>'
 			+ '</div>';
 		} else {
@@ -1032,7 +1032,7 @@ function openDoneHistoryPopup(companyName) {
 		if (entry) {
 			html += '<tr>'
 				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;">' + r.type + '</td>'
-				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;white-space:nowrap;"><b style="color:#111;">' + r.action + '</b><span style="color:#111;">,</span> <span style="color:#10b981;">' + entry.date + ' ' + entry.time + '</span></td>'
+				+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;white-space:nowrap;"><b style="color:#111;">' + r.action + '</b><span style="color:#111;">,</span> <span style="color:#059669;">' + entry.date + ' ' + entry.time + '</span></td>'
 			+ '</tr>';
 		} else {
 			html += '<tr>'
@@ -1149,11 +1149,11 @@ function renderScStepList() {
 		var rowStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;'+(idx<scState.stats.length-1?'border-bottom:1px solid #f3f4f6;':'')+'cursor:'+(disabled?'default':'pointer')+';opacity:'+(disabled?'0.55':'1')+';';
 		var countColor;
 		if (isWithdraw) {
-			countColor = noneDone ? '#9ca3af' : (allDone ? '#ef4444' : '#f59e0b');
+			countColor = noneDone ? '#9ca3af' : (allDone ? '#dc2626' : '#f59e0b');
 		} else {
-			countColor = allDone ? '#10b981' : (st.doneCount > 0 ? '#2563eb' : '#9ca3af');
+			countColor = allDone ? '#059669' : (st.doneCount > 0 ? '#4f46e5' : '#9ca3af');
 		}
-		var accentColor = isWithdraw ? '#ef4444' : '#10b981';
+		var accentColor = isWithdraw ? '#dc2626' : '#059669';
 		html += '<label style="'+rowStyle+'">'
 			+ '<div style="display:flex;align-items:center;gap:10px;">'
 				+ '<input type="checkbox" '+(isChecked?'checked':'')+' '+(disabled?'disabled':'')+' onchange="scToggleStep(\''+st.step.key+'\', this.checked)" style="width:16px;height:16px;accent-color:'+accentColor+';cursor:'+(disabled?'default':'pointer')+';">'
@@ -1382,7 +1382,7 @@ function renderGmailList() {
 		html += '<div style="margin-bottom:16px;"><p style="font-size:12px;color:#9ca3af;margin-bottom:8px;">기업 선택</p><div style="display:flex;flex-wrap:wrap;gap:8px;">';
 		gmailState.companies.forEach(function(g) {
 			var isChecked = gmailState.checked.has(g.companyName);
-			html += '<button onclick="toggleGmailCompany(\''+g.companyName.replace(/\'/g,"\\\'")+'\')" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;border:1px solid '+(isChecked?'#10b981':'#e5e7eb')+';border-radius:999px;padding:8px 14px;cursor:pointer;background:'+(isChecked?'#d1fae5':'#fff')+';color:'+(isChecked?'#059669':'#4b5563')+';">'+g.companyName+'</button>';
+			html += '<button onclick="toggleGmailCompany(\''+g.companyName.replace(/\'/g,"\\\'")+'\')" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;border:1px solid '+(isChecked?'#059669':'#e5e7eb')+';border-radius:999px;padding:8px 14px;cursor:pointer;background:'+(isChecked?'#ecfdf5':'#fff')+';color:'+(isChecked?'#059669':'#4b5563')+';">'+g.companyName+'</button>';
 		});
 		html += '</div></div>';
 	}
@@ -1393,24 +1393,24 @@ function renderGmailList() {
 			g.recipients.forEach(function(r) { filteredRecips.push({ companyName: g.companyName, person: r.person, phone: r.phone, email: r.email }); });
 		}
 	});
-	html += '<div style="margin-bottom:16px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#fff;"><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">기업</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">이름</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">연락처</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #10b981;text-align:left;">이메일</th></tr></thead><tbody>';
+	html += '<div style="margin-bottom:16px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#fff;"><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #059669;text-align:left;">기업</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #059669;text-align:left;">이름</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #059669;text-align:left;">연락처</th><th style="padding:10px 16px;font-size:12px;font-weight:600;color:#059669;border-bottom:2px solid #059669;text-align:left;">이메일</th></tr></thead><tbody>';
 	if (filteredRecips.length === 0) {
 		html += '<tr><td colspan="4" style="padding:32px 16px;text-align:center;font-size:13px;color:#9ca3af;">선택된 기업의 수신자가 없습니다</td></tr>';
 	} else {
 		filteredRecips.forEach(function(r) {
-			html += '<tr style="background:#fff;"><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #d1fae5;">'+r.companyName+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;font-weight:500;border-bottom:1px solid #d1fae5;">'+r.person+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #d1fae5;">'+(r.phone||'-')+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #d1fae5;">'+r.email+'</td></tr>';
+			html += '<tr style="background:#fff;"><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #ecfdf5;">'+r.companyName+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;font-weight:500;border-bottom:1px solid #ecfdf5;">'+r.person+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #ecfdf5;">'+(r.phone||'-')+'</td><td style="padding:10px 16px;font-size:13px;color:#374151;border-bottom:1px solid #ecfdf5;">'+r.email+'</td></tr>';
 		});
 	}
 	html += '</tbody></table></div>';
 	// 로딩
 	if (gmailState.loading) {
-		html += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0;"><div style="width:24px;height:24px;border:3px solid #10b981;border-top-color:transparent;border-radius:50%;animation:gmailspin 1s linear infinite;"></div><p style="font-size:14px;color:#6b7280;margin-top:12px;">Gmail 수신함 검색 중...</p></div>';
+		html += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0;"><div style="width:24px;height:24px;border:3px solid #059669;border-top-color:transparent;border-radius:50%;animation:gmailspin 1s linear infinite;"></div><p style="font-size:14px;color:#6b7280;margin-top:12px;">Gmail 수신함 검색 중...</p></div>';
 	}
 	// 검색 결과
 	if (gmailState.results && !gmailState.loading) {
 		html += '<div><div style="margin-bottom:12px;"><p style="font-size:12px;color:#6b7280;">검색 결과 <span style="font-weight:600;color:#374151;">'+gmailState.results.length+'건</span></p></div>';
 		if (gmailState.results.length === 0) {
-			html += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0;text-align:center;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;"><p style="font-size:14px;color:'+(gmailState.searchError?'#ef4444':'#9ca3af')+';">'+(gmailState.searchError||'검색 결과가 없습니다')+'</p></div>';
+			html += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0;text-align:center;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;"><p style="font-size:14px;color:'+(gmailState.searchError?'#dc2626':'#9ca3af')+';">'+(gmailState.searchError||'검색 결과가 없습니다')+'</p></div>';
 		} else {
 			html += '<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">';
 			gmailState.results.forEach(function(m, i) {
@@ -1536,7 +1536,7 @@ function renderGmailDetail() {
 	var body = document.getElementById('gmailBody');
 	var html = '';
 	if (gmailState.detailLoading) {
-		html = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;"><div style="width:24px;height:24px;border:3px solid #10b981;border-top-color:transparent;border-radius:50%;animation:gmailspin 1s linear infinite;"></div><p style="font-size:14px;color:#6b7280;margin-top:12px;">메일 내용 불러오는 중...</p></div>';
+		html = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;"><div style="width:24px;height:24px;border:3px solid #059669;border-top-color:transparent;border-radius:50%;animation:gmailspin 1s linear infinite;"></div><p style="font-size:14px;color:#6b7280;margin-top:12px;">메일 내용 불러오는 중...</p></div>';
 	} else if (gmailState.detail) {
 		var d = gmailState.detail;
 		// 정산서 액션 카드 (상단) - 매칭된 기업 전용
@@ -1549,8 +1549,8 @@ function renderGmailDetail() {
 			html += '<div style="margin-bottom:20px;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">';
 			// 상단: 아이콘 + 제목 + 메타
 			html += '<div style="padding:16px 20px;display:flex;align-items:center;gap:14px;">';
-			html += '<div style="flex-shrink:0;width:44px;height:44px;background:#d1fae5;border-radius:10px;display:flex;align-items:center;justify-content:center;">';
-			html += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+			html += '<div style="flex-shrink:0;width:44px;height:44px;background:#ecfdf5;border-radius:10px;display:flex;align-items:center;justify-content:center;">';
+			html += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
 			html += '</div>';
 			html += '<div style="flex:1;min-width:0;">';
 			html += '<div style="font-size:15px;font-weight:700;color:#111827;line-height:1.3;">'+escapeHtmlStr(matched.companyName)+' 정산서</div>';
@@ -1558,7 +1558,7 @@ function renderGmailDetail() {
 			html += '<div style="font-size:12px;color:#6b7280;margin-top:3px;">'+periodText+'</div>';
 			html += '</div>';
 			if (done) {
-				html += '<span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:#d1fae5;color:#065f46;border-radius:999px;font-size:11px;font-weight:600;">✓ 확정됨</span>';
+				html += '<span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:#ecfdf5;color:#065f46;border-radius:999px;font-size:11px;font-weight:600;">✓ 확정됨</span>';
 			}
 			html += '</div>';
 			// 하단: 액션 (구분선 + 배경 연회색)
@@ -1567,7 +1567,7 @@ function renderGmailDetail() {
 			html += '<button onclick="gmailAction_preview(\''+cnEsc+'\')" style="'+linkStyle+'" onmouseenter="this.style.background=\'#ecfdf5\'" onmouseleave="this.style.background=\'none\'">미리보기</button>';
 			html += '<button onclick="gmailAction_download(\''+cnEsc+'\')" style="'+linkStyle+'" onmouseenter="this.style.background=\'#ecfdf5\'" onmouseleave="this.style.background=\'none\'">다운로드</button>';
 			var primaryBtn = 'margin-left:4px;display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 18px;font-size:13px;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;border:none;';
-			primaryBtn += done ? 'background:#fff;color:#065f46;border:1px solid #10b981;' : 'background:#10b981;color:#fff;';
+			primaryBtn += done ? 'background:#fff;color:#065f46;border:1px solid #059669;' : 'background:#059669;color:#fff;';
 			html += '<button onclick="gmailAction_confirm(\''+cnEsc+'\', '+latestNo+')" style="'+primaryBtn+'">'+(done?'확정 해제':'정산서 확정')+'</button>';
 			html += '</div>';
 			html += '</div>';
@@ -1711,7 +1711,7 @@ function openDlHistoryPopup(companyName) {
 	var html = '';
 	rows.forEach(function(r) {
 		var color = r.datetime === '-' ? '#ccc' : '#333';
-		var dtColor = r.datetime === '-' ? '#ccc' : (r.action === '업로드' ? '#ea580c' : (r.variant === '수정본' ? '#2563eb' : '#111'));
+		var dtColor = r.datetime === '-' ? '#ccc' : (r.action === '업로드' ? '#d97706' : (r.variant === '수정본' ? '#4f46e5' : '#111'));
 		html += '<tr>'
 			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.type+'</td>'
 			+ '<td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:center;color:'+color+';">'+r.variant+'</td>'
