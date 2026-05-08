@@ -150,6 +150,8 @@
 		.preview-table .subtotal { background:#EBF5FF; font-weight:600; }
 		.preview-table .grand-total { background:#f3f4f6; font-weight:700; }
 		.preview-table .tax-row { background:#fffbeb; font-weight:700; }
+		.preview-table .voucher-row { background:#ecfdf5; }
+		.preview-table .voucher-row:hover { background:#d1fae5; }
 		.preview-footer { display:flex; justify-content:flex-end; gap:8px; padding:12px 24px; border-top:1px solid #eee; background:#fafafa; }
 		.preview-footer button { padding:8px 20px; border:1px solid #ddd; background:#fff; border-radius:8px; font-size:13px; cursor:pointer; }
 		.preview-footer button:hover { background:#f5f5f5; }
@@ -633,7 +635,8 @@ function openSettlementPreview(no, isRev) {
 		var html = '';
 		var periodCell = '2026-04-01<br>~<br>2026-04-30';
 		DYPNF_APRIL_2026.stores.forEach(function(s) {
-			html += '<tr>'
+			var rowCls = s.region === '상품권' ? ' class="voucher-row"' : '';
+			html += '<tr'+rowCls+'>'
 				+ '<td style="font-size:11px;color:#888;">'+periodCell+'</td>'
 				+ '<td>'+s.no+'</td>'
 				+ '<td style="text-align:left;">'+s.name+'</td>'
