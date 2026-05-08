@@ -614,34 +614,55 @@ function parseRevisionFile(file) {
 		function readNum(addr) { var c = ws[addr]; return (c && typeof c.v === 'number') ? c.v : null; }
 		function readStr(addr) { var c = ws[addr]; return c && c.v != null ? String(c.v) : ''; }
 
-		// 1) 라벨 검색 (총계/모바일쿠폰/식대/이용료/세금계산서/최종 정산)
+		// 1) 라벨 검색 — 모든 열 (A~G) 스캔
 		var labels = {};
+		var COLS = ['A','B','C','D','E','F','G'];
 		for (var r = 1; r <= range.e.r + 1; r++) {
-			var b = readCell('B' + r);
-			if (typeof b !== 'string') continue;
-			var s = b.replace(/\s+/g, '');
-			if (s.indexOf('총계') >= 0 && !labels.total && !s.includes('정산')) labels.total = r;
-			if (s.indexOf('모바일') >= 0 && s.indexOf('쿠폰') >= 0 && !labels.mobile) labels.mobile = r;
-			if (s.indexOf('식대') >= 0 && s.indexOf('이용료') >= 0 && !labels.food) labels.food = r;
-			if (s.indexOf('이용료') >= 0 && (s.indexOf('사용인원') >= 0 || s.indexOf('VAT') >= 0) && !labels.fee) labels.fee = r;
-			if (s.indexOf('세금계산서') >= 0 && !labels.tax) labels.tax = r;
-			if (s.indexOf('최종정산금액') >= 0 && !labels.final) labels.final = r;
+			for (var ci = 0; ci < COLS.length; ci++) {
+				var v = readCell(COLS[ci] + r);
+				if (typeof v !== 'string') continue;
+				var s = v.replace(/\s+/g, '');
+				if (s.indexOf('총계') >= 0 && !labels.total && s.indexOf('정산') < 0) labels.total = r;
+				if (s.indexOf('모바일') >= 0 && s.indexOf('쿠폰') >= 0 && !labels.mobile) labels.mobile = r;
+				if (s.indexOf('식대') >= 0 && s.indexOf('이용료') >= 0 && !labels.food) labels.food = r;
+				if (s.indexOf('이용료') >= 0 && (s.indexOf('사용인원') >= 0 || s.indexOf('VAT') >= 0) && !labels.fee) labels.fee = r;
+				if (s.indexOf('세금계산서') >= 0 && !labels.tax) labels.tax = r;
+				if (s.indexOf('최종정산') >= 0 && !labels.final) labels.final = r;
+			}
 		}
 
-		// 2) 가맹점 명세: B에 숫자, C에 가맹점명이 있는 모든 행
+		// 2) 가맹점 명세 — B/C 또는 A/B 컬럼 자동 감지
 		var stores = [];
-		for (var r = 2; r <= range.e.r + 1; r++) {
-			var bv = readCell('B' + r);
-			var cv = readCell('C' + r);
-			if (typeof bv === 'number' && typeof cv === 'string' && cv.length > 0) {
-				stores.push({
-					no: bv,
-					name: cv,
-					bizNo: readStr('D' + r),
-					region: readStr('E' + r),
-					count: readNum('F' + r) || 0,
-					amount: readNum('G' + r) || 0
-				});
+		// 후보: (numCol, nameCol) 페어들
+		var candidates = [
+			{ no:'B', name:'C', bizNo:'D', region:'E', count:'F', amount:'G' },
+			{ no:'A', name:'B', bizNo:'C', region:'D', count:'E', amount:'F' }
+		];
+		var bestCandidate = null;
+		var bestCount = 0;
+		candidates.forEach(function(c) {
+			var found = 0;
+			for (var r = 2; r <= range.e.r + 1; r++) {
+				var nv = readCell(c.no + r);
+				var mv = readCell(c.name + r);
+				if (typeof nv === 'number' && typeof mv === 'string' && mv.length > 0) found++;
+			}
+			if (found > bestCount) { bestCount = found; bestCandidate = c; }
+		});
+		if (bestCandidate) {
+			for (var r = 2; r <= range.e.r + 1; r++) {
+				var nv = readCell(bestCandidate.no + r);
+				var mv = readCell(bestCandidate.name + r);
+				if (typeof nv === 'number' && typeof mv === 'string' && mv.length > 0) {
+					stores.push({
+						no: nv,
+						name: mv,
+						bizNo: readStr(bestCandidate.bizNo + r),
+						region: readStr(bestCandidate.region + r),
+						count: readNum(bestCandidate.count + r) || 0,
+						amount: readNum(bestCandidate.amount + r) || 0
+					});
+				}
 			}
 		}
 
@@ -804,16 +825,24 @@ function openSettlementPreview(no, isRev) {
 			+ '</tr>';
 		});
 		// 합계: 총계
-		html += '<tr class="grand-total"><td></td><td colspan="4">총계</td><td>'+fmt(src.paymentCount)+'</td><td style="text-align:right;">'+fmt(src.pointUsed)+'</td></tr>';
-		// 모바일 쿠폰 이용료 합계 — 건수 정확값 없으면 합계 행에서 추정
-		var mobileCount = (src.stores || []).filter(function(s){ return s.region === '상품권'; }).reduce(function(a,b){ return a + (b.count||0); }, 0);
-		html += '<tr class="subtotal"><td></td><td colspan="4">모바일 쿠폰 이용료 합계</td><td>'+fmt(mobileCount || 237)+'</td><td style="text-align:right;">'+fmt(src.mobileCoupon)+'</td></tr>';
-		var foodCount = (src.paymentCount || 0) - (mobileCount || 0);
-		html += '<tr class="subtotal"><td></td><td colspan="4">식대 이용료 합계</td><td>'+fmt(foodCount || 4138)+'</td><td style="text-align:right;">'+fmt(src.storeRevenue)+'</td></tr>';
+		html += '<tr class="grand-total"><td></td><td colspan="4">총계</td><td>'+fmt(src.paymentCount||0)+'</td><td style="text-align:right;">'+fmt(src.pointUsed||0)+'</td></tr>';
+		// 모바일 쿠폰 이용료 합계 — 가맹점 명세에서 집계 (없으면 0)
+		var mobileCount = (src.stores || []).filter(function(s){ return s.region === '상품권' || (s.region||'').indexOf('쿠폰') >= 0; }).reduce(function(a,b){ return a + (b.count||0); }, 0);
+		html += '<tr class="subtotal"><td></td><td colspan="4">모바일 쿠폰 이용료 합계</td><td>'+fmt(mobileCount)+'</td><td style="text-align:right;">'+fmt(src.mobileCoupon||0)+'</td></tr>';
+		var foodCount = Math.max(0, (src.paymentCount || 0) - (mobileCount || 0));
+		html += '<tr class="subtotal"><td></td><td colspan="4">식대 이용료 합계</td><td>'+fmt(foodCount)+'</td><td style="text-align:right;">'+fmt(src.storeRevenue||0)+'</td></tr>';
 		html += '<tr><td></td><td colspan="4" rowspan="2" style="white-space:pre-line;vertical-align:middle;">이용료\n(사용인원*0원,\nVAT 포함)</td><td>사용인원</td><td style="text-align:right;">이용료 총계</td></tr>';
 		html += '<tr><td></td><td>'+(src.usagePersons || 0)+'</td><td style="text-align:right;">'+(src.feeCompany || 0)+'</td></tr>';
 		html += '<tr class="tax-row"><td></td><td colspan="5">세금계산서 발행 금액(식대 이용료+이용료)</td><td style="text-align:right;">'+fmt((src.storeRevenue||0) + (src.feeCompany||0))+'</td></tr>';
-		html += '<tr class="grand-total"><td></td><td colspan="5">최종 정산 금액(총계 + 이용료)</td><td style="text-align:right;">'+fmt(src.companyDeposit)+'</td></tr>';
+		html += '<tr class="grand-total"><td></td><td colspan="5">최종 정산 금액(총계 + 이용료)</td><td style="text-align:right;">'+fmt(src.companyDeposit||0)+'</td></tr>';
+		// 데이터 인식 실패 시 안내
+		var anyValue = (src.pointUsed||0) + (src.mobileCoupon||0) + (src.storeRevenue||0) + (src.companyDeposit||0);
+		if (anyValue === 0 && (!src.stores || src.stores.length === 0)) {
+			html = '<tr><td colspan="7" style="padding:40px 24px;text-align:center;color:#9ca3af;font-size:13px;line-height:1.7;background:#fffbeb;border-bottom:1px solid #ffe082;">'
+				+ '⚠ 첨부된 파일에서 정산 데이터를 인식하지 못했습니다.<br>'
+				+ '<span style="font-size:12px;">표준 양식("가맹점별 요약" 시트, 총계/모바일쿠폰/식대 이용료 합계 라벨)이 아닌 파일은 자동 인식되지 않을 수 있습니다.</span>'
+				+ '</td></tr>' + html;
+		}
 		document.getElementById('previewTbody').innerHTML = html;
 	} else {
 		document.querySelector('.preview-modal').classList.remove('wide');
