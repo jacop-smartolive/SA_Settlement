@@ -601,52 +601,81 @@ function pickRevisionFile(no) {
 	input.click();
 }
 
-// 수정본 Excel 파일 파싱 — 원본과 동일 구조 가정
+// 수정본 Excel 파일 파싱 — 라벨 기반 검색 (다른 회사 파일도 대응)
 function parseRevisionFile(file) {
 	if (typeof XLSX === 'undefined' || !file.name.match(/\.(xlsx|xls)$/i)) return Promise.resolve(null);
 	return file.arrayBuffer().then(function(buf) {
 		var wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+		// '가맹점별 요약' 우선, 없으면 첫 시트
 		var ws = wb.Sheets['가맹점별 요약'] || wb.Sheets[wb.SheetNames[0]];
-		if (!ws) return null;
-		function cellNum(addr) {
-			var c = ws[addr];
-			return (c && typeof c.v === 'number') ? c.v : null;
+		if (!ws || !ws['!ref']) return null;
+		var range = XLSX.utils.decode_range(ws['!ref']);
+		function readCell(addr) { var c = ws[addr]; return c ? c.v : null; }
+		function readNum(addr) { var c = ws[addr]; return (c && typeof c.v === 'number') ? c.v : null; }
+		function readStr(addr) { var c = ws[addr]; return c && c.v != null ? String(c.v) : ''; }
+
+		// 1) 라벨 검색 (총계/모바일쿠폰/식대/이용료/세금계산서/최종 정산)
+		var labels = {};
+		for (var r = 1; r <= range.e.r + 1; r++) {
+			var b = readCell('B' + r);
+			if (typeof b !== 'string') continue;
+			var s = b.replace(/\s+/g, '');
+			if (s.indexOf('총계') >= 0 && !labels.total && !s.includes('정산')) labels.total = r;
+			if (s.indexOf('모바일') >= 0 && s.indexOf('쿠폰') >= 0 && !labels.mobile) labels.mobile = r;
+			if (s.indexOf('식대') >= 0 && s.indexOf('이용료') >= 0 && !labels.food) labels.food = r;
+			if (s.indexOf('이용료') >= 0 && (s.indexOf('사용인원') >= 0 || s.indexOf('VAT') >= 0) && !labels.fee) labels.fee = r;
+			if (s.indexOf('세금계산서') >= 0 && !labels.tax) labels.tax = r;
+			if (s.indexOf('최종정산금액') >= 0 && !labels.final) labels.final = r;
 		}
-		function cellStr(addr) {
-			var c = ws[addr];
-			return c && c.v != null ? String(c.v) : '';
+
+		// 2) 가맹점 명세: B에 숫자, C에 가맹점명이 있는 모든 행
+		var stores = [];
+		for (var r = 2; r <= range.e.r + 1; r++) {
+			var bv = readCell('B' + r);
+			var cv = readCell('C' + r);
+			if (typeof bv === 'number' && typeof cv === 'string' && cv.length > 0) {
+				stores.push({
+					no: bv,
+					name: cv,
+					bizNo: readStr('D' + r),
+					region: readStr('E' + r),
+					count: readNum('F' + r) || 0,
+					amount: readNum('G' + r) || 0
+				});
+			}
 		}
+
+		// 3) 라벨 기준 + fallback (기존 고정 셀)
 		var data = {
-			paymentCount:   cellNum('F25'),
-			pointUsed:      cellNum('G25'),
-			mobileCoupon:   cellNum('G26'),
-			storeRevenue:   cellNum('G27'),
-			usagePersons:   cellNum('F29'),
-			feeCompany:     cellNum('G29'),
-			companyDeposit: cellNum('G31'),
-			stores: []
+			paymentCount:   labels.total  ? readNum('F' + labels.total)  : readNum('F25'),
+			pointUsed:      labels.total  ? readNum('G' + labels.total)  : readNum('G25'),
+			mobileCoupon:   labels.mobile ? readNum('G' + labels.mobile) : readNum('G26'),
+			storeRevenue:   labels.food   ? readNum('G' + labels.food)   : readNum('G27'),
+			// 이용료 데이터는 fee 행 또는 다음 행에 있을 수 있음
+			usagePersons:   labels.fee    ? (readNum('F' + labels.fee) || readNum('F' + (labels.fee + 1))) : readNum('F29'),
+			feeCompany:     labels.fee    ? (readNum('G' + labels.fee) || readNum('G' + (labels.fee + 1)) || 0) : readNum('G29'),
+			companyDeposit: labels.final  ? readNum('G' + labels.final)  : readNum('G31'),
+			stores: stores
 		};
-		// 가맹점 명세 (행 4 ~ 까지 — 빈 행 만나면 종료)
-		for (var r = 4; r < 200; r++) {
-			var no  = cellNum('B'+r);
-			var nm  = cellStr('C'+r);
-			if (no === null || !nm) break;
-			data.stores.push({
-				no: no,
-				name: nm,
-				bizNo: cellStr('D'+r),
-				region: cellStr('E'+r),
-				count: cellNum('F'+r) || 0,
-				amount: cellNum('G'+r) || 0
-			});
+
+		// fallback: 라벨 못 찾으면 합계로 추론
+		if (data.pointUsed == null && stores.length > 0) {
+			data.pointUsed = stores.reduce(function(a,s){ return a + (s.amount||0); }, 0);
+			data.paymentCount = stores.reduce(function(a,s){ return a + (s.count||0); }, 0);
 		}
+		if (data.companyDeposit == null) data.companyDeposit = (data.pointUsed||0) + (data.feeCompany||0);
+		if (data.mobileCoupon == null) {
+			data.mobileCoupon = stores.filter(function(s){ return s.region==='상품권' || (s.region||'').indexOf('쿠폰') >= 0; })
+				.reduce(function(a,s){ return a + (s.amount||0); }, 0);
+		}
+		if (data.storeRevenue == null) data.storeRevenue = (data.pointUsed||0) - (data.mobileCoupon||0);
+
 		// 계산값
-		if (data.storeRevenue !== null) {
-			data.storeFee      = Math.round(data.storeRevenue * 0.0105);
-			data.storeTransfer = data.storeRevenue - data.storeFee;
-			data.storeExclude  = Math.round(data.storeTransfer * 0.935);
-		}
-		console.log('[Revision parsed]', data);
+		data.storeFee      = Math.round((data.storeRevenue||0) * 0.0105);
+		data.storeTransfer = (data.storeRevenue||0) - data.storeFee;
+		data.storeExclude  = Math.round(data.storeTransfer * 0.935);
+
+		console.log('[Revision parsed]', { labels: labels, storeCount: stores.length, data: data });
 		return data;
 	}).catch(function(e) {
 		console.warn('[Revision parse failed]', e.message);
@@ -733,7 +762,12 @@ function openSettlementPreview(no, isRev) {
 	var rsForPv = (typeof rowStates !== 'undefined' && rowStates[no]) ? rowStates[no] : null;
 	var revData = (isRev && rsForPv && rsForPv.revData) ? rsForPv.revData : null;
 	var isDypnfApril = (companyName === '디와이피엔에프(주)' && no === totalCount && !isRev);
-	var useRich = isDypnfApril || (revData && revData.stores && revData.stores.length > 0);
+	// 수정본 첨부됨 + 어떤 형태든 데이터 있으면 풍부한 모드 (가맹점 명세 우선, 없으면 합계만)
+	var useRich = isDypnfApril || (revData && (
+		(revData.stores && revData.stores.length > 0) ||
+		revData.pointUsed != null ||
+		revData.companyDeposit != null
+	));
 	// 디버그
 	console.log('[openPreview]', {
 		no: no, isRev: isRev, hasRowState: !!rsForPv,
