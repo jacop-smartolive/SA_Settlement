@@ -18,7 +18,11 @@
 		}
 		a { text-decoration: none; color: inherit; }
 		ul, ol, li { list-style: none; }
+		table { border-collapse: collapse; width: 100%; }
+		button { overflow: hidden; margin: 0; padding: 0; border: 0 none; white-space: nowrap; text-align: center; vertical-align: top; cursor: pointer; }
 		caption, .blind { overflow: hidden; position: absolute; left: -9999em; width: 0; height: 0; margin: 0; padding: 0; font-size: 0; line-height: 0; text-indent: -9999em; }
+		input[type="text"] { height: 32px; padding: 0 10px; border: 1px solid #ddd; background: #fff; color: #333; font-family: 'Nanum Gothic'; font-size: 13px; line-height: 32px; box-sizing: border-box; }
+		select { height: 32px; padding: 0 28px 0 10px; border: 1px solid #ddd; background: #fff; font-family: 'Nanum Gothic'; font-size: 13px; color: #333; box-sizing: border-box; }
 
 		/* Layout */
 		#wrap { position: relative; min-width: 1200px; background: #fff; }
@@ -62,7 +66,51 @@
 		.logList > li > a { display: block; position: relative; color: #fff; font-size: 11px; text-align: center; padding-top: 30px; }
 		.logList > li > a:before { display: block; width: 20px; height: 16px; margin: -20px auto 6px; content: ''; }
 
-		.empty-placeholder { display:flex; align-items:center; justify-content:center; height:60vh; color:#9ba9bf; font-size:14px; }
+		/* page_location (breadcrumb) */
+		.page_location { margin: 30px 0 20px; }
+		.page_location span { display: inline-block; position: relative; padding: 0 7px 0 16px; color: #666; font-size: 20px; vertical-align: middle; }
+		.page_location span:first-child { padding-left: 0; }
+		.page_location span:first-child:before { display: none; }
+		.page_location span:before { display: block; position: absolute; left: 0; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #999; content: ''; }
+		.page_location span.current { color: #2f2f2f; font-size: 24px; font-weight: 700; }
+
+		/* subTabBox */
+		.subTabBox { margin: 20px 0 0; }
+		.sub_tab { border: 1px solid #ed1b24; border-radius: 5px; overflow: hidden; display: flex; }
+		.sub_tab > li { flex: 1; border-left: 1px solid #ed1b24; text-align: center; box-sizing: border-box; }
+		.sub_tab > li:first-child { border-left: 0 none; }
+		.sub_tab > li a { display: block; height: 46px; color: #666; font-size: 16px; line-height: 46px; text-align: center; }
+		.sub_tab > li.on a { background: #ed1b24; color: #fff; font-weight: 700; }
+		.sub_tab > li:hover a { background: #ed1b24; color: #fff; font-weight: 700; }
+
+		/* searchArea */
+		.searchArea { margin: 20px 0 0; padding: 14px 16px; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+		.searchArea > strong { font-size: 13px; color: #333; padding: 0 10px 0 6px; border-right: 1px solid #e5e7eb; }
+		.searchArea input[type="text"] { width: 280px; }
+		.searchArea .searchSpacer { flex: 1; }
+		.btn-search { height: 32px; padding: 0 22px; background: #727887; color: #fff; border: 1px solid #727887; border-radius: 4px; font-size: 13px; font-family: inherit; cursor: pointer; }
+		.btn-search:hover { background: #515b6c; }
+
+		/* countBox */
+		.countBox { margin: 20px 0 8px 0; }
+		.countBox:after { display: block; clear: both; content: ''; }
+		.countBox .leftArea { float: left; color: #666; font-size: 13px; line-height: 32px; }
+		.countBox .leftArea b { color: #2f2f2f; font-size: 14px; margin-left: 4px; }
+		.countBox .rightArea { float: right; color: #666; font-size: 13px; display: flex; align-items: center; gap: 8px; line-height: 32px; }
+		.countBox .rightArea .tit { position: relative; padding: 0 10px 0 14px; font-weight: normal; }
+		.countBox .rightArea .tit:before { content: '·'; position: absolute; left: 0; top: 0; }
+
+		/* listBox */
+		.listBox { margin: 0; border-top: 2px solid #ed1b24; border-right: 1px solid #ddd; background: #fff; }
+
+		/* bbs_list */
+		.bbs_list { position: relative; width: 100%; }
+		.bbs_list thead th { padding: 12px 6px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; font-weight: 700; text-align: center; white-space: nowrap; }
+		.bbs_list tbody th,
+		.bbs_list tbody td { padding: 10px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #555; font-size: 13px; text-align: center; vertical-align: middle; white-space: nowrap; }
+		.bbs_list tbody td a { border-bottom: 1px dotted #555; color: inherit; }
+		.bbs_list tbody td a:hover, .bbs_list tbody td a:active { font-weight: 700; color: #111; }
+		.bbs_list tbody tr:hover { background: #f9fafb; }
 	</style>
 </head>
 <body>
@@ -78,106 +126,86 @@
 						<h2 class="blind">메인메뉴</h2>
 						<ul class="localMenu">
 							<li><a href="#this">기업체 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">기업체 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">기업체 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/company/list">기업체 정보 관리</a></li>
-										<li><a href="/sa/company/mapping/list">직접 가맹점 관리</a></li>
-										<li><a href="/sa/company/master/list">마스터 기업체 관리</a></li>
-									</ul>
-								</div>
+										<li><a href="#">기업체 정보 관리</a></li>
+										<li><a href="#">직접 가맹점 관리</a></li>
+										<li><a href="#">마스터 기업체 관리</a></li>
+									</ul></div>
 							</li>
 							<li><a href="#this">가맹점 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">가맹점 관리 서브 목록</h3>
-									<ul class="subMenu">
-										<li><a href="/sa/store/list">매장 정보</a></li>
-									</ul>
-								</div>
+								<div class="subMenuBox"><h3 class="blind">가맹점 관리 서브 목록</h3>
+									<ul class="subMenu"><li><a href="#">매장 정보</a></li></ul></div>
 							</li>
 							<li><a href="#this">올리브 상품권 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">올리브 상품권 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">올리브 상품권 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/olivegift/order/list">주문내역</a></li>
-										<li><a href="/sa/olivegift/list">상품권 관리</a></li>
-									</ul>
-								</div>
+										<li><a href="#">주문내역</a></li>
+										<li><a href="#">상품권 관리</a></li>
+									</ul></div>
 							</li>
 							<li><a href="#this">모바일 쿠폰 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">모바일 쿠폰 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">모바일 쿠폰 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/mobile/order/list">주문내역</a></li>
-										<li><a href="/sa/mobile/goods/list">상품관리</a></li>
-										<li><a href="/sa/mobile/brand/list">브랜드관리</a></li>
-									</ul>
-								</div>
+										<li><a href="#">주문내역</a></li>
+										<li><a href="#">상품관리</a></li>
+										<li><a href="#">브랜드관리</a></li>
+									</ul></div>
 							</li>
 							<li><a href="#this">식권 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">식권 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">식권 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/ticket/list">식권 결제 취소 관리</a></li>
-										<li><a href="/sa/ticket/ready/list">대기식권 관리</a></li>
-									</ul>
-								</div>
+										<li><a href="#">식권 결제 취소 관리</a></li>
+										<li><a href="#">대기식권 관리</a></li>
+									</ul></div>
 							</li>
-							<li><a href="/sa/sms/company/list">SMS 발송내역</a></li>
+							<li><a href="#">SMS 발송내역</a></li>
 							<li class="on"><a href="#this">정산 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">정산 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">정산 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/adjust/company/list">업체 정산</a></li>
-										<li class="on"><a href="/sa/adjust/company/complete/list">업체 정산 완료 내역</a></li>
-										<li><a href="/sa/adjust/store/complete/list">가맹점 정산 완료 내역</a></li>
-										<li><a href="/sa/adjust/user/complete/list">개인포인트 정산 완료 내역</a></li>
-										<li><a href="/sa/adjust/manual/list">수동 정산</a></li>
-										<li><a href="/sa/adjust/support/list">지난정산 엑셀다운로드</a></li>
-										<li><a href="/sa/adjust/main/list">매입 매출 내역</a></li>
-										<li><a href="/sa/adjust/main/list/immediately">매입 매출 내역(실시간)</a></li>
-									</ul>
-								</div>
+										<li><a href="#">업체 정산</a></li>
+										<li class="on"><a href="#">업체 정산 완료 내역</a></li>
+										<li><a href="#">가맹점 정산 완료 내역</a></li>
+										<li><a href="#">개인포인트 정산 완료 내역</a></li>
+										<li><a href="#">수동 정산</a></li>
+										<li><a href="#">지난정산 엑셀다운로드</a></li>
+										<li><a href="#">매입 매출 내역</a></li>
+										<li><a href="#">매입 매출 내역(실시간)</a></li>
+									</ul></div>
 							</li>
 							<li><a href="#this">서비스 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">서비스 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">서비스 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/term/service/list">약관 관리</a></li>
-										<li><a href="/sa/notice/list">공지사항 관리</a></li>
-										<li><a href="/sa/notice/popup/list">팝업 관리</a></li>
-										<li><a href="/sa/board/faq/list">FAQ 관리</a></li>
-										<li><a href="/sa/board/qna/list">1:1 문의</a></li>
-										<li><a href="/sa/board/work/list">업무요청 게시판 관리</a></li>
-										<li><a href="/sa/banner/list">배너 관리</a></li>
-										<li><a href="/sa/push/company/list">푸시 관리</a></li>
-										<li><a href="/sa/olivecoupon/event/list">쿠폰 관리</a></li>
-										<li><a href="/sa/point/refund/list">환불 관리</a></li>
-										<li><a href="/sa/sms/send/list">문자 관리</a></li>
-									</ul>
-								</div>
+										<li><a href="#">약관 관리</a></li>
+										<li><a href="#">공지사항 관리</a></li>
+										<li><a href="#">팝업 관리</a></li>
+										<li><a href="#">FAQ 관리</a></li>
+										<li><a href="#">1:1 문의</a></li>
+										<li><a href="#">업무요청 게시판 관리</a></li>
+										<li><a href="#">배너 관리</a></li>
+										<li><a href="#">푸시 관리</a></li>
+										<li><a href="#">쿠폰 관리</a></li>
+										<li><a href="#">환불 관리</a></li>
+										<li><a href="#">문자 관리</a></li>
+									</ul></div>
 							</li>
 							<li><a href="#this">회원 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">회원 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">회원 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/employee/list">회원 관리</a></li>
-										<li><a href="/sa/employee/gift/list">선물 관리</a></li>
-									</ul>
-								</div>
+										<li><a href="#">회원 관리</a></li>
+										<li><a href="#">선물 관리</a></li>
+									</ul></div>
 							</li>
 							<li><a href="#this">설정 관리</a>
-								<div class="subMenuBox">
-									<h3 class="blind">시스템 설정 관리 서브 목록</h3>
+								<div class="subMenuBox"><h3 class="blind">시스템 설정 관리 서브 목록</h3>
 									<ul class="subMenu">
-										<li><a href="/sa/setting/list">시스템 설정 관리</a></li>
-										<li><a href="/sa/app/version/list">앱 버전 관리</a></li>
-										<li><a href="/sa/app/guide/list">앱 가이드 관리</a></li>
-										<li><a href="/sa/holiday/list">공휴일 관리</a></li>
-									</ul>
-								</div>
+										<li><a href="#">시스템 설정 관리</a></li>
+										<li><a href="#">앱 버전 관리</a></li>
+										<li><a href="#">앱 가이드 관리</a></li>
+										<li><a href="#">공휴일 관리</a></li>
+									</ul></div>
 							</li>
-							<li><a href="/sa/transfer/list">계좌 이체 관리</a></li>
+							<li><a href="#">계좌 이체 관리</a></li>
 						</ul>
 					</nav>
 				</div>
@@ -199,20 +227,161 @@
 								<li class="request"></li>
 							</ul>
 							<ul class="logList">
-								<li><a href="/sa/mypage">My Page</a></li>
-								<li><a href="/sa/logout">LogOut</a></li>
+								<li><a href="#">My Page</a></li>
+								<li><a href="#">LogOut</a></li>
 							</ul>
 						</div>
 					</div>
 					<!-- //content_header -->
 
-					<div class="empty-placeholder">v1.1 — 새 작업 영역 (좌측 네비 + GNB만 남김)</div>
+					<!-- 페이지 위치 (Breadcrumb) -->
+					<div class="page_location">
+						<span>정산 관리</span>
+						<span class="current">정산 완료 내역</span>
+					</div>
+
+					<!-- 탭 -->
+					<div class="subTabBox">
+						<ul class="sub_tab">
+							<li class="on"><a href="#" onclick="return false;">업체 정산 완료 내역</a></li>
+							<li><a href="#" onclick="return false;">업체 정산 완료 내역(월별)</a></li>
+							<li><a href="#" onclick="return false;">구내식당 정산 완료 내역</a></li>
+						</ul>
+					</div>
+
+					<!-- 검색 영역 -->
+					<div class="searchArea">
+						<strong>검색</strong>
+						<select id="searchType">
+							<option value="companyName">기업체명</option>
+							<option value="businessNo">사업자번호</option>
+							<option value="ceo">대표자명</option>
+						</select>
+						<input id="searchKeyword" type="text" placeholder="검색어를 입력하세요" onkeydown="if(event.key==='Enter'){applySearch();return false;}">
+						<div class="searchSpacer"></div>
+						<button class="btn-search" onclick="applySearch()">검색</button>
+					</div>
+
+					<!-- countBox -->
+					<div class="countBox">
+						<div class="leftArea">결과: <b id="resultCount">0</b></div>
+						<div class="rightArea">
+							<strong class="tit">목록개수</strong>
+							<select id="pageSize" onchange="renderTable()">
+								<option value="20" selected>20</option>
+								<option value="50">50</option>
+								<option value="100">100</option>
+							</select>
+						</div>
+					</div>
+
+					<!-- 표 -->
+					<div class="listBox">
+						<table class="bbs_list type01">
+							<colgroup>
+								<col style="width:60px">
+								<col>
+								<col style="width:140px">
+								<col style="width:120px">
+								<col>
+								<col style="width:110px">
+								<col style="width:140px">
+							</colgroup>
+							<thead>
+								<tr>
+									<th>번호</th>
+									<th>기업체</th>
+									<th>사업자등록번호</th>
+									<th>대표자 명</th>
+									<th>세금계산서 발행 이메일</th>
+									<th>정산 완료 건수</th>
+									<th>마지막 정산 완료일</th>
+								</tr>
+							</thead>
+							<tbody id="tbody"></tbody>
+						</table>
+					</div>
+
 				</div>
 				<!-- //content -->
 			</section>
 		</div>
 	</section>
 </div>
+
+<script>
+// 샘플 데이터 (스크린샷 기반 + 추가)
+var DATA = [
+	{no:373, name:'(주)조선뉴스프레스', bizNo:'104-81-59006', ceo:'정장열', email:'cja@chosun.com', count:61, lastDate:'2026.05.31'},
+	{no:372, name:'디와이피엔 주식회사', bizNo:'119-86-91089', ceo:'신승대', email:'ljeun@dypn.co.kr', count:77, lastDate:'2026.04.30'},
+	{no:371, name:'남대문경찰서', bizNo:'000-00-00000', ceo:'남대문경찰서', email:'hotkaist@police.go.kr', count:44, lastDate:'2026.04.30'},
+	{no:370, name:'(주)다온기업', bizNo:'123-86-41313', ceo:'최인호', email:'daon6165@naver.com', count:7, lastDate:'2026.04.30'},
+	{no:369, name:'(주)에스앤피인터내셔널', bizNo:'114-86-19495', ceo:'김호기', email:'543@2705.co.kr', count:75, lastDate:'2026.04.30'},
+	{no:368, name:'다인정보 주식회사', bizNo:'138-81-91014', ceo:'추명해, 오충선', email:'sym7929@douzoneon.com', count:57, lastDate:'2026.04.30'},
+	{no:367, name:'주식회사 포인트모바일', bizNo:'119-81-91385', ceo:'이철환', email:'mc.hyeon@pointmobile.com', count:58, lastDate:'2026.04.30'},
+	{no:366, name:'디와이피엔에프(주)', bizNo:'113-81-54363', ceo:'신승대, 남승현', email:'jinwon9557@dypnf.com', count:78, lastDate:'2026.04.30'},
+	{no:365, name:'한국생산성본부인증원', bizNo:'102-81-33505', ceo:'오경희', email:'njkim@kpcqa.or.kr', count:50, lastDate:'2026.04.30'},
+	{no:364, name:'한국후지필름(주)', bizNo:'248-86-00926', ceo:'이형규', email:'sgsong0421@lotte.net', count:46, lastDate:'2026.04.30'},
+	{no:363, name:'삼호씨앤엠(주)', bizNo:'603-81-30146', ceo:'송창덕', email:'1050129@samhodev.co.kr', count:83, lastDate:'2026.04.30'},
+	{no:362, name:'주식회사 글로텍이엔씨', bizNo:'490-86-01017', ceo:'진봉수', email:'qwewr57@gteng.co.kr', count:93, lastDate:'2026.04.30'},
+	{no:361, name:'(사)한국능률협회(교육생)', bizNo:'105-82-01810', ceo:'최권석', email:'edu@kma.or.kr', count:54, lastDate:'2026.04.30'},
+	{no:360, name:'(주)퍼시스', bizNo:'215-81-20534', ceo:'김태은,우인환', email:'euna_yang@fursys.com', count:100, lastDate:'2026.04.30'},
+	{no:359, name:'오스템임플란트 주식회사', bizNo:'112-81-47103', ceo:'엄태관', email:'kimjg@osstem.com', count:46, lastDate:'2026.04.30'},
+	{no:358, name:'(주)훼밀리익스프레스', bizNo:'-', ceo:'전성용', email:'fsq@familyexp.com', count:1, lastDate:'2026.04.30'},
+	{no:357, name:'한국전력공사', bizNo:'205-81-12345', ceo:'김종갑', email:'admin@kepco.co.kr', count:120, lastDate:'2026.04.30'},
+	{no:356, name:'엘지화학 주식회사', bizNo:'107-86-87932', ceo:'신학철', email:'tax@lgchem.com', count:88, lastDate:'2026.04.30'},
+	{no:355, name:'GS칼텍스(주)', bizNo:'104-81-43689', ceo:'허세홍', email:'invoice@gscaltex.com', count:42, lastDate:'2026.04.30'},
+	{no:354, name:'CJ대한통운(주)', bizNo:'119-81-02060', ceo:'박근태', email:'tax@cjlogistics.com', count:67, lastDate:'2026.04.30'},
+	{no:353, name:'쿠팡(주)', bizNo:'120-88-00767', ceo:'박대준', email:'finance@coupang.com', count:155, lastDate:'2026.03.31'},
+	{no:352, name:'네이버(주)', bizNo:'220-81-62517', ceo:'최수연', email:'tax@navercorp.com', count:99, lastDate:'2026.03.31'},
+	{no:351, name:'카카오 주식회사', bizNo:'120-81-47521', ceo:'정신아', email:'tax@kakaocorp.com', count:73, lastDate:'2026.03.31'},
+	{no:350, name:'삼성전자 주식회사', bizNo:'124-81-00998', ceo:'한종희', email:'tax@samsung.com', count:200, lastDate:'2026.03.31'},
+	{no:349, name:'SK하이닉스(주)', bizNo:'130-81-25586', ceo:'곽노정', email:'finance@skhynix.com', count:120, lastDate:'2026.03.31'},
+	{no:348, name:'현대자동차(주)', bizNo:'101-81-09147', ceo:'장재훈', email:'tax@hyundai.com', count:88, lastDate:'2026.03.31'},
+	{no:347, name:'기아 주식회사', bizNo:'119-81-02798', ceo:'송호성', email:'tax@kia.com', count:65, lastDate:'2026.03.31'},
+	{no:346, name:'POSCO홀딩스', bizNo:'601-81-08515', ceo:'장인화', email:'invoice@posco.com', count:54, lastDate:'2026.03.31'},
+	{no:345, name:'한화시스템(주)', bizNo:'104-81-21002', ceo:'어성철', email:'tax@hanwhasystems.com', count:32, lastDate:'2026.03.31'},
+	{no:344, name:'두산에너빌리티(주)', bizNo:'130-81-12549', ceo:'박지원', email:'tax@doosan.com', count:48, lastDate:'2026.03.31'}
+];
+
+var TOTAL_COUNT = 373;
+var filteredData = [].concat(DATA);
+
+function renderTable() {
+	var size = parseInt(document.getElementById('pageSize').value);
+	var rows = filteredData.slice(0, size);
+	var html = '';
+	rows.forEach(function(r) {
+		html += '<tr>'
+			+ '<td>' + r.no + '</td>'
+			+ '<td><a href="#" onclick="return false;">' + r.name + '</a></td>'
+			+ '<td>' + r.bizNo + '</td>'
+			+ '<td>' + r.ceo + '</td>'
+			+ '<td>' + r.email + '</td>'
+			+ '<td><a href="#" onclick="return false;">' + r.count + '</a></td>'
+			+ '<td>' + r.lastDate + '</td>'
+			+ '</tr>';
+	});
+	document.getElementById('tbody').innerHTML = html;
+	document.getElementById('resultCount').textContent = TOTAL_COUNT.toLocaleString('ko-KR');
+}
+
+function applySearch() {
+	var type = document.getElementById('searchType').value;
+	var kw = document.getElementById('searchKeyword').value.trim();
+	if (!kw) {
+		filteredData = [].concat(DATA);
+		TOTAL_COUNT = 373;
+	} else {
+		var key = type === 'companyName' ? 'name' : type === 'businessNo' ? 'bizNo' : 'ceo';
+		filteredData = DATA.filter(function(r){ return r[key].indexOf(kw) >= 0; });
+		TOTAL_COUNT = filteredData.length;
+	}
+	renderTable();
+}
+
+renderTable();
+</script>
 
 </body>
 </html>
