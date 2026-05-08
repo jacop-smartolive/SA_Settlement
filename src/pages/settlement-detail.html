@@ -734,6 +734,15 @@ function openSettlementPreview(no, isRev) {
 	var revData = (isRev && rsForPv && rsForPv.revData) ? rsForPv.revData : null;
 	var isDypnfApril = (companyName === '디와이피엔에프(주)' && no === totalCount && !isRev);
 	var useRich = isDypnfApril || (revData && revData.stores && revData.stores.length > 0);
+	// 디버그
+	console.log('[openPreview]', {
+		no: no, isRev: isRev, hasRowState: !!rsForPv,
+		hasRevision: rsForPv && rsForPv.hasRevision,
+		hasRevData: !!revData,
+		revStoreCount: revData && revData.stores ? revData.stores.length : 0,
+		isDypnfApril: isDypnfApril, useRich: useRich,
+		revDataKeys: revData ? Object.keys(revData) : null
+	});
 
 	if (useRich) {
 		var src = revData || DYPNF_APRIL_2026;
