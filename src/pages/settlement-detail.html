@@ -870,8 +870,10 @@ function renderTable() {
 function fetchDypnfData() {
 	if (companyName !== '디와이피엔에프(주)') return Promise.resolve();
 	if (typeof XLSX === 'undefined') return Promise.resolve();
-	return fetch('../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx')
-		.then(function(r){ if (!r.ok) throw new Error('fetch'); return r.arrayBuffer(); })
+	// 캐시 무력화 (timestamp 쿼리)
+	var url = '../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx?t=' + Date.now();
+	return fetch(url)
+		.then(function(r){ if (!r.ok) throw new Error('fetch '+r.status); return r.arrayBuffer(); })
 		.then(function(buf) {
 			var wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
 			var ws = wb.Sheets['가맹점별 요약'];
@@ -880,6 +882,15 @@ function fetchDypnfData() {
 				var c = ws[addr];
 				return (c && typeof c.v === 'number') ? c.v : null;
 			}
+			// 디버그 — 핵심 셀 값 콘솔 로그
+			console.log('[DYPNF Excel cells]',
+				'F25:', ws['F25'] && ws['F25'].v,
+				'G25:', ws['G25'] && ws['G25'].v,
+				'G26:', ws['G26'] && ws['G26'].v,
+				'G27:', ws['G27'] && ws['G27'].v,
+				'F29:', ws['F29'] && ws['F29'].v,
+				'G31:', ws['G31'] && ws['G31'].v
+			);
 			// 실제 셀 주소 (확인됨):
 			// R25 = 총계, R26 = 모바일쿠폰, R27 = 식대, R28 = 이용료헤더, R29 = 이용료데이터, R30 = 세금계산서, R31 = 최종 정산
 			var pointUsed      = cellNum('G25');   // 총계 정산금액
