@@ -47,6 +47,21 @@
 		/* content */
 		.content { position: relative; margin: 0 0 0 200px; padding: 0 30px 50px 30px; background: #fff; min-height: 100vh; }
 		.content:after { display: block; clear: both; content: ''; }
+
+		/* content_header (GNB) */
+		.content_header { position: relative; margin: 0 -30px; border-bottom: 1px solid #e8e8e8; }
+		.content_header:after { display: block; clear: both; content: ''; }
+		.utilBox { position: relative; padding: 0 122px 0 0; }
+		.utilList { overflow: hidden; }
+		.utilList > li { float: left; width: 18%; height: 58px; border-left: 1px solid #e8e8e8; color: #666; font-size: 14px; line-height: 58px; text-align: center; box-sizing: border-box; }
+		.utilList > li:nth-of-type(4) { width: 28%; }
+		.utilList > li > b { margin: 0 0 0 3px; color: #2f2f2f; }
+		.logList { overflow: hidden; position: absolute; right: 0; top: 0; width: 122px; }
+		.logList > li { float: left; width: 50%; height: 58px; border-left: 1px solid #e8e8e8; background: #ed1b24; box-sizing: border-box; }
+		.logList > li:first-child { background: #354052; }
+		.logList > li > a { display: block; position: relative; color: #fff; font-size: 11px; text-align: center; padding-top: 30px; }
+		.logList > li > a:before { display: block; width: 20px; height: 16px; margin: -20px auto 6px; content: ''; }
+
 		.empty-placeholder { display:flex; align-items:center; justify-content:center; height:60vh; color:#9ba9bf; font-size:14px; }
 	</style>
 </head>
@@ -171,7 +186,27 @@
 			<section>
 				<!-- content -->
 				<div id="content" class="content">
-					<div class="empty-placeholder">v1.1 — 새 작업 영역 (좌측 네비게이션만 남김)</div>
+
+					<!-- content_header (GNB) -->
+					<div class="content_header">
+						<h2 class="blind">상단 헤더</h2>
+						<div class="utilBox">
+							<ul class="utilList">
+								<li>로그인 계정 :<b>신중엽(jy.shin)</b></li>
+								<li>&nbsp;</li>
+								<li>&nbsp;</li>
+								<li>이용자그룹 :<b>서비스 운영 관리자</b></li>
+								<li class="request"></li>
+							</ul>
+							<ul class="logList">
+								<li><a href="/sa/mypage">My Page</a></li>
+								<li><a href="/sa/logout">LogOut</a></li>
+							</ul>
+						</div>
+					</div>
+					<!-- //content_header -->
+
+					<div class="empty-placeholder">v1.1 — 새 작업 영역 (좌측 네비 + GNB만 남김)</div>
 				</div>
 				<!-- //content -->
 			</section>
