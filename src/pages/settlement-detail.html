@@ -98,6 +98,10 @@
 		.bbs_list tbody td a:hover, .bbs_list tbody td a:active { font-weight: 700; color: #111; }
 		.bbs_list tbody tr:hover { background: #f9fafb; }
 		.bbs_list tbody td.num { text-align: right; }
+
+		/* 삭제 버튼 */
+		.btn-del { display: inline-block; height: 28px; padding: 0 14px; border: 1px solid #d1d5db; background: #fff; border-radius: 4px; font-size: 12px; font-family: inherit; color: #374151; cursor: pointer; }
+		.btn-del:hover { background: #f3f4f6; border-color: #9ca3af; }
 	</style>
 </head>
 <body>
@@ -181,6 +185,15 @@
 								<col style="width:110px">
 								<col style="width:150px">
 								<col style="width:160px">
+								<col style="width:120px">
+								<col style="width:120px">
+								<col style="width:140px">
+								<col style="width:140px">
+								<col style="width:140px">
+								<col style="width:120px">
+								<col style="width:120px">
+								<col style="width:90px">
+								<col style="width:90px">
 							</colgroup>
 							<thead>
 								<tr>
@@ -196,6 +209,15 @@
 									<th>수수료(가맹점)</th>
 									<th>가맹점 이체액<span class="sub">(매출-수수료)</span></th>
 									<th>가맹점 이체<br>제외 금액</th>
+									<th>정산서</th>
+									<th>메일 발송</th>
+									<th>가맹 역발행</th>
+									<th>가맹 발행 (일)</th>
+									<th>가맹 발행 (간)</th>
+									<th>대량이체</th>
+									<th>회계전표</th>
+									<th>삭제</th>
+									<th>요청일</th>
 								</tr>
 							</thead>
 							<tbody id="tbody"></tbody>
@@ -230,6 +252,8 @@ function rand() {
 }
 function rint(min, max) { return Math.floor(rand() * (max - min + 1)) + min; }
 
+function pad(n) { return String(n).padStart(2,'0'); }
+
 // 정산 기간 생성: 최신 행(highestNo) = 현재 월, 그 이전은 한 달씩 후퇴
 function periodFor(no, highestNo) {
 	var ago = highestNo - no; // 0이면 최신
@@ -240,8 +264,16 @@ function periodFor(no, highestNo) {
 	var m = d.getMonth();
 	var startDay = 1;
 	var endDay = new Date(y, m + 1, 0).getDate(); // 해당 월 마지막 일
-	function pad(n) { return String(n).padStart(2,'0'); }
 	return pad(m+1)+'-'+pad(startDay)+' ~ '+pad(m+1)+'-'+pad(endDay);
+}
+
+// 요청일: 해당 정산기간 다음 달 1일 (예: 03-01 ~ 03-31 정산 → 04.01 요청)
+function requestDateFor(no, highestNo) {
+	var ago = highestNo - no;
+	var d = new Date();
+	d.setDate(1);
+	d.setMonth(d.getMonth() - ago + 1);
+	return pad(d.getMonth()+1)+'.'+pad(d.getDate());
 }
 
 // 샘플 데이터 생성
@@ -271,6 +303,7 @@ function renderTable() {
 		rows.push(generateRow(i, highestNo));
 	}
 	rows.forEach(function(r) {
+		var reqDate = requestDateFor(r.no, highestNo);
 		html += '<tr>'
 			+ '<td>' + r.no + '</td>'
 			+ '<td>' + r.period + '</td>'
@@ -284,6 +317,16 @@ function renderTable() {
 			+ '<td>' + fmt(r.storeFee) + '</td>'
 			+ '<td>' + fmt(r.storeTransfer) + '</td>'
 			+ '<td><a href="#" onclick="return false;">' + fmt(r.storeExclude) + '</a></td>'
+			// 새 9개 열
+			+ '<td></td>' // 정산서
+			+ '<td></td>' // 메일 발송
+			+ '<td></td>' // 가맹 역발행
+			+ '<td></td>' // 가맹 발행 (일)
+			+ '<td></td>' // 가맹 발행 (간)
+			+ '<td></td>' // 대량이체
+			+ '<td></td>' // 회계전표
+			+ '<td><button class="btn-del" onclick="return false;">삭제</button></td>'
+			+ '<td>' + reqDate + '</td>'
 			+ '</tr>';
 	});
 	document.getElementById('tbody').innerHTML = html;
