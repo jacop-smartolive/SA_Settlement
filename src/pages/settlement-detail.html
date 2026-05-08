@@ -364,7 +364,32 @@ var DYPNF_APRIL_2026 = {
 	storeRevenue: 29372860,      // 식대 이용료 합계 (모바일쿠폰 제외)
 	storeFee: 307841,            // 수수료(가맹점) ~1.05%
 	storeTransfer: 29065019,     // 매출 - 수수료
-	storeExclude: 27177320       // 가맹점 이체 제외 금액
+	storeExclude: 27177320,      // 가맹점 이체 제외 금액
+	// 미리보기용 가맹점 명세 (Excel 가맹점별 요약 시트 그대로)
+	stores: [
+		{ no:1,  name:'디와이피앤에프 구내식당',     bizNo:'000-00-00000', region:'강서/양천/목동', count:3795, amount:25446000, type:'식대' },
+		{ no:2,  name:'인터파크 비즈마켓',           bizNo:'000-00-00000', region:'강서/양천/목동', count:48,   amount:1985780,  type:'식대' },
+		{ no:3,  name:'팔공티 마곡벨리오점',         bizNo:'733-11-02216', region:'강서/양천/목동', count:74,   amount:335300,   type:'식대' },
+		{ no:4,  name:'소맘김밥',                    bizNo:'726-33-01526', region:'강서/양천/목동', count:35,   amount:277800,   type:'식대' },
+		{ no:5,  name:'돌체테이블',                  bizNo:'324-12-02585', region:'강서/양천/목동', count:154,  amount:949600,   type:'식대' },
+		{ no:6,  name:'김둘레순대국 양천향교점',     bizNo:'519-40-00489', region:'강서/양천/목동', count:9,    amount:105000,   type:'식대' },
+		{ no:7,  name:'달콤하우스 마곡점',           bizNo:'501-47-00376', region:'강서/양천/목동', count:23,   amount:273380,   type:'식대' },
+		{ no:8,  name:'스타벅스',                    bizNo:'000-00-00000', region:'상품권',         count:7,    amount:32900,    type:'모바일쿠폰' },
+		{ no:9,  name:'메가MGC커피',                 bizNo:'000-00-00000', region:'상품권',         count:22,   amount:63300,    type:'모바일쿠폰' },
+		{ no:10, name:'배달의민족',                  bizNo:'000-00-00000', region:'상품권',         count:144,  amount:2520000,  type:'모바일쿠폰' },
+		{ no:11, name:'이마트24',                    bizNo:'000-00-00000', region:'상품권',         count:9,    amount:95000,    type:'모바일쿠폰' },
+		{ no:12, name:'빽다방',                      bizNo:'000-00-00000', region:'상품권',         count:24,   amount:59000,    type:'모바일쿠폰' },
+		{ no:13, name:'컴포즈커피',                  bizNo:'000-00-00000', region:'상품권',         count:12,   amount:64400,    type:'모바일쿠폰' },
+		{ no:14, name:'올리브영',                    bizNo:'000-00-00000', region:'상품권',         count:9,    amount:250000,   type:'모바일쿠폰' },
+		{ no:15, name:'GS25',                        bizNo:'000-00-00000', region:'상품권',         count:3,    amount:34000,    type:'모바일쿠폰' },
+		{ no:16, name:'롯데리아',                    bizNo:'000-00-00000', region:'상품권',         count:1,    amount:30000,    type:'모바일쿠폰' },
+		{ no:17, name:'파리바게뜨',                  bizNo:'000-00-00000', region:'상품권',         count:2,    amount:20000,    type:'모바일쿠폰' },
+		{ no:18, name:'맘스터치',                    bizNo:'000-00-00000', region:'상품권',         count:1,    amount:5000,     type:'모바일쿠폰' },
+		{ no:19, name:'배스킨라빈스',                bizNo:'000-00-00000', region:'상품권',         count:1,    amount:18500,    type:'모바일쿠폰' },
+		{ no:20, name:'설빙',                        bizNo:'000-00-00000', region:'상품권',         count:1,    amount:10900,    type:'모바일쿠폰' },
+		{ no:21, name:'맥도날드',                    bizNo:'000-00-00000', region:'상품권',         count:1,    amount:20000,    type:'모바일쿠폰' }
+	],
+	usagePersons: 168            // 이용료 사용 인원
 };
 
 // 샘플 데이터 생성
@@ -592,17 +617,55 @@ function openSettlementPreview(no, isRev) {
 	document.getElementById('previewFileName').textContent = fileName;
 	var ext = fileName.split('.').pop().toUpperCase();
 	document.getElementById('previewFileMeta').textContent = '.' + ext.toLowerCase() + (isRev ? ' · 사용자 업로드' : ' · 시스템 생성');
-	document.getElementById('previewHead').innerHTML = '<th style="width:6%">No.</th><th style="width:14%">유형</th><th style="width:30%">세부내역</th><th style="width:14%">건수</th><th style="width:18%">정산금액</th><th style="width:18%">비고</th>';
-	var html = ''
-		+ '<tr><td>1</td><td>이용료</td><td>1인당 과금</td><td>-</td><td>' + fmt(rowDef.feeCompany) + '</td><td>부가세 10% 포함</td></tr>'
-		+ '<tr class="subtotal"><td></td><td>이용료</td><td>합계</td><td></td><td>' + fmt(rowDef.feeCompany) + '</td><td></td></tr>'
-		+ '<tr><td>2</td><td>가맹점</td><td>식대 가맹점 매출</td><td>' + fmt(rowDef.paymentCount) + '건</td><td>' + fmt(rowDef.storeRevenue) + '</td><td></td></tr>'
-		+ '<tr class="subtotal"><td></td><td>가맹점</td><td>합계</td><td></td><td>' + fmt(rowDef.storeRevenue) + '</td><td></td></tr>'
-		+ '<tr><td>3</td><td>모바일쿠폰</td><td>모바일쿠폰 정산</td><td>-</td><td>' + fmt(rowDef.mobileCoupon) + '</td><td></td></tr>'
-		+ '<tr class="subtotal"><td></td><td>모바일쿠폰</td><td>합계</td><td></td><td>' + fmt(rowDef.mobileCoupon) + '</td><td></td></tr>'
-		+ '<tr class="grand-total"><td></td><td>총계</td><td>전체 합계</td><td></td><td>' + fmt(rowDef.companyDeposit) + '</td><td></td></tr>'
-		+ '<tr class="tax-row"><td></td><td>세금계산서 발행</td><td>식대 이용료</td><td></td><td>' + fmt(rowDef.feeCompany + rowDef.storeRevenue) + '</td><td></td></tr>';
-	document.getElementById('previewTbody').innerHTML = html;
+
+	// 디와이피엔에프(주) 최신 행 = Excel 명세 그대로
+	var isDypnfApril = (companyName === '디와이피엔에프(주)' && no === totalCount && !isRev);
+	if (isDypnfApril) {
+		document.querySelector('.preview-modal').classList.add('wide');
+		document.getElementById('previewHead').innerHTML = ''
+			+ '<th style="width:60px;">사용기간</th>'
+			+ '<th style="width:50px;">No.</th>'
+			+ '<th>가맹점명</th>'
+			+ '<th style="width:130px;">사업자번호</th>'
+			+ '<th style="width:140px;">구분</th>'
+			+ '<th style="width:90px;">사용건수</th>'
+			+ '<th style="width:130px;">정산금액</th>';
+		var html = '';
+		var periodCell = '2026-04-01<br>~<br>2026-04-30';
+		DYPNF_APRIL_2026.stores.forEach(function(s) {
+			html += '<tr>'
+				+ '<td style="font-size:11px;color:#888;">'+periodCell+'</td>'
+				+ '<td>'+s.no+'</td>'
+				+ '<td style="text-align:left;">'+s.name+'</td>'
+				+ '<td style="font-family:monospace;">'+s.bizNo+'</td>'
+				+ '<td>'+s.region+'</td>'
+				+ '<td>'+fmt(s.count)+'</td>'
+				+ '<td style="text-align:right;">'+fmt(s.amount)+'</td>'
+			+ '</tr>';
+		});
+		// 합계 행들 (Excel 그대로)
+		html += '<tr class="grand-total"><td></td><td colspan="4">총계</td><td>'+fmt(DYPNF_APRIL_2026.paymentCount)+'</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.pointUsed)+'</td></tr>';
+		html += '<tr class="subtotal"><td></td><td colspan="4">모바일 쿠폰 이용료 합계</td><td>237</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.mobileCoupon)+'</td></tr>';
+		html += '<tr class="subtotal"><td></td><td colspan="4">식대 이용료 합계</td><td>4,138</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.storeRevenue)+'</td></tr>';
+		html += '<tr><td></td><td colspan="4">이용료 (사용인원 × 0원, VAT 포함)</td><td>'+DYPNF_APRIL_2026.usagePersons+'</td><td style="text-align:right;">0</td></tr>';
+		html += '<tr class="tax-row"><td></td><td colspan="4">세금계산서 발행 금액 (식대 이용료 + 이용료)</td><td></td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.storeRevenue)+'</td></tr>';
+		html += '<tr class="grand-total"><td></td><td colspan="4">최종 정산 금액 (총계 + 이용료)</td><td></td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.companyDeposit)+'</td></tr>';
+		document.getElementById('previewTbody').innerHTML = html;
+	} else {
+		document.querySelector('.preview-modal').classList.remove('wide');
+		document.getElementById('previewHead').innerHTML = '<th style="width:6%">No.</th><th style="width:14%">유형</th><th style="width:30%">세부내역</th><th style="width:14%">건수</th><th style="width:18%">정산금액</th><th style="width:18%">비고</th>';
+		var html = ''
+			+ '<tr><td>1</td><td>이용료</td><td>1인당 과금</td><td>-</td><td>' + fmt(rowDef.feeCompany) + '</td><td>부가세 10% 포함</td></tr>'
+			+ '<tr class="subtotal"><td></td><td>이용료</td><td>합계</td><td></td><td>' + fmt(rowDef.feeCompany) + '</td><td></td></tr>'
+			+ '<tr><td>2</td><td>가맹점</td><td>식대 가맹점 매출</td><td>' + fmt(rowDef.paymentCount) + '건</td><td>' + fmt(rowDef.storeRevenue) + '</td><td></td></tr>'
+			+ '<tr class="subtotal"><td></td><td>가맹점</td><td>합계</td><td></td><td>' + fmt(rowDef.storeRevenue) + '</td><td></td></tr>'
+			+ '<tr><td>3</td><td>모바일쿠폰</td><td>모바일쿠폰 정산</td><td>-</td><td>' + fmt(rowDef.mobileCoupon) + '</td><td></td></tr>'
+			+ '<tr class="subtotal"><td></td><td>모바일쿠폰</td><td>합계</td><td></td><td>' + fmt(rowDef.mobileCoupon) + '</td><td></td></tr>'
+			+ '<tr class="grand-total"><td></td><td>총계</td><td>전체 합계</td><td></td><td>' + fmt(rowDef.companyDeposit) + '</td><td></td></tr>'
+			+ '<tr class="tax-row"><td></td><td>세금계산서 발행</td><td>식대 이용료</td><td></td><td>' + fmt(rowDef.feeCompany + rowDef.storeRevenue) + '</td><td></td></tr>';
+		document.getElementById('previewTbody').innerHTML = html;
+	}
+
 	document.getElementById('previewOverlay').classList.add('show');
 }
 function closePreview() { document.getElementById('previewOverlay').classList.remove('show'); }
