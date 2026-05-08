@@ -5,48 +5,45 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>OliveTicket Service Admin (v1.1) — 정산 기간별 조회</title>
 	<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+	<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+	<script src="../assets/js/bulk-registration.js?v=10"></script>
 	<link rel="stylesheet" href="../assets/css/mail-send-modal.css">
 	<script src="../assets/js/mail-send-modal.js"></script>
 	<style>
-		/* Reset */
+		/* ==== v2.0 CSS 이식 (그대로) ==== */
 		* { margin: 0; padding: 0; box-sizing: border-box; }
 		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
 		body { overflow-x: hidden; font: 12px/1.3 'Nanum Gothic', dotum, Helvetica, AppleGothic, arial, sans-serif; color: #666; background: #fff; word-break: break-all; }
 		a { text-decoration: none; color: inherit; }
 		ul, ol, li { list-style: none; }
-		table { border-collapse: collapse; width: 100%; }
+		table { border-collapse: collapse; }
 		button { overflow: hidden; margin: 0; padding: 0; border: 0 none; white-space: nowrap; text-align: center; vertical-align: top; cursor: pointer; }
 		caption, .blind { overflow: hidden; position: absolute; left: -9999em; width: 0; height: 0; margin: 0; padding: 0; font-size: 0; line-height: 0; text-indent: -9999em; }
+		select { border: 1px solid #bbb; padding: 4px 0 4px 5px; }
 
-		/* Layout */
 		#wrap { position: relative; min-width: 1200px; background: #fff; }
 		.container { position: relative; background: #fff; }
 
-		/* lnbBox */
 		.lnbBox { overflow-y: auto; position: fixed; z-index: 2; width: 200px; height: 100%; background: #28313d; }
 		.lnbBox .tit { height: 100px; background: #ed1b24; line-height: 100px; text-align: center; }
 		.lnbBox .tit a { display: block; color: #fff; font-size: 22px; font-weight: 800; height: 100px; line-height: 100px; }
-
 		.localMenu > li { position: relative; border-bottom: 1px solid #384353; }
 		.localMenu > li > a { display: block; position: relative; height: 60px; padding: 0 0 0 20px; color: #9ba9bf; font-weight: 700; font-size: 16px; line-height: 60px; }
 		.localMenu > li > a:after { display: block; position: absolute; right: 21px; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #9ba9bf; content: ''; }
 		.localMenu > li.on > a { color: #ed1b24; }
 		.localMenu > li.on > a:after { right: 18px; margin-top: -3px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ed1b24; border-bottom: 0; width: 0; height: 0; }
 		.localMenu > li:hover > a { color: #fff; }
-
 		.subMenuBox { display: none; }
 		.localMenu > li.on > .subMenuBox { display: block; position: relative; padding: 10px 0; background: #354052; }
 		.subMenu li > a { display: block; height: 32px; padding: 0 0 0 20px; color: #7a869b; font-size: 13px; line-height: 32px; }
 		.subMenu li:hover > a { color: #fff; }
 		.subMenu li.on > a { color: #fff; }
 
-		/* content */
-		.content { position: relative; margin: 0 0 0 200px; padding: 0 30px 50px 30px; background: #fff; min-height: 100vh; }
+		.content { position: relative; margin: 0 0 0 200px; padding: 0 10px 50px 30px; background: #fff; }
 		.content:after { display: block; clear: both; content: ''; }
 
-		/* GNB */
 		.content_header { position: relative; margin: 0 -30px; border-bottom: 1px solid #e8e8e8; }
-		.content_header:after { display: block; clear: both; content: ''; }
 		.utilBox { position: relative; padding: 0 122px 0 0; }
 		.utilList { overflow: hidden; }
 		.utilList > li { float: left; width: 18%; height: 58px; border-left: 1px solid #e8e8e8; color: #666; font-size: 14px; line-height: 58px; text-align: center; box-sizing: border-box; }
@@ -55,105 +52,119 @@
 		.logList { overflow: hidden; position: absolute; right: 0; top: 0; width: 122px; }
 		.logList > li { float: left; width: 50%; height: 58px; border-left: 1px solid #e8e8e8; background: #ed1b24; box-sizing: border-box; }
 		.logList > li:first-child { background: #354052; }
-		.logList > li > a { display: block; position: relative; color: #fff; font-size: 11px; text-align: center; padding-top: 30px; }
-		.logList > li > a:before { display: block; width: 20px; height: 16px; margin: -20px auto 6px; content: ''; }
+		.logList > li > a { display: block; color: #fff; font-size: 11px; text-align: center; padding-top: 30px; }
 
-		/* breadcrumb */
-		.page_location { margin: 30px 0 14px; }
-		.page_location span { display: inline-block; position: relative; padding: 0 7px 0 16px; color: #666; font-size: 18px; vertical-align: middle; }
-		.page_location span:first-child { padding-left: 0; }
-		.page_location span:first-child:before { display: none; }
+		.page_location span { display: inline-block; position: relative; padding: 0 7px 0 16px; color: #666; font-size: 20px; }
 		.page_location span:before { display: block; position: absolute; left: 0; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #999; content: ''; }
-		.page_location a { color: #666; }
-		.page_location a:hover { color: #2f2f2f; text-decoration: underline; }
+		.page_location .blind + span { padding-left: 0; }
+		.page_location .blind + span:before { display: none; }
+		.page_location span.current { color: #2f2f2f; font-size: 24px; }
+		.page_location.first { margin-top: 40px; }
 
-		/* title */
-		.titBox { margin: 8px 0 18px; }
-		.tit_name { font-size: 30px; font-weight: 800; color: #111; }
+		.titBox { position: relative; }
+		.titBox .tit_name { color: #333; font-weight: 700; font-size: 36px; line-height: 36px; margin: 0; padding: 10px 0; border: 0; }
+		.titBox.first { margin-top: 30px; }
 
-		/* result count */
-		.countBox { margin: 0 0 8px; }
-		.countBox .leftArea { color: #666; font-size: 13px; line-height: 32px; }
-		.countBox .leftArea b { color: #2f2f2f; font-size: 14px; margin-left: 4px; }
+		.countBox { margin: 20px 0 0 0; }
+		.countBox:after { display: block; clear: both; content: ''; }
+		.countBox .leftArea { float: left; color: #666; font-size: 13px; }
+		.countBox .leftArea .to_result { display: inline-flex; align-items: center; padding: 0 15px; border: 1px solid #ddd; vertical-align: middle; height: 40px; }
+		.countBox .leftArea .to_result + .to_result { margin-left: -1px; }
+		.countBox .leftArea .to_result.label_cell { border-top-left-radius: 6px; border-bottom-left-radius: 6px; background: #f0f1f2; color: #333; font-weight: 700; }
+		.countBox .leftArea .to_result:last-of-type { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+		.countBox .leftArea .to_result b { margin: 0 0 0 4px; color: #000; }
 
-		/* 가로 스크롤 래퍼 — 우측 열 확장 대비 */
-		.table-scroll {
-			overflow-x: auto;
-			border-top: 2px solid #ed1b24;
-			border-right: 1px solid #ddd;
-			background: #fff;
-		}
-		/* 사용자 정의 스크롤바 */
-		.table-scroll::-webkit-scrollbar { height: 10px; }
-		.table-scroll::-webkit-scrollbar-track { background: #f3f4f6; }
-		.table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-		.table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+		.listBox { margin: 8px 0 0 0; border-top: 1px solid #ed1b24; background: #fff; overflow-x: auto; overflow-y: hidden; }
 
-		/* bbs_list */
-		.bbs_list { width: 100%; min-width: 1400px; /* 기본 폭, 열 추가 시 자동 확장 */ }
-		.bbs_list thead th { padding: 14px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; font-weight: 700; text-align: center; white-space: nowrap; line-height: 1.4; }
-		.bbs_list thead th:first-child { border-left: 0; }
-		.bbs_list thead th .sub { display: block; font-weight: 500; font-size: 11.5px; color: #6b7280; margin-top: 4px; }
-		.bbs_list tbody th, .bbs_list tbody td { padding: 18px 12px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #555; font-size: 13px; text-align: center; vertical-align: middle; white-space: nowrap; }
-		.bbs_list tbody td:first-child { border-left: 0; }
-		.bbs_list tbody td a { border-bottom: 1px dotted #555; color: inherit; }
-		.bbs_list tbody td a:hover, .bbs_list tbody td a:active { font-weight: 700; color: #111; }
-		.bbs_list tbody tr:hover { background: #f9fafb; }
-		.bbs_list tbody td.num { text-align: right; }
-		.bbs_list tbody td.col-settle,
-		.bbs_list tbody td.col-mail,
-		.bbs_list tbody td[class*="col-dl-"] { padding: 6px 4px; vertical-align: top; }
+		.bbs_list { position: relative; table-layout: auto; width: max-content; }
+		.bbs_list thead th { padding: 10px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; text-align: center; white-space: nowrap; }
+		.bbs_list thead th:first-child { padding: 10px 4px; }
+		.bbs_list thead th.pad-data { padding: 10px 14px; }
+		.bbs_list tbody th, .bbs_list tbody td { padding: 5px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #666; font-size: 13px; text-align: center; vertical-align: middle; white-space: nowrap; }
+		.bbs_list tbody td:first-child { padding: 5px 4px; }
+		.bbs_list tbody td.pad-data { padding: 5px 14px; }
+		.bbs_list.type01 tbody th, .bbs_list.type01 tbody td { padding-top: 10px; padding-bottom: 10px; }
+		.bbs_list tbody td a { border-bottom: 1px dotted #000; color: inherit; cursor: pointer; }
+		.bbs_list tbody td a:hover { font-weight: bold; color: #333; }
+		.bbs_list tbody tr:hover { background: #f5f5f5; }
+		.bbs_list tbody td.btn-cell { text-align: center; white-space: normal; min-width: 70px; }
+		.bbs_list tbody td.btn-cell div { display: flex; justify-content: center; }
+		.bbs_list tbody td .htcbtnMd { margin: 2px 0; }
+		.bbs_list tbody td div + div { margin-top: 5px; }
 
-		/* 삭제 버튼 */
-		.btn-del { display: inline-block; height: 28px; padding: 0 14px; border: 1px solid #d1d5db; background: #fff; border-radius: 4px; font-size: 12px; font-family: inherit; color: #374151; cursor: pointer; }
-		.btn-del:hover { background: #f3f4f6; border-color: #9ca3af; }
-
-		/* 정산서 셀 — 라벨 + 드롭다운 버튼 */
-		.cell-action { padding: 8px 6px; }
-		.cell-label { font-size: 12px; line-height: 1.3; margin-bottom: 8px; height: 30px; text-align: center; font-weight: 500; }
-		.btn-wrap { display: inline-block; position: relative; }
-		.htcbtnMd { display: inline-flex; align-items: center; height: 30px; min-width: 78px; padding: 0 10px 0 12px; border: 1px solid #515b6c; background: #fff; border-radius: 4px; cursor: pointer; font-family: inherit; }
-		.htcbtnMd > span { color: #515b6c; font-size: 13px; font-weight: 500; padding-right: 14px; }
-		.htcbtnMd.ico_down { position: relative; }
-		.htcbtnMd.ico_down:after { content: ''; position: absolute; right: 10px; top: 50%; width: 6px; height: 6px; margin-top: -4px; border-right: 1.5px solid #515b6c; border-bottom: 1.5px solid #515b6c; transform: rotate(45deg); }
-		.htcbtnMd.btn-outline { background: #fff; border-color: #d1d5db; }
-		.htcbtnMd.btn-outline > span { color: #111; }
-		.htcbtnMd.btn-outline.ico_down:after { border-color: #111; }
+		/* v2.0 buttons */
+		.htcbtnMd { display: inline-block; width: 60px; padding: 0 8px; border: 1px solid #515b6c; background: #fff; border-radius: 3px; box-sizing: border-box; }
+		.htcbtnMd span { display: inline-block; padding: 0; color: #515b6c; font-size: 11px; line-height: 24px; text-align: center; font-family: 'Nanum Gothic'; }
+		.htcbtnMd.ico_down { position: relative; padding-right: 18px; }
+		.htcbtnMd.ico_down:after { display: block; position: absolute; right: 6px; top: 50%; margin-top: -5px; width: 5px; height: 5px; border-right: 1.5px solid #515b6c; border-bottom: 1.5px solid #515b6c; border-radius: 0 0 1px 0; transform: rotate(45deg); content: ''; }
+		.htcbtnMd.btn-black { background: #666; border-color: #666; }
+		.htcbtnMd.btn-black span { color: #fff; }
+		.htcbtnMd.btn-black.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
 		.htcbtnMd.btn-blue { background: #4f46e5; border-color: #4f46e5; }
-		.htcbtnMd.btn-blue > span { color: #fff; }
-		.htcbtnMd.btn-blue.ico_down:after { border-color: #fff; }
+		.htcbtnMd.btn-blue span { color: #fff; }
+		.htcbtnMd.btn-blue.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
+		.htcbtnMd.btn-light-blue { background: #e0e7ff; border-color: #c7d2fe; }
+		.htcbtnMd.btn-light-blue span { color: #4f46e5; }
+		.htcbtnMd.btn-light-blue.ico_down:after { border-right-color: #4f46e5; border-bottom-color: #4f46e5; }
+		.htcbtnMd.btn-outline { background: #f3f4f6; border-color: #d1d5db; }
+		.htcbtnMd.btn-outline span { color: #111; }
+		.htcbtnMd.btn-outline.ico_down:after { border-right-color: #111; border-bottom-color: #111; }
+		.htcbtnMd.btn-green { background: #059669; border-color: #059669; }
+		.htcbtnMd.btn-green span { color: #fff; }
+		.htcbtnMd.btn-green.ico_down:after { border-right-color: #fff; border-bottom-color: #fff; }
+		.htcbtnMd.btn-inactive { background: #e0e0e0; border-color: #ccc; }
+		.htcbtnMd.btn-inactive span { color: #aaa; }
+		.htcbtnMd.btn-inactive.ico_down:after { border-right-color: #aaa; border-bottom-color: #aaa; }
 
-		.btn-dropdown { display: none; position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); min-width: 140px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 30; padding: 6px 0; }
-		.btn-wrap.open .btn-dropdown { display: block; }
-		.btn-dropdown a { display: block; padding: 8px 16px; font-size: 12.5px; color: #374151; white-space: nowrap; border-bottom: 0; text-align: left; cursor: pointer; }
-		.btn-dropdown a:hover { background: #f9fafb; color: #111; font-weight: 600; }
-		.btn-dropdown .divider { height: 1px; background: #e5e7eb; margin: 4px 0; }
+		.btn-wrap { position: relative; display: inline-block; }
+		.btn-dropdown { display: none !important; position: absolute; top: 100%; left: 0; z-index: 10; min-width: 100%; background: #fff; border: 1px solid #ddd; border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,.15); }
+		.btn-dropdown a { display: block; padding: 8px 16px; color: #333; font-size: 13px; white-space: nowrap; text-decoration: none; border-bottom: none !important; text-align: left; cursor: pointer; }
+		.btn-dropdown a:hover { background: #f5f5f5; }
+		.btn-dropdown .divider { height: 1px; background: #e5e7eb; margin: 4px 0; padding: 0; }
+		.btn-wrap.open .btn-dropdown { display: block !important; }
 
-		/* 미리보기 모달 */
-		.pv-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; }
-		.pv-overlay.show { display: flex; }
-		.pv-panel { width: 720px; max-height: 86vh; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.18); overflow: hidden; display: flex; flex-direction: column; }
-		.pv-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid #f3f4f6; }
-		.pv-header h2 { font-size: 16px; font-weight: 700; color: #111827; margin: 0; }
-		.pv-close { width: 30px; height: 30px; border-radius: 8px; border: none; background: #f3f4f6; color: #6b7280; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-		.pv-close:hover { background: #e5e7eb; color: #374151; }
-		.pv-fileinfo { display: flex; align-items: center; gap: 12px; padding: 14px 24px; background: #f9fafb; border-bottom: 1px solid #f3f4f6; }
-		.pv-fileinfo-icon { width: 40px; height: 40px; border-radius: 8px; background: #4f46e515; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-		.pv-fileinfo-icon svg { width: 20px; height: 20px; stroke: #4f46e5; }
-		.pv-fileinfo-text { flex: 1; min-width: 0; }
-		.pv-fileinfo-name { font-size: 13px; font-weight: 600; color: #111827; word-break: break-all; }
-		.pv-fileinfo-meta { font-size: 11.5px; color: #9ca3af; margin-top: 2px; }
-		.pv-body { padding: 18px 24px; overflow-y: auto; flex: 1; font-size: 13px; color: #374151; }
-		.pv-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid #f3f4f6; background: rgba(249,250,251,0.5); }
-		.pv-btn { height: 38px; padding: 0 18px; border-radius: 8px; border: 1.5px solid #e5e7eb; background: #fff; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; font-family: inherit; }
-		.pv-btn:hover { background: #f9fafb; }
-		.pv-btn-primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
-		.pv-btn-primary:hover { background: #4338ca; }
+		/* 미리보기 모달 (v2.0 그대로) */
+		.preview-overlay { display:none; position:fixed; inset:0; z-index:9999; justify-content:center; align-items:center; }
+		.preview-overlay.show { display:flex; }
+		.preview-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.4); backdrop-filter:blur(2px); }
+		.preview-modal { position:relative; display:flex; flex-direction:column; max-height:90vh; width:100%; max-width:900px; margin:0 16px; background:#fff; border-radius:12px; border:1px solid #ddd; box-shadow:0 25px 50px rgba(0,0,0,.25); overflow:hidden; animation:modalIn .25s ease-out; }
+		.preview-header { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid #eee; }
+		.preview-header h2 { font-size:16px; font-weight:700; color:#333; margin-bottom:4px; }
+		.preview-header p { font-size:13px; color:#999; }
+		.preview-header .close-btn { width:32px; height:32px; border:none; background:none; cursor:pointer; font-size:18px; color:#999; border-radius:8px; }
+		.preview-header .close-btn:hover { background:#f5f5f5; color:#333; }
+		.preview-fileinfo { display:flex; align-items:center; gap:12px; padding:12px 24px; background:#f9fafb; border-bottom:1px solid #eee; }
+		.preview-fileinfo-icon { width:36px; height:36px; border-radius:8px; background:#e0e7ff; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+		.preview-fileinfo-icon svg { width:18px; height:18px; stroke:#4f46e5; }
+		.preview-fileinfo-text { flex:1; min-width:0; }
+		.preview-fileinfo-name { font-size:13px; font-weight:600; color:#111; word-break:break-all; }
+		.preview-fileinfo-meta { font-size:11.5px; color:#9ca3af; margin-top:2px; }
+		.preview-body { flex:1; overflow:auto; padding:24px; }
+		.preview-table { width:100%; border-collapse:collapse; font-size:13px; }
+		.preview-table th { background:#f8f9fa; border:1px solid #ddd; padding:8px 12px; font-size:12px; font-weight:600; color:#555; text-align:center; }
+		.preview-table td { border:1px solid #ddd; padding:8px 12px; text-align:center; color:#333; }
+		.preview-table .subtotal { background:#EBF5FF; font-weight:600; }
+		.preview-table .grand-total { background:#f3f4f6; font-weight:700; }
+		.preview-table .tax-row { background:#fffbeb; font-weight:700; }
+		.preview-footer { display:flex; justify-content:flex-end; gap:8px; padding:12px 24px; border-top:1px solid #eee; background:#fafafa; }
+		.preview-footer button { padding:8px 20px; border:1px solid #ddd; background:#fff; border-radius:8px; font-size:13px; cursor:pointer; }
+		.preview-footer button:hover { background:#f5f5f5; }
+		.preview-footer .btn-primary { background:#4f46e5; border-color:#4f46e5; color:#fff; }
+		.preview-footer .btn-primary:hover { background:#4338ca; }
+		@keyframes modalIn { from { opacity:0; transform:translateY(12px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
 
-		.pv-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-		.pv-table th { padding: 8px 10px; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; color: #374151; font-weight: 600; text-align: center; }
-		.pv-table td { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; text-align: right; color: #555; }
-		.pv-table td:nth-child(-n+3) { text-align: center; }
+		.footer { position: relative; overflow: hidden; margin: 0 0 0 200px; padding: 30px; background: #f6f6f6; }
+		.footer:after { display: block; clear: both; content: ''; }
+		.footer .f_leftArea { float: left; }
+		.footer .f_leftArea .copyright { margin: 10px 0 0 0; color: #666; font-size: 11px; text-transform: uppercase; }
+		.footer .f_rightArea { float: right; text-align: right; }
+		.footer .f_rightArea dl { overflow: hidden; line-height: 20px; }
+		.footer .f_rightArea dt { float: left; margin-right: 5px; color: #ed1b24; font-weight: 700; font-size: 12px; }
+		.footer .f_rightArea dd { float: left; color: #666; font-size: 12px; }
+
+		/* v1.1 추가 — 행 삭제 버튼 */
+		.btn-del { display: inline-block; height: 24px; padding: 0 10px; border: 1px solid #d1d5db; background: #fff; border-radius: 3px; font-size: 11px; font-family: 'Nanum Gothic'; color: #515b6c; cursor: pointer; }
+		.btn-del:hover { background: #f3f4f6; border-color: #9ca3af; }
 	</style>
 </head>
 <body>
@@ -221,32 +232,9 @@
 						<div class="leftArea">결과: <b id="resultCount">0</b></div>
 					</div>
 
-					<!-- 표 (가로 스크롤 래퍼로 우측 확장 대비) -->
-					<div class="table-scroll">
-						<table class="bbs_list" id="dataTable">
-							<colgroup id="colgroup">
-								<col style="width:60px">
-								<col style="width:130px">
-								<col style="width:100px">
-								<col style="width:130px">
-								<col style="width:90px">
-								<col style="width:110px">
-								<col style="width:160px">
-								<col style="width:130px">
-								<col style="width:170px">
-								<col style="width:110px">
-								<col style="width:150px">
-								<col style="width:160px">
-								<col style="width:120px">
-								<col style="width:120px">
-								<col style="width:140px">
-								<col style="width:140px">
-								<col style="width:140px">
-								<col style="width:120px">
-								<col style="width:120px">
-								<col style="width:90px">
-								<col style="width:90px">
-							</colgroup>
+					<!-- 표 (v2.0 listBox 패턴 — 우측 열 확장 대비) -->
+					<div class="listBox">
+						<table class="bbs_list type01" id="dataTable">
 							<thead>
 								<tr>
 									<th>번호</th>
@@ -255,19 +243,19 @@
 									<th>사용 포인트</th>
 									<th>요금단가</th>
 									<th>이용료(기업체)</th>
-									<th>기업체 입금액<span class="sub">(사용포인트+이용료)</span></th>
+									<th>기업체 입금액<br><span style="font-weight:400;color:#888;font-size:11px;">(사용포인트+이용료)</span></th>
 									<th>모바일쿠폰 정산</th>
-									<th>가맹점 매출<span class="sub">(모바일쿠폰 제외)</span></th>
+									<th>가맹점 매출<br><span style="font-weight:400;color:#888;font-size:11px;">(모바일쿠폰 제외)</span></th>
 									<th>수수료(가맹점)</th>
-									<th>가맹점 이체액<span class="sub">(매출-수수료)</span></th>
+									<th>가맹점 이체액<br><span style="font-weight:400;color:#888;font-size:11px;">(매출-수수료)</span></th>
 									<th>가맹점 이체<br>제외 금액</th>
-									<th>정산서</th>
-									<th>메일 발송</th>
-									<th>가맹 역발행</th>
-									<th>가맹 발행 (일)</th>
-									<th>가맹 발행 (간)</th>
-									<th>대량이체</th>
-									<th>회계전표</th>
+									<th class="pad-data">정산서</th>
+									<th class="pad-data">메일 발송</th>
+									<th class="pad-data">가맹 역발행</th>
+									<th class="pad-data">가맹 발행 (일)</th>
+									<th class="pad-data">가맹 발행 (간)</th>
+									<th class="pad-data">대량이체</th>
+									<th class="pad-data">회계전표</th>
 									<th>삭제</th>
 									<th>요청일</th>
 								</tr>
@@ -282,26 +270,35 @@
 	</section>
 </div>
 
-<!-- 정산서 미리보기 모달 -->
-<div id="pvOverlay" class="pv-overlay">
-	<div class="pv-panel">
-		<div class="pv-header">
-			<h2 id="pvTitle">정산서 미리보기</h2>
-			<button class="pv-close" onclick="closePreview()">✕</button>
+<!-- 정산서 미리보기 모달 (v2.0 스타일) -->
+<div id="previewOverlay" class="preview-overlay">
+	<div class="preview-backdrop" onclick="closePreview()"></div>
+	<div class="preview-modal">
+		<div class="preview-header">
+			<div>
+				<h2 id="previewTitle">정산서 미리보기</h2>
+				<p id="previewSubtitle"></p>
+			</div>
+			<button class="close-btn" onclick="closePreview()">✕</button>
 		</div>
-		<div class="pv-fileinfo">
-			<div class="pv-fileinfo-icon">
+		<div class="preview-fileinfo">
+			<div class="preview-fileinfo-icon">
 				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
 			</div>
-			<div class="pv-fileinfo-text">
-				<div class="pv-fileinfo-name" id="pvFileName">파일명.xlsx</div>
-				<div class="pv-fileinfo-meta" id="pvFileMeta">.xlsx</div>
+			<div class="preview-fileinfo-text">
+				<div class="preview-fileinfo-name" id="previewFileName">파일명.xlsx</div>
+				<div class="preview-fileinfo-meta" id="previewFileMeta">.xlsx</div>
 			</div>
 		</div>
-		<div class="pv-body" id="pvBody"></div>
-		<div class="pv-footer">
-			<button class="pv-btn" onclick="closePreview()">닫기</button>
-			<button class="pv-btn pv-btn-primary" onclick="pvDownload()">다운로드</button>
+		<div class="preview-body">
+			<table class="preview-table">
+				<thead><tr id="previewHead"></tr></thead>
+				<tbody id="previewTbody"></tbody>
+			</table>
+		</div>
+		<div class="preview-footer">
+			<button onclick="closePreview()">닫기</button>
+			<button class="btn-primary" onclick="pvDownload()">다운로드</button>
 		</div>
 	</div>
 </div>
@@ -401,6 +398,11 @@ var COLOR = {
 	revUp:    '#d97706'   // 수정본 업로드 — 앰버
 };
 
+function buildLabel(la) {
+	if (!la) return '<div style="height:30px;"></div>';
+	return '<div style="font-size:12px;color:'+la.color+';line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+la.date+' '+la.time+'<br>'+la.text+'</div>';
+}
+
 function buildSettlementCell(no) {
 	var st = getRowState(no);
 	var btnClass, btnLabel, menuHtml;
@@ -421,25 +423,11 @@ function buildSettlementCell(no) {
 			+ '<a onclick="actSettle(\'downloadOrig\','+no+')">원본 다운로드</a>'
 			+ '<a onclick="actSettle(\'attachRev\','+no+')">수정본 첨부</a>';
 	}
-	var labelHtml = '<div class="cell-label">';
-	if (st.lastAction) {
-		var la = st.lastAction;
-		labelHtml += '<span style="color:'+la.color+';">'+la.date+' '+la.time+'<br>'+la.text+'</span>';
-	} else {
-		labelHtml += '&nbsp;';
-	}
-	labelHtml += '</div>';
-	return '<div class="cell-action">'
-		+ labelHtml
-		+ '<div class="btn-wrap" data-row="'+no+'">'
-			+ '<button class="htcbtnMd '+btnClass+' ico_down" onclick="toggleDrop(this,event)"><span>'+btnLabel+'</span></button>'
-			+ '<div class="btn-dropdown">'+menuHtml+'</div>'
-		+ '</div>'
-	+ '</div>';
+	return buildLabel(st.lastAction)
+		+ '<div><span class="btn-wrap"><button class="htcbtnMd ico_down '+btnClass+'" onclick="toggleDrop(this)"><span>'+btnLabel+'</span></button><div class="btn-dropdown">'+menuHtml+'</div></span></div>';
 }
 
-function toggleDrop(btn, ev) {
-	if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+function toggleDrop(btn) {
 	var wrap = btn.closest('.btn-wrap');
 	var open = wrap.classList.contains('open');
 	document.querySelectorAll('.btn-wrap.open').forEach(function(w){ w.classList.remove('open'); });
@@ -540,25 +528,28 @@ function openSettlementPreview(no, isRev) {
 	var st = getRowState(no);
 	var fileName = (isRev && st.revFileName) ? st.revFileName : defaultFileName(no);
 	_previewCtx = { no: no, isRev: isRev, fileName: fileName };
-	document.getElementById('pvTitle').textContent = '정산서 미리보기' + (isRev ? ' (수정본)' : '');
-	document.getElementById('pvFileName').textContent = fileName;
+	var rowDef = generateRow(no, totalCount);
+	var period = periodFor(no, totalCount);
+	var year = String(new Date().getFullYear());
+	document.getElementById('previewTitle').textContent = '■' + year + '년 정산서' + (isRev ? ' (수정본)' : '');
+	document.getElementById('previewSubtitle').textContent = companyName + ' · ' + period;
+	document.getElementById('previewFileName').textContent = fileName;
 	var ext = fileName.split('.').pop().toUpperCase();
-	document.getElementById('pvFileMeta').textContent = '.' + ext.toLowerCase() + (isRev ? ' · 사용자 업로드' : ' · 시스템 생성');
-	// 미리보기 본문 (모의 표)
-	var rowsForNo = generateRow(no, totalCount);
-	var html = '<table class="pv-table">'
-		+ '<thead><tr><th>No.</th><th>유형</th><th>세부내역</th><th>건수</th><th>금액</th></tr></thead>'
-		+ '<tbody>'
-		+ '<tr><td>1</td><td>이용료</td><td>1인당 과금</td><td>-</td><td>' + fmt(rowsForNo.feeCompany) + '</td></tr>'
-		+ '<tr><td>2</td><td>가맹점</td><td>식대 가맹점 매출</td><td>' + fmt(rowsForNo.paymentCount) + '건</td><td>' + fmt(rowsForNo.storeRevenue) + '</td></tr>'
-		+ '<tr><td>3</td><td>모바일쿠폰</td><td>모바일쿠폰 정산</td><td>-</td><td>' + fmt(rowsForNo.mobileCoupon) + '</td></tr>'
-		+ '<tr style="background:#f9fafb;font-weight:700;"><td colspan="4">총계</td><td>' + fmt(rowsForNo.companyDeposit) + '</td></tr>'
-		+ '</tbody></table>'
-		+ '<p style="margin-top:14px;font-size:11.5px;color:#9ca3af;">※ 미리보기는 요약 정보입니다. 실제 다운로드 파일에는 더 상세한 데이터가 포함됩니다.</p>';
-	document.getElementById('pvBody').innerHTML = html;
-	document.getElementById('pvOverlay').classList.add('show');
+	document.getElementById('previewFileMeta').textContent = '.' + ext.toLowerCase() + (isRev ? ' · 사용자 업로드' : ' · 시스템 생성');
+	document.getElementById('previewHead').innerHTML = '<th style="width:6%">No.</th><th style="width:14%">유형</th><th style="width:30%">세부내역</th><th style="width:14%">건수</th><th style="width:18%">정산금액</th><th style="width:18%">비고</th>';
+	var html = ''
+		+ '<tr><td>1</td><td>이용료</td><td>1인당 과금</td><td>-</td><td>' + fmt(rowDef.feeCompany) + '</td><td>부가세 10% 포함</td></tr>'
+		+ '<tr class="subtotal"><td></td><td>이용료</td><td>합계</td><td></td><td>' + fmt(rowDef.feeCompany) + '</td><td></td></tr>'
+		+ '<tr><td>2</td><td>가맹점</td><td>식대 가맹점 매출</td><td>' + fmt(rowDef.paymentCount) + '건</td><td>' + fmt(rowDef.storeRevenue) + '</td><td></td></tr>'
+		+ '<tr class="subtotal"><td></td><td>가맹점</td><td>합계</td><td></td><td>' + fmt(rowDef.storeRevenue) + '</td><td></td></tr>'
+		+ '<tr><td>3</td><td>모바일쿠폰</td><td>모바일쿠폰 정산</td><td>-</td><td>' + fmt(rowDef.mobileCoupon) + '</td><td></td></tr>'
+		+ '<tr class="subtotal"><td></td><td>모바일쿠폰</td><td>합계</td><td></td><td>' + fmt(rowDef.mobileCoupon) + '</td><td></td></tr>'
+		+ '<tr class="grand-total"><td></td><td>총계</td><td>전체 합계</td><td></td><td>' + fmt(rowDef.companyDeposit) + '</td><td></td></tr>'
+		+ '<tr class="tax-row"><td></td><td>세금계산서 발행</td><td>식대 이용료</td><td></td><td>' + fmt(rowDef.feeCompany + rowDef.storeRevenue) + '</td><td></td></tr>';
+	document.getElementById('previewTbody').innerHTML = html;
+	document.getElementById('previewOverlay').classList.add('show');
 }
-function closePreview() { document.getElementById('pvOverlay').classList.remove('show'); }
+function closePreview() { document.getElementById('previewOverlay').classList.remove('show'); }
 function pvDownload() {
 	if (_previewCtx.no === null) return;
 	downloadSettlementFile(_previewCtx.no, _previewCtx.isRev);
@@ -566,9 +557,6 @@ function pvDownload() {
 	refreshRow(_previewCtx.no);
 	closePreview();
 }
-document.getElementById('pvOverlay').addEventListener('click', function(e) {
-	if (e.target.id === 'pvOverlay') closePreview();
-});
 
 // ─── 메일 발송 컬럼 (v2.0 동일 패턴) ───
 var MAIL_KEY = 'v11-mail-' + companyName;
@@ -637,19 +625,14 @@ function buildMailCell(no) {
 	var sendLabel = st.mail_sent ? '재발송' : '메일 발송';
 	var menu = '<a onclick="sendSettlementMail('+no+')">'+sendLabel+'</a>'
 		+ '<a onclick="openSendHistory('+no+')">발송 내역</a>';
-	var labelHtml = '<div class="cell-label">';
+	var labelHtml;
 	if (st.mail_sent) {
 		var parts = st.mail_sent.split('|');
-		labelHtml += '<span style="color:#4f46e5;">' + parts[0].slice(2) + ' ' + parts[1] + '<br>메일 발송</span>';
-	} else { labelHtml += '&nbsp;'; }
-	labelHtml += '</div>';
-	return '<div class="cell-action">'
-		+ labelHtml
-		+ '<div class="btn-wrap" data-row="'+no+'">'
-			+ '<button class="htcbtnMd '+btnClass+' ico_down" onclick="toggleDrop(this,event)"><span>'+btnLabel+'</span></button>'
-			+ '<div class="btn-dropdown">'+menu+'</div>'
-		+ '</div>'
-	+ '</div>';
+		labelHtml = '<div style="font-size:12px;color:#4f46e5;line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+parts[0].slice(2)+' '+parts[1]+'<br>메일 발송</div>';
+	} else {
+		labelHtml = '<div style="height:30px;"></div>';
+	}
+	return labelHtml + '<div><span class="btn-wrap"><button class="htcbtnMd ico_down '+btnClass+'" onclick="toggleDrop(this)"><span>'+btnLabel+'</span></button><div class="btn-dropdown">'+menu+'</div></span></div>';
 }
 function refreshRowMail(no) {
 	var tr = document.querySelector('tr[data-row="'+no+'"]');
@@ -693,14 +676,13 @@ function actDownloadOnly(no, key, label) {
 }
 function buildDlCell(no, key, label) {
 	var st = getDlState(no, key);
-	var labelHtml = '<div class="cell-label">';
+	var labelHtml;
 	if (st) {
-		labelHtml += '<span style="color:#4b5563;">' + st.date + ' ' + st.time + '<br>원본 다운로드</span>';
-	} else { labelHtml += '&nbsp;'; }
-	labelHtml += '</div>';
-	return '<div class="cell-action">' + labelHtml
-		+ '<button class="htcbtnMd btn-outline" onclick="actDownloadOnly('+no+',\''+key+'\',\''+label+'\')"><span>다운로드</span></button>'
-	+ '</div>';
+		labelHtml = '<div style="font-size:12px;color:#4b5563;line-height:1.3;margin-bottom:8px;text-align:center;height:30px;">'+st.date+' '+st.time+'<br>원본 다운로드</div>';
+	} else {
+		labelHtml = '<div style="height:30px;"></div>';
+	}
+	return labelHtml + '<div><button class="htcbtnMd btn-outline" onclick="actDownloadOnly('+no+',\''+key+'\',\''+label+'\')"><span>다운로드</span></button></div>';
 }
 function refreshRowDl(no, key) {
 	var tr = document.querySelector('tr[data-row="'+no+'"]');
@@ -731,14 +713,14 @@ function renderTable() {
 			+ '<td>' + fmt(r.storeFee) + '</td>'
 			+ '<td>' + fmt(r.storeTransfer) + '</td>'
 			+ '<td><a href="#" onclick="return false;">' + fmt(r.storeExclude) + '</a></td>'
-			// 새 9개 열
-			+ '<td class="col-settle">' + buildSettlementCell(r.no) + '</td>'
-			+ '<td class="col-mail">' + buildMailCell(r.no) + '</td>'
-			+ '<td class="col-dl-reverse">' + buildDlCell(r.no, 'reverse', '가맹 역발행') + '</td>'
-			+ '<td class="col-dl-forward">' + buildDlCell(r.no, 'forward', '가맹 발행 (일)') + '</td>'
-			+ '<td class="col-dl-forwardSimple">' + buildDlCell(r.no, 'forwardSimple', '가맹 발행 (간)') + '</td>'
-			+ '<td class="col-dl-transfer">' + buildDlCell(r.no, 'transfer', '대량이체') + '</td>'
-			+ '<td class="col-dl-slip">' + buildDlCell(r.no, 'slip', '회계전표') + '</td>'
+			// 새 9개 열 (btn-cell pad-data — v2.0 패턴)
+			+ '<td class="btn-cell pad-data col-settle">' + buildSettlementCell(r.no) + '</td>'
+			+ '<td class="btn-cell pad-data col-mail">' + buildMailCell(r.no) + '</td>'
+			+ '<td class="btn-cell pad-data col-dl-reverse">' + buildDlCell(r.no, 'reverse', '가맹 역발행') + '</td>'
+			+ '<td class="btn-cell pad-data col-dl-forward">' + buildDlCell(r.no, 'forward', '가맹 발행 (일)') + '</td>'
+			+ '<td class="btn-cell pad-data col-dl-forwardSimple">' + buildDlCell(r.no, 'forwardSimple', '가맹 발행 (간)') + '</td>'
+			+ '<td class="btn-cell pad-data col-dl-transfer">' + buildDlCell(r.no, 'transfer', '대량이체') + '</td>'
+			+ '<td class="btn-cell pad-data col-dl-slip">' + buildDlCell(r.no, 'slip', '회계전표') + '</td>'
 			+ '<td><button class="btn-del" onclick="return false;">삭제</button></td>'
 			+ '<td>' + reqDate + '</td>'
 			+ '</tr>';
