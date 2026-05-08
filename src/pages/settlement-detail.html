@@ -353,8 +353,50 @@ function requestDateFor(no, highestNo) {
 	return pad(d.getMonth()+1)+'.'+pad(d.getDate());
 }
 
+// 디와이피엔에프(주) 2026-04 정산서 (실제 Excel 파일 기반 베이스 값)
+var DYPNF_APRIL_2026 = {
+	paymentCount: 4375,
+	pointUsed: 32595860,        // 총계 정산금액
+	unitPrice: 0,                // 1인당 0원
+	feeCompany: 0,               // 이용료(기업체)
+	companyDeposit: 32595860,    // 사용포인트 + 이용료
+	mobileCoupon: 3223000,       // 모바일 쿠폰 이용료 합계
+	storeRevenue: 29372860,      // 식대 이용료 합계 (모바일쿠폰 제외)
+	storeFee: 307841,            // 수수료(가맹점) ~1.05%
+	storeTransfer: 29065019,     // 매출 - 수수료
+	storeExclude: 27177320       // 가맹점 이체 제외 금액
+};
+
 // 샘플 데이터 생성
 function generateRow(no, highestNo) {
+	var period = periodFor(no, highestNo);
+
+	// 디와이피엔에프(주) 회사인 경우 실제 Excel 파일 기반 값 반영
+	if (companyName === '디와이피엔에프(주)') {
+		// 가장 최신 행(highestNo) = Excel 파일 그대로
+		if (no === highestNo) {
+			return Object.assign({ no:no, period:period }, DYPNF_APRIL_2026);
+		}
+		// 그 외 행은 ±10% 변동 (월별 차이 시뮬레이션)
+		var v = 0.85 + rand() * 0.30;
+		var paymentCount = Math.round(DYPNF_APRIL_2026.paymentCount * v);
+		var pointUsed = Math.round(DYPNF_APRIL_2026.pointUsed * v);
+		var mobileCoupon = Math.round(DYPNF_APRIL_2026.mobileCoupon * v);
+		var storeRevenue = pointUsed - mobileCoupon;
+		var storeFee = Math.round(storeRevenue * 0.0105); // ~1.05%
+		var storeTransfer = storeRevenue - storeFee;
+		var storeExclude = Math.round(storeTransfer * 0.935);
+		return {
+			no:no, period:period,
+			paymentCount:paymentCount, pointUsed:pointUsed,
+			unitPrice:0, feeCompany:0,
+			companyDeposit:pointUsed,
+			mobileCoupon:mobileCoupon, storeRevenue:storeRevenue,
+			storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude
+		};
+	}
+
+	// 기타 회사: 기존 로직
 	var paymentCount = rint(2500, 5000);
 	var pointUsed = rint(20000000, 35000000);
 	var unitPrice = 0;
@@ -366,7 +408,6 @@ function generateRow(no, highestNo) {
 	var storeFee = Math.floor(storeRevenue * (rint(80, 130) / 10000));
 	var storeTransfer = storeRevenue - storeFee;
 	var storeExclude = Math.floor(storeTransfer * (rint(85, 95) / 100));
-	var period = periodFor(no, highestNo);
 	return { no:no, period:period, paymentCount:paymentCount, pointUsed:pointUsed, unitPrice:unitPrice, feeCompany:feeCompany, companyDeposit:companyDeposit, mobileCoupon:mobileCoupon, storeRevenue:storeRevenue, storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude };
 }
 
@@ -516,15 +557,26 @@ function defaultFileName(no) {
 function downloadSettlementFile(no, isRev) {
 	var st = getRowState(no);
 	var fileName = (isRev && st.revFileName) ? st.revFileName : defaultFileName(no);
-	// 모의 파일 다운로드 — 빈 blob
-	var blob = new Blob(['mock settlement data for row ' + no], { type: 'application/octet-stream' });
-	var link = document.createElement('a');
-	link.href = URL.createObjectURL(blob);
-	link.download = fileName;
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1000);
+
+	function downloadBlob(blob) {
+		var link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = fileName;
+		document.body.appendChild(link); link.click(); document.body.removeChild(link);
+		setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1000);
+	}
+
+	// 디와이피엔에프(주) 원본 = 실제 Excel 파일 다운로드
+	if (!isRev && companyName === '디와이피엔에프(주)') {
+		fetch('../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx')
+			.then(function(r){ if(!r.ok) throw new Error('fetch fail'); return r.blob(); })
+			.then(downloadBlob)
+			.catch(function(){ downloadBlob(new Blob(['mock settlement data for row '+no], {type:'application/octet-stream'})); });
+		return;
+	}
+
+	// 기타: 모의 blob
+	downloadBlob(new Blob(['mock settlement data for row ' + no], { type: 'application/octet-stream' }));
 }
 
 var _previewCtx = { no: null, isRev: false, fileName: '' };
@@ -608,6 +660,12 @@ function sendSettlementMail(rowNo) {
 			bizNo: '000-00-00000',
 			attachmentName: fileName,
 			fetchAttachment: function() {
+				// 디와이피엔에프(주) → 실제 Excel 파일
+				if (companyName === '디와이피엔에프(주)') {
+					return fetch('../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx')
+						.then(function(r){ if(!r.ok) throw new Error('fetch fail'); return r.blob(); })
+						.catch(function(){ return new Blob(['mock'], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); });
+				}
 				return Promise.resolve(new Blob(['mock'], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
 			},
 			onShowPreview: function() {
