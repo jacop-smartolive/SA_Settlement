@@ -333,12 +333,13 @@ function rint(min, max) { return Math.floor(rand() * (max - min + 1)) + min; }
 
 function pad(n) { return String(n).padStart(2,'0'); }
 
-// 정산 기간 생성: 최신 행(highestNo) = 현재 월, 그 이전은 한 달씩 후퇴
+// 정산 기간 생성: 최신 행(highestNo) = 가장 최근 "완료된" 정산월 = 지난 달
+// 한 달씩 더 후퇴하며 이전 행
 function periodFor(no, highestNo) {
-	var ago = highestNo - no; // 0이면 최신
+	var ago = highestNo - no; // 0이면 최신 (= 지난 달)
 	var d = new Date();
 	d.setDate(1);
-	d.setMonth(d.getMonth() - ago);
+	d.setMonth(d.getMonth() - 1 - ago); // -1 = 현재 월이 아닌 지난 달부터 시작
 	var y = d.getFullYear();
 	var m = d.getMonth();
 	var startDay = 1;
@@ -346,12 +347,12 @@ function periodFor(no, highestNo) {
 	return pad(m+1)+'-'+pad(startDay)+' ~ '+pad(m+1)+'-'+pad(endDay);
 }
 
-// 요청일: 해당 정산기간 다음 달 1일 (예: 03-01 ~ 03-31 정산 → 04.01 요청)
+// 요청일: 해당 정산기간 다음 달 1일 (예: 04-01 ~ 04-30 정산 → 05.01 요청)
 function requestDateFor(no, highestNo) {
 	var ago = highestNo - no;
 	var d = new Date();
 	d.setDate(1);
-	d.setMonth(d.getMonth() - ago + 1);
+	d.setMonth(d.getMonth() - ago); // 정산기간 = 지난 달, 요청일 = 현재 달 1일
 	return pad(d.getMonth()+1)+'.'+pad(d.getDate());
 }
 
