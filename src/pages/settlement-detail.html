@@ -880,13 +880,16 @@ function fetchDypnfData() {
 				var c = ws[addr];
 				return (c && typeof c.v === 'number') ? c.v : null;
 			}
-			var pointUsed     = cellNum('G24');   // 총계 정산금액
-			var paymentCount  = cellNum('F24');   // 총계 사용건수
-			var mobileCoupon  = cellNum('G25');   // 모바일 쿠폰 이용료 합계
-			var storeRevenue  = cellNum('G26');   // 식대 이용료 합계
-			var feeCompany    = cellNum('G28');   // 이용료(기업체)
-			var usagePersons  = cellNum('F28');   // 사용인원
-			var companyDeposit= cellNum('G30');   // 최종 정산 금액
+			// 실제 셀 주소 (확인됨):
+			// R25 = 총계, R26 = 모바일쿠폰, R27 = 식대, R28 = 이용료헤더, R29 = 이용료데이터, R30 = 세금계산서, R31 = 최종 정산
+			var pointUsed      = cellNum('G25');   // 총계 정산금액
+			var paymentCount   = cellNum('F25');   // 총계 사용건수
+			var mobileCoupon   = cellNum('G26');   // 모바일 쿠폰 이용료 합계
+			var storeRevenue   = cellNum('G27');   // 식대 이용료 합계
+			var feeCompany     = cellNum('G29');   // 이용료(기업체) 총계
+			var usagePersons   = cellNum('F29');   // 이용료 사용인원
+			var companyDeposit = cellNum('G31');   // 최종 정산 금액 (총계 + 이용료)
+			// (G30 = 세금계산서 발행 금액 = 식대 + 이용료, 별도 보관 가능)
 			if (pointUsed     !== null) DYPNF_APRIL_2026.pointUsed      = pointUsed;
 			if (paymentCount  !== null) DYPNF_APRIL_2026.paymentCount   = paymentCount;
 			if (mobileCoupon  !== null) DYPNF_APRIL_2026.mobileCoupon   = mobileCoupon;
