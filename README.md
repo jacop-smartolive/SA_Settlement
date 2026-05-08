@@ -1,6 +1,10 @@
-# SA_Settlement
+# SA_Settlement v1.1
 
-Olive Ticket Service Admin — **정산 관리** 영역 프런트엔드.
+Olive Ticket Service Admin — **정산 관리** 영역 프런트엔드 · **v1.1 (새 방향성 작업 브랜치)**
+
+> v2.0과는 완전히 분리된 폴더로 운영. 같은 Git 리포의 `v1.1` 브랜치 worktree.
+> v2.0 (현재 확정): `C:\Users\oliver\project\SA_Settlement` (port 8080)
+> v1.1 (작업 중): `C:\Users\oliver\project\SA_Settlement_v1_1` (port 8081)
 
 ## 빠른 시작
 

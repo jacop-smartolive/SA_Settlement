@@ -1,7 +1,7 @@
 {
-  "name": "sa-settlement",
-  "version": "1.0.0",
-  "description": "Olive Ticket Service Admin — 정산 관리 프런트엔드 + 메일 발송 API",
+  "name": "sa-settlement-v1-1",
+  "version": "1.1.0",
+  "description": "Olive Ticket Service Admin v1.1 — 새 방향성 작업 브랜치 (port 8081)",
   "private": true,
   "scripts": {
     "dev": "node server.js",
