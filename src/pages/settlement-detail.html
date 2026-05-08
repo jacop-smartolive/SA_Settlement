@@ -648,13 +648,21 @@ function openSettlementPreview(no, isRev) {
 				+ '<td style="text-align:right;">'+fmt(s.amount)+'</td>'
 			+ '</tr>';
 		});
-		// 합계 행들 (Excel 그대로)
-		html += '<tr class="grand-total"><td></td><td colspan="4">총계</td><td>'+fmt(DYPNF_APRIL_2026.paymentCount)+'</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.pointUsed)+'</td></tr>';
-		html += '<tr class="subtotal"><td></td><td colspan="4">모바일 쿠폰 이용료 합계</td><td>237</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.mobileCoupon)+'</td></tr>';
-		html += '<tr class="subtotal"><td></td><td colspan="4">식대 이용료 합계</td><td>4,138</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.storeRevenue)+'</td></tr>';
-		html += '<tr><td></td><td colspan="4">이용료 (사용인원 × 0원, VAT 포함)</td><td>'+DYPNF_APRIL_2026.usagePersons+'</td><td style="text-align:right;">0</td></tr>';
-		html += '<tr class="tax-row"><td></td><td colspan="4">세금계산서 발행 금액 (식대 이용료 + 이용료)</td><td></td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.storeRevenue)+'</td></tr>';
-		html += '<tr class="grand-total"><td></td><td colspan="4">최종 정산 금액 (총계 + 이용료)</td><td></td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.companyDeposit)+'</td></tr>';
+		// 합계 행들 (Excel R24~R30 그대로)
+		// R24: 총계
+		html += '<tr class="grand-total"><td></td><td>총계</td><td colspan="3"></td><td>'+fmt(DYPNF_APRIL_2026.paymentCount)+'</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.pointUsed)+'</td></tr>';
+		// R25: 모바일 쿠폰 이용료 합계
+		html += '<tr class="subtotal"><td></td><td>모바일 쿠폰 이용료 합계</td><td colspan="3"></td><td>237</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.mobileCoupon)+'</td></tr>';
+		// R26: 식대 이용료 합계
+		html += '<tr class="subtotal"><td></td><td>식대 이용료 합계</td><td colspan="3"></td><td>4,138</td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.storeRevenue)+'</td></tr>';
+		// R27: 이용료 헤더 행 (사용인원/이용료 총계)
+		html += '<tr><td></td><td style="white-space:pre-line;">이용료\n(사용인원*0원,\nVAT 포함)</td><td colspan="3"></td><td>사용인원</td><td style="text-align:right;">이용료 총계</td></tr>';
+		// R28: 이용료 데이터 행 (168 / 0)
+		html += '<tr><td></td><td></td><td colspan="3"></td><td>'+DYPNF_APRIL_2026.usagePersons+'</td><td style="text-align:right;">0</td></tr>';
+		// R29: 세금계산서 발행 금액
+		html += '<tr class="tax-row"><td></td><td>세금계산서 발행 금액(식대 이용료+이용료)</td><td colspan="3"></td><td></td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.storeRevenue)+'</td></tr>';
+		// R30: 최종 정산 금액
+		html += '<tr class="grand-total"><td></td><td>최종 정산 금액(총계 + 이용료)</td><td colspan="3"></td><td></td><td style="text-align:right;">'+fmt(DYPNF_APRIL_2026.companyDeposit)+'</td></tr>';
 		document.getElementById('previewTbody').innerHTML = html;
 	} else {
 		document.querySelector('.preview-modal').classList.remove('wide');
