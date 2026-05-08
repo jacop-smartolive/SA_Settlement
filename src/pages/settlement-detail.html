@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>OliveTicket Service Admin (v1.1) — 정산 기간별 조회</title>
+	<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+	<style>
+		/* Reset */
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, b, strong, em, i, ol, ul, li, form, label, table, caption, tbody, thead, tr, th, td, footer, nav, section { margin: 0; padding: 0; border: 0; font-size: 100%; vertical-align: baseline; }
+		body { overflow-x: hidden; font: 12px/1.3 'Nanum Gothic', dotum, Helvetica, AppleGothic, arial, sans-serif; color: #666; background: #fff; word-break: break-all; }
+		a { text-decoration: none; color: inherit; }
+		ul, ol, li { list-style: none; }
+		table { border-collapse: collapse; width: 100%; }
+		button { overflow: hidden; margin: 0; padding: 0; border: 0 none; white-space: nowrap; text-align: center; vertical-align: top; cursor: pointer; }
+		caption, .blind { overflow: hidden; position: absolute; left: -9999em; width: 0; height: 0; margin: 0; padding: 0; font-size: 0; line-height: 0; text-indent: -9999em; }
+
+		/* Layout */
+		#wrap { position: relative; min-width: 1200px; background: #fff; }
+		.container { position: relative; background: #fff; }
+
+		/* lnbBox */
+		.lnbBox { overflow-y: auto; position: fixed; z-index: 2; width: 200px; height: 100%; background: #28313d; }
+		.lnbBox .tit { height: 100px; background: #ed1b24; line-height: 100px; text-align: center; }
+		.lnbBox .tit a { display: block; color: #fff; font-size: 22px; font-weight: 800; height: 100px; line-height: 100px; }
+
+		.localMenu > li { position: relative; border-bottom: 1px solid #384353; }
+		.localMenu > li > a { display: block; position: relative; height: 60px; padding: 0 0 0 20px; color: #9ba9bf; font-weight: 700; font-size: 16px; line-height: 60px; }
+		.localMenu > li > a:after { display: block; position: absolute; right: 21px; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #9ba9bf; content: ''; }
+		.localMenu > li.on > a { color: #ed1b24; }
+		.localMenu > li.on > a:after { right: 18px; margin-top: -3px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ed1b24; border-bottom: 0; width: 0; height: 0; }
+		.localMenu > li:hover > a { color: #fff; }
+
+		.subMenuBox { display: none; }
+		.localMenu > li.on > .subMenuBox { display: block; position: relative; padding: 10px 0; background: #354052; }
+		.subMenu li > a { display: block; height: 32px; padding: 0 0 0 20px; color: #7a869b; font-size: 13px; line-height: 32px; }
+		.subMenu li:hover > a { color: #fff; }
+		.subMenu li.on > a { color: #fff; }
+
+		/* content */
+		.content { position: relative; margin: 0 0 0 200px; padding: 0 30px 50px 30px; background: #fff; min-height: 100vh; }
+		.content:after { display: block; clear: both; content: ''; }
+
+		/* GNB */
+		.content_header { position: relative; margin: 0 -30px; border-bottom: 1px solid #e8e8e8; }
+		.content_header:after { display: block; clear: both; content: ''; }
+		.utilBox { position: relative; padding: 0 122px 0 0; }
+		.utilList { overflow: hidden; }
+		.utilList > li { float: left; width: 18%; height: 58px; border-left: 1px solid #e8e8e8; color: #666; font-size: 14px; line-height: 58px; text-align: center; box-sizing: border-box; }
+		.utilList > li:nth-of-type(4) { width: 28%; }
+		.utilList > li > b { margin: 0 0 0 3px; color: #2f2f2f; }
+		.logList { overflow: hidden; position: absolute; right: 0; top: 0; width: 122px; }
+		.logList > li { float: left; width: 50%; height: 58px; border-left: 1px solid #e8e8e8; background: #ed1b24; box-sizing: border-box; }
+		.logList > li:first-child { background: #354052; }
+		.logList > li > a { display: block; position: relative; color: #fff; font-size: 11px; text-align: center; padding-top: 30px; }
+		.logList > li > a:before { display: block; width: 20px; height: 16px; margin: -20px auto 6px; content: ''; }
+
+		/* breadcrumb */
+		.page_location { margin: 30px 0 14px; }
+		.page_location span { display: inline-block; position: relative; padding: 0 7px 0 16px; color: #666; font-size: 18px; vertical-align: middle; }
+		.page_location span:first-child { padding-left: 0; }
+		.page_location span:first-child:before { display: none; }
+		.page_location span:before { display: block; position: absolute; left: 0; top: 50%; width: 0; height: 0; margin-top: -5px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid #999; content: ''; }
+		.page_location a { color: #666; }
+		.page_location a:hover { color: #2f2f2f; text-decoration: underline; }
+
+		/* title */
+		.titBox { margin: 8px 0 18px; }
+		.tit_name { font-size: 30px; font-weight: 800; color: #111; }
+
+		/* result count */
+		.countBox { margin: 0 0 8px; }
+		.countBox .leftArea { color: #666; font-size: 13px; line-height: 32px; }
+		.countBox .leftArea b { color: #2f2f2f; font-size: 14px; margin-left: 4px; }
+
+		/* 가로 스크롤 래퍼 — 우측 열 확장 대비 */
+		.table-scroll {
+			overflow-x: auto;
+			border-top: 2px solid #ed1b24;
+			border-right: 1px solid #ddd;
+			background: #fff;
+		}
+		/* 사용자 정의 스크롤바 */
+		.table-scroll::-webkit-scrollbar { height: 10px; }
+		.table-scroll::-webkit-scrollbar-track { background: #f3f4f6; }
+		.table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+		.table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+		/* bbs_list */
+		.bbs_list { width: 100%; min-width: 1400px; /* 기본 폭, 열 추가 시 자동 확장 */ }
+		.bbs_list thead th { padding: 14px 8px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; background: #f0f1f2; color: #333; font-size: 13px; font-weight: 700; text-align: center; white-space: nowrap; line-height: 1.4; }
+		.bbs_list thead th:first-child { border-left: 0; }
+		.bbs_list thead th .sub { display: block; font-weight: 500; font-size: 11.5px; color: #6b7280; margin-top: 4px; }
+		.bbs_list tbody th, .bbs_list tbody td { padding: 18px 12px; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; color: #555; font-size: 13px; text-align: center; vertical-align: middle; white-space: nowrap; }
+		.bbs_list tbody td:first-child { border-left: 0; }
+		.bbs_list tbody td a { border-bottom: 1px dotted #555; color: inherit; }
+		.bbs_list tbody td a:hover, .bbs_list tbody td a:active { font-weight: 700; color: #111; }
+		.bbs_list tbody tr:hover { background: #f9fafb; }
+		.bbs_list tbody td.num { text-align: right; }
+	</style>
+</head>
+<body>
+
+<div id="wrap">
+	<section>
+		<div id="container" class="container">
+			<section>
+				<!-- lnbBox -->
+				<div class="lnbBox">
+					<h1 class="tit"><a href="../index.html">Olive ticket</a></h1>
+					<nav class="localMenuBox">
+						<h2 class="blind">메인메뉴</h2>
+						<ul class="localMenu">
+							<li><a href="#this">기업체 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">기업체 정보 관리</a></li><li><a href="#">직접 가맹점 관리</a></li><li><a href="#">마스터 기업체 관리</a></li></ul></div></li>
+							<li><a href="#this">가맹점 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">매장 정보</a></li></ul></div></li>
+							<li><a href="#this">올리브 상품권 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">주문내역</a></li><li><a href="#">상품권 관리</a></li></ul></div></li>
+							<li><a href="#this">모바일 쿠폰 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">주문내역</a></li><li><a href="#">상품관리</a></li><li><a href="#">브랜드관리</a></li></ul></div></li>
+							<li><a href="#this">식권 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">식권 결제 취소 관리</a></li><li><a href="#">대기식권 관리</a></li></ul></div></li>
+							<li><a href="#">SMS 발송내역</a></li>
+							<li class="on"><a href="#this">정산 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">업체 정산</a></li><li class="on"><a href="../index.html">업체 정산 완료 내역</a></li><li><a href="#">가맹점 정산 완료 내역</a></li><li><a href="#">개인포인트 정산 완료 내역</a></li><li><a href="#">수동 정산</a></li><li><a href="#">지난정산 엑셀다운로드</a></li><li><a href="#">매입 매출 내역</a></li><li><a href="#">매입 매출 내역(실시간)</a></li></ul></div></li>
+							<li><a href="#this">서비스 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">약관 관리</a></li><li><a href="#">공지사항 관리</a></li><li><a href="#">팝업 관리</a></li><li><a href="#">FAQ 관리</a></li><li><a href="#">1:1 문의</a></li><li><a href="#">업무요청 게시판 관리</a></li><li><a href="#">배너 관리</a></li><li><a href="#">푸시 관리</a></li><li><a href="#">쿠폰 관리</a></li><li><a href="#">환불 관리</a></li><li><a href="#">문자 관리</a></li></ul></div></li>
+							<li><a href="#this">회원 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">회원 관리</a></li><li><a href="#">선물 관리</a></li></ul></div></li>
+							<li><a href="#this">설정 관리</a><div class="subMenuBox"><ul class="subMenu"><li><a href="#">시스템 설정 관리</a></li><li><a href="#">앱 버전 관리</a></li><li><a href="#">앱 가이드 관리</a></li><li><a href="#">공휴일 관리</a></li></ul></div></li>
+							<li><a href="#">계좌 이체 관리</a></li>
+						</ul>
+					</nav>
+				</div>
+			</section>
+			<section>
+				<div id="content" class="content">
+
+					<!-- GNB -->
+					<div class="content_header">
+						<h2 class="blind">상단 헤더</h2>
+						<div class="utilBox">
+							<ul class="utilList">
+								<li>로그인 계정 :<b>신중엽(jy.shin)</b></li>
+								<li>&nbsp;</li>
+								<li>&nbsp;</li>
+								<li>이용자그룹 :<b>서비스 운영 관리자</b></li>
+								<li class="request"></li>
+							</ul>
+							<ul class="logList">
+								<li><a href="#">My Page</a></li>
+								<li><a href="#">LogOut</a></li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- breadcrumb -->
+					<div class="page_location">
+						<span><a href="#">정산 관리</a></span>
+						<span><a href="../index.html">정산 완료 내역</a></span>
+						<span class="current">정산 기간별 조회</span>
+					</div>
+
+					<!-- title -->
+					<div class="titBox">
+						<h2 class="tit_name" id="companyTitle">기업명</h2>
+					</div>
+
+					<!-- result count -->
+					<div class="countBox">
+						<div class="leftArea">결과: <b id="resultCount">0</b></div>
+					</div>
+
+					<!-- 표 (가로 스크롤 래퍼로 우측 확장 대비) -->
+					<div class="table-scroll">
+						<table class="bbs_list" id="dataTable">
+							<colgroup id="colgroup">
+								<col style="width:60px">
+								<col style="width:100px">
+								<col style="width:130px">
+								<col style="width:90px">
+								<col style="width:110px">
+								<col style="width:160px">
+								<col style="width:130px">
+								<col style="width:170px">
+								<col style="width:110px">
+								<col style="width:150px">
+								<col style="width:160px">
+							</colgroup>
+							<thead>
+								<tr>
+									<th>번호</th>
+									<th>결제 건수</th>
+									<th>사용 포인트</th>
+									<th>요금단가</th>
+									<th>이용료(기업체)</th>
+									<th>기업체 입금액<span class="sub">(사용포인트+이용료)</span></th>
+									<th>모바일쿠폰 정산</th>
+									<th>가맹점 매출<span class="sub">(모바일쿠폰 제외)</span></th>
+									<th>수수료(가맹점)</th>
+									<th>가맹점 이체액<span class="sub">(매출-수수료)</span></th>
+									<th>가맹점 이체<br>제외 금액</th>
+								</tr>
+							</thead>
+							<tbody id="tbody"></tbody>
+						</table>
+					</div>
+
+				</div>
+			</section>
+		</div>
+	</section>
+</div>
+
+<script>
+// URL ?company=... 파라미터 + ?count=... 추출
+var params = new URLSearchParams(location.search);
+var companyName = params.get('company') || '디와이피엔에프(주)';
+var totalCount = parseInt(params.get('count') || '77');
+
+document.getElementById('companyTitle').textContent = companyName;
+document.getElementById('resultCount').textContent = totalCount.toLocaleString('ko-KR');
+
+// 결정론적 시드 — 회사명 기반 난수
+function seedFromString(s) {
+	var h = 0;
+	for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+	return Math.abs(h) % 1000000 + 1;
+}
+var seed = seedFromString(companyName);
+function rand() {
+	seed = (seed * 9301 + 49297) % 233280;
+	return seed / 233280;
+}
+function rint(min, max) { return Math.floor(rand() * (max - min + 1)) + min; }
+
+// 샘플 데이터 생성
+function generateRow(no) {
+	var paymentCount = rint(2500, 5000);
+	var pointUsed = rint(20000000, 35000000);
+	var unitPrice = 0;
+	var feeCompany = 0;
+	var companyDeposit = pointUsed + feeCompany;
+	var mobileCoupon = rint(1500000, 6000000);
+	var storeRevenue = pointUsed - mobileCoupon;
+	if (storeRevenue < 0) storeRevenue = pointUsed;
+	var storeFee = Math.floor(storeRevenue * (rint(80, 130) / 10000));
+	var storeTransfer = storeRevenue - storeFee;
+	var storeExclude = Math.floor(storeTransfer * (rint(85, 95) / 100));
+	return { no:no, paymentCount:paymentCount, pointUsed:pointUsed, unitPrice:unitPrice, feeCompany:feeCompany, companyDeposit:companyDeposit, mobileCoupon:mobileCoupon, storeRevenue:storeRevenue, storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude };
+}
+
+function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
+
+function renderTable() {
+	var html = '';
+	var rows = [];
+	for (var i = totalCount; i >= Math.max(1, totalCount - 49); i--) {
+		rows.push(generateRow(i));
+	}
+	rows.forEach(function(r) {
+		html += '<tr>'
+			+ '<td>' + r.no + '</td>'
+			+ '<td><a href="#" onclick="return false;">' + fmt(r.paymentCount) + '건</a></td>'
+			+ '<td>' + fmt(r.pointUsed) + '</td>'
+			+ '<td>' + r.unitPrice + '원</td>'
+			+ '<td>' + r.feeCompany + '</td>'
+			+ '<td>' + fmt(r.companyDeposit) + '</td>'
+			+ '<td>' + fmt(r.mobileCoupon) + '</td>'
+			+ '<td>' + fmt(r.storeRevenue) + '</td>'
+			+ '<td>' + fmt(r.storeFee) + '</td>'
+			+ '<td>' + fmt(r.storeTransfer) + '</td>'
+			+ '<td><a href="#" onclick="return false;">' + fmt(r.storeExclude) + '</a></td>'
+			+ '</tr>';
+	});
+	document.getElementById('tbody').innerHTML = html;
+}
+renderTable();
+</script>
+
+</body>
+</html>

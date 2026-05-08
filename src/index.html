@@ -352,13 +352,14 @@ function renderTable() {
 	var rows = filteredData.slice(0, size);
 	var html = '';
 	rows.forEach(function(r) {
+		var qs = 'pages/settlement-detail.html?company=' + encodeURIComponent(r.name) + '&count=' + r.count;
 		html += '<tr>'
 			+ '<td>' + r.no + '</td>'
-			+ '<td><a href="#" onclick="return false;">' + r.name + '</a></td>'
+			+ '<td><a href="' + qs + '">' + r.name + '</a></td>'
 			+ '<td>' + r.bizNo + '</td>'
 			+ '<td>' + r.ceo + '</td>'
 			+ '<td>' + r.email + '</td>'
-			+ '<td><a href="#" onclick="return false;">' + r.count + '</a></td>'
+			+ '<td><a href="' + qs + '">' + r.count + '</a></td>'
 			+ '<td>' + r.lastDate + '</td>'
 			+ '</tr>';
 	});
