@@ -98,10 +98,32 @@
 		.bbs_list tbody td a:hover, .bbs_list tbody td a:active { font-weight: 700; color: #111; }
 		.bbs_list tbody tr:hover { background: #f9fafb; }
 		.bbs_list tbody td.num { text-align: right; }
+		.bbs_list tbody td.col-settle { padding: 6px 4px; vertical-align: top; }
 
 		/* 삭제 버튼 */
 		.btn-del { display: inline-block; height: 28px; padding: 0 14px; border: 1px solid #d1d5db; background: #fff; border-radius: 4px; font-size: 12px; font-family: inherit; color: #374151; cursor: pointer; }
 		.btn-del:hover { background: #f3f4f6; border-color: #9ca3af; }
+
+		/* 정산서 셀 — 라벨 + 드롭다운 버튼 */
+		.cell-action { padding: 8px 6px; }
+		.cell-label { font-size: 12px; line-height: 1.3; margin-bottom: 8px; height: 30px; text-align: center; font-weight: 500; }
+		.btn-wrap { display: inline-block; position: relative; }
+		.htcbtnMd { display: inline-flex; align-items: center; height: 30px; min-width: 78px; padding: 0 10px 0 12px; border: 1px solid #515b6c; background: #fff; border-radius: 4px; cursor: pointer; font-family: inherit; }
+		.htcbtnMd > span { color: #515b6c; font-size: 13px; font-weight: 500; padding-right: 14px; }
+		.htcbtnMd.ico_down { position: relative; }
+		.htcbtnMd.ico_down:after { content: ''; position: absolute; right: 10px; top: 50%; width: 6px; height: 6px; margin-top: -4px; border-right: 1.5px solid #515b6c; border-bottom: 1.5px solid #515b6c; transform: rotate(45deg); }
+		.htcbtnMd.btn-outline { background: #fff; border-color: #d1d5db; }
+		.htcbtnMd.btn-outline > span { color: #111; }
+		.htcbtnMd.btn-outline.ico_down:after { border-color: #111; }
+		.htcbtnMd.btn-blue { background: #4f46e5; border-color: #4f46e5; }
+		.htcbtnMd.btn-blue > span { color: #fff; }
+		.htcbtnMd.btn-blue.ico_down:after { border-color: #fff; }
+
+		.btn-dropdown { display: none; position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); min-width: 140px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 30; padding: 6px 0; }
+		.btn-wrap.open .btn-dropdown { display: block; }
+		.btn-dropdown a { display: block; padding: 8px 16px; font-size: 12.5px; color: #374151; white-space: nowrap; border-bottom: 0; text-align: left; cursor: pointer; }
+		.btn-dropdown a:hover { background: #f9fafb; color: #111; font-weight: 600; }
+		.btn-dropdown .divider { height: 1px; background: #e5e7eb; margin: 4px 0; }
 	</style>
 </head>
 <body>
@@ -295,6 +317,145 @@ function generateRow(no, highestNo) {
 
 function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
 
+// ─── 정산서 셀 상태 관리 (localStorage 영속) ───
+var STORAGE_KEY = 'v11-detail-settle-' + companyName;
+var rowStates = {};
+try { rowStates = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { rowStates = {}; }
+
+function saveStates() {
+	try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rowStates)); } catch(e) {}
+}
+
+function getRowState(no) {
+	if (!rowStates[no]) rowStates[no] = { hasRevision: false, lastAction: null };
+	return rowStates[no];
+}
+
+function setLastAction(no, text, color) {
+	var d = new Date();
+	var dateStr = String(d.getFullYear()).slice(2) + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+	var timeStr = pad(d.getHours()) + ':' + pad(d.getMinutes());
+	var st = getRowState(no);
+	st.lastAction = { date: dateStr, time: timeStr, text: text, color: color };
+	saveStates();
+}
+
+// 액션 컬러 (B안 팔레트)
+var COLOR = {
+	origDl:   '#4b5563',  // 원본 다운로드 — 그레이
+	revDl:    '#4f46e5',  // 수정본 다운로드 — 인디고
+	revUp:    '#d97706'   // 수정본 업로드 — 앰버
+};
+
+function buildSettlementCell(no) {
+	var st = getRowState(no);
+	var btnClass, btnLabel, menuHtml;
+	if (st.hasRevision) {
+		btnClass = 'btn-blue'; btnLabel = '수정본';
+		menuHtml = ''
+			+ '<a onclick="actSettle(\'previewRev\','+no+')">수정본 미리보기</a>'
+			+ '<a onclick="actSettle(\'downloadRev\','+no+')">수정본 다운로드</a>'
+			+ '<a onclick="actSettle(\'changeRev\','+no+')">수정본 파일변경</a>'
+			+ '<a onclick="actSettle(\'deleteRev\','+no+')">수정본 삭제</a>'
+			+ '<div class="divider"></div>'
+			+ '<a onclick="actSettle(\'previewOrig\','+no+')">원본 미리보기</a>'
+			+ '<a onclick="actSettle(\'downloadOrig\','+no+')">원본 다운로드</a>';
+	} else {
+		btnClass = 'btn-outline'; btnLabel = '원본';
+		menuHtml = ''
+			+ '<a onclick="actSettle(\'previewOrig\','+no+')">원본 미리보기</a>'
+			+ '<a onclick="actSettle(\'downloadOrig\','+no+')">원본 다운로드</a>'
+			+ '<a onclick="actSettle(\'attachRev\','+no+')">수정본 첨부</a>';
+	}
+	var labelHtml = '<div class="cell-label">';
+	if (st.lastAction) {
+		var la = st.lastAction;
+		labelHtml += '<span style="color:'+la.color+';">'+la.date+' '+la.time+'<br>'+la.text+'</span>';
+	} else {
+		labelHtml += '&nbsp;';
+	}
+	labelHtml += '</div>';
+	return '<div class="cell-action">'
+		+ labelHtml
+		+ '<div class="btn-wrap" data-row="'+no+'">'
+			+ '<button class="htcbtnMd '+btnClass+' ico_down" onclick="toggleDrop(this,event)"><span>'+btnLabel+'</span></button>'
+			+ '<div class="btn-dropdown">'+menuHtml+'</div>'
+		+ '</div>'
+	+ '</div>';
+}
+
+function toggleDrop(btn, ev) {
+	if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+	var wrap = btn.closest('.btn-wrap');
+	var open = wrap.classList.contains('open');
+	document.querySelectorAll('.btn-wrap.open').forEach(function(w){ w.classList.remove('open'); });
+	if (!open) wrap.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+	if (!e.target.closest('.btn-wrap')) {
+		document.querySelectorAll('.btn-wrap.open').forEach(function(w){ w.classList.remove('open'); });
+	}
+});
+
+function actSettle(action, no) {
+	var st = getRowState(no);
+	switch(action) {
+		case 'previewOrig':
+			alert('원본 미리보기 (rowNo='+no+')');
+			break;
+		case 'downloadOrig':
+			setLastAction(no, '원본 다운로드', COLOR.origDl);
+			refreshRow(no);
+			break;
+		case 'attachRev':
+			pickRevisionFile(no);
+			break;
+		case 'previewRev':
+			alert('수정본 미리보기 (rowNo='+no+')');
+			break;
+		case 'downloadRev':
+			setLastAction(no, '수정본 다운로드', COLOR.revDl);
+			refreshRow(no);
+			break;
+		case 'changeRev':
+			pickRevisionFile(no);
+			break;
+		case 'deleteRev':
+			if (confirm('수정본을 삭제하시겠습니까?')) {
+				st.hasRevision = false;
+				if (st.lastAction && st.lastAction.text.indexOf('수정본') >= 0) st.lastAction = null;
+				saveStates();
+				refreshRow(no);
+			}
+			break;
+		case 'previewOrig':
+			alert('원본 미리보기 (rowNo='+no+')');
+			break;
+	}
+	document.querySelectorAll('.btn-wrap.open').forEach(function(w){ w.classList.remove('open'); });
+}
+
+function pickRevisionFile(no) {
+	var input = document.createElement('input');
+	input.type = 'file';
+	input.accept = '.xlsx,.xls,.csv';
+	input.onchange = function(e) {
+		if (!e.target.files || !e.target.files[0]) return;
+		var st = getRowState(no);
+		st.hasRevision = true;
+		setLastAction(no, '수정본 업로드', COLOR.revUp);
+		refreshRow(no);
+	};
+	input.click();
+}
+
+function refreshRow(no) {
+	var tr = document.querySelector('tr[data-row="'+no+'"]');
+	if (!tr) { renderTable(); return; }
+	var cell = tr.querySelector('td.col-settle');
+	if (cell) cell.innerHTML = buildSettlementCell(no);
+}
+
 function renderTable() {
 	var html = '';
 	var rows = [];
@@ -304,7 +465,7 @@ function renderTable() {
 	}
 	rows.forEach(function(r) {
 		var reqDate = requestDateFor(r.no, highestNo);
-		html += '<tr>'
+		html += '<tr data-row="'+r.no+'">'
 			+ '<td>' + r.no + '</td>'
 			+ '<td>' + r.period + '</td>'
 			+ '<td><a href="#" onclick="return false;">' + fmt(r.paymentCount) + '건</a></td>'
@@ -318,7 +479,7 @@ function renderTable() {
 			+ '<td>' + fmt(r.storeTransfer) + '</td>'
 			+ '<td><a href="#" onclick="return false;">' + fmt(r.storeExclude) + '</a></td>'
 			// 새 9개 열
-			+ '<td></td>' // 정산서
+			+ '<td class="col-settle">' + buildSettlementCell(r.no) + '</td>' // 정산서 (원본/수정본 버튼)
 			+ '<td></td>' // 메일 발송
 			+ '<td></td>' // 가맹 역발행
 			+ '<td></td>' // 가맹 발행 (일)
