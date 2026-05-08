@@ -170,6 +170,7 @@
 						<table class="bbs_list" id="dataTable">
 							<colgroup id="colgroup">
 								<col style="width:60px">
+								<col style="width:130px">
 								<col style="width:100px">
 								<col style="width:130px">
 								<col style="width:90px">
@@ -184,6 +185,7 @@
 							<thead>
 								<tr>
 									<th>번호</th>
+									<th>정산 기간</th>
 									<th>결제 건수</th>
 									<th>사용 포인트</th>
 									<th>요금단가</th>
@@ -228,8 +230,22 @@ function rand() {
 }
 function rint(min, max) { return Math.floor(rand() * (max - min + 1)) + min; }
 
+// 정산 기간 생성: 최신 행(highestNo) = 현재 월, 그 이전은 한 달씩 후퇴
+function periodFor(no, highestNo) {
+	var ago = highestNo - no; // 0이면 최신
+	var d = new Date();
+	d.setDate(1);
+	d.setMonth(d.getMonth() - ago);
+	var y = d.getFullYear();
+	var m = d.getMonth();
+	var startDay = 1;
+	var endDay = new Date(y, m + 1, 0).getDate(); // 해당 월 마지막 일
+	function pad(n) { return String(n).padStart(2,'0'); }
+	return pad(m+1)+'-'+pad(startDay)+' ~ '+pad(m+1)+'-'+pad(endDay);
+}
+
 // 샘플 데이터 생성
-function generateRow(no) {
+function generateRow(no, highestNo) {
 	var paymentCount = rint(2500, 5000);
 	var pointUsed = rint(20000000, 35000000);
 	var unitPrice = 0;
@@ -241,7 +257,8 @@ function generateRow(no) {
 	var storeFee = Math.floor(storeRevenue * (rint(80, 130) / 10000));
 	var storeTransfer = storeRevenue - storeFee;
 	var storeExclude = Math.floor(storeTransfer * (rint(85, 95) / 100));
-	return { no:no, paymentCount:paymentCount, pointUsed:pointUsed, unitPrice:unitPrice, feeCompany:feeCompany, companyDeposit:companyDeposit, mobileCoupon:mobileCoupon, storeRevenue:storeRevenue, storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude };
+	var period = periodFor(no, highestNo);
+	return { no:no, period:period, paymentCount:paymentCount, pointUsed:pointUsed, unitPrice:unitPrice, feeCompany:feeCompany, companyDeposit:companyDeposit, mobileCoupon:mobileCoupon, storeRevenue:storeRevenue, storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude };
 }
 
 function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
@@ -249,12 +266,14 @@ function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
 function renderTable() {
 	var html = '';
 	var rows = [];
+	var highestNo = totalCount;
 	for (var i = totalCount; i >= Math.max(1, totalCount - 49); i--) {
-		rows.push(generateRow(i));
+		rows.push(generateRow(i, highestNo));
 	}
 	rows.forEach(function(r) {
 		html += '<tr>'
 			+ '<td>' + r.no + '</td>'
+			+ '<td>' + r.period + '</td>'
 			+ '<td><a href="#" onclick="return false;">' + fmt(r.paymentCount) + '건</a></td>'
 			+ '<td>' + fmt(r.pointUsed) + '</td>'
 			+ '<td>' + r.unitPrice + '원</td>'
