@@ -286,6 +286,7 @@
 								<col>
 								<col style="width:110px">
 								<col style="width:140px">
+								<col style="width:170px">
 							</colgroup>
 							<thead>
 								<tr>
@@ -296,10 +297,40 @@
 									<th>세금계산서 발행 이메일</th>
 									<th>정산 완료 건수</th>
 									<th>마지막 정산 완료일</th>
+									<th>최근 진행내역</th>
 								</tr>
 							</thead>
 							<tbody id="tbody"></tbody>
 						</table>
+
+<!-- 최근 진행내역 팝업 -->
+<div id="recentOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;">
+	<div style="background:#fff;width:580px;max-height:80vh;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.18);">
+		<div style="padding:18px 24px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:flex-start;">
+			<div>
+				<h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 4px;">최근 진행내역</h3>
+				<div id="recentSubtitle" style="font-size:13px;color:#6b7280;"></div>
+			</div>
+			<button onclick="closeRecent()" style="width:30px;height:30px;border-radius:8px;border:none;background:#f3f4f6;color:#6b7280;cursor:pointer;font-size:16px;">✕</button>
+		</div>
+		<div style="padding:18px 24px;overflow-y:auto;flex:1;">
+			<table style="width:100%;border-collapse:collapse;font-size:13px;">
+				<thead>
+					<tr style="background:#f8f9fa;">
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:30%;">유형</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:18%;">수정유무</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:22%;">진행내역</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:30%;">최근 일시</th>
+					</tr>
+				</thead>
+				<tbody id="recentBody"></tbody>
+			</table>
+		</div>
+		<div style="padding:12px 24px;border-top:1px solid #f3f4f6;background:#fafafa;display:flex;justify-content:flex-end;">
+			<button onclick="closeRecent()" style="height:38px;padding:0 18px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:13px;cursor:pointer;">닫기</button>
+		</div>
+	</div>
+</div>
 					</div>
 
 				</div>
@@ -347,12 +378,132 @@ var DATA = [
 var TOTAL_COUNT = 373;
 var filteredData = [].concat(DATA);
 
+// ─── 회사별 진행내역 수집 (localStorage 3개 키) ───
+var ACTION_COLOR = { '#4b5563':'gray', '#4f46e5':'indigo', '#d97706':'amber', '#059669':'green' };
+var WORK_TYPES = [
+	{ key:'settlement',    label:'정산서' },
+	{ key:'reverse',       label:'가맹점 역발행' },
+	{ key:'forward',       label:'가맹점 정발행 (일반)' },
+	{ key:'forwardSimple', label:'가맹점 정발행 (간이)' },
+	{ key:'transfer',      label:'가맹점 대량이체' },
+	{ key:'slip',          label:'회계전표' }
+];
+function readJson(key) {
+	try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) { return {}; }
+}
+function getCompanyActions(companyName) {
+	var settle = readJson('v11-detail-settle-' + companyName);
+	var mail   = readJson('v11-mail-' + companyName);
+	var dl     = readJson('v11-dl-' + companyName);
+	// type별 최신 액션 수집
+	var byType = { settlement:null, reverse:null, forward:null, forwardSimple:null, transfer:null, slip:null };
+
+	// 1) 정산서: lastAction (다운/업로드), doneSettlement (확정), mail (발송/재발송)
+	Object.keys(settle).forEach(function(rowNo) {
+		var s = settle[rowNo];
+		if (s.lastAction) {
+			var dt = s.lastAction.date + ' ' + s.lastAction.time;
+			var text = s.lastAction.text || '';
+			var variant = text.indexOf('수정본') >= 0 ? '수정본' : '원본';
+			var action = text.indexOf('업로드') >= 0 ? '업로드' : '다운로드';
+			var color = s.lastAction.color || '#4b5563';
+			if (!byType.settlement || dt > byType.settlement.dt) {
+				byType.settlement = { dt:dt, variant:variant, action:action,
+					fullLabel:'정산서 '+variant+' '+action, color:color };
+			}
+		}
+		if (s.doneSettlement) {
+			var dp = s.doneSettlement.split('|');
+			var dt = dp[0] + ' ' + dp[1];
+			if (!byType.settlement || dt > byType.settlement.dt) {
+				byType.settlement = { dt:dt, variant:'-', action:'확정',
+					fullLabel:'정산서 확정', color:'#059669' };
+			}
+		}
+	});
+	Object.keys(mail).forEach(function(rowNo) {
+		var m = mail[rowNo];
+		if (m.mail_sent) {
+			var mp = m.mail_sent.split('|');
+			var dt = mp[0] + ' ' + mp[1];
+			var historyCnt = (m.mail_history && m.mail_history.length) || 0;
+			var isResend = historyCnt > 1;
+			var actLabel = isResend ? '재발송' : '발송';
+			if (!byType.settlement || dt > byType.settlement.dt) {
+				byType.settlement = { dt:dt, variant:'-', action:'메일 '+actLabel,
+					fullLabel:'정산서 메일 '+actLabel, color:'#4f46e5' };
+			}
+		}
+	});
+
+	// 2) 다운로드 5종
+	Object.keys(dl).forEach(function(rowNo) {
+		var d = dl[rowNo];
+		WORK_TYPES.slice(1).forEach(function(wt) {
+			var entry = d[wt.key];
+			if (!entry) return;
+			var dt = entry.date + ' ' + entry.time;
+			if (!byType[wt.key] || dt > byType[wt.key].dt) {
+				byType[wt.key] = { dt:dt, variant:'원본', action:'다운로드',
+					fullLabel:wt.label + ' 다운로드', color:'#4b5563' };
+			}
+		});
+	});
+	return byType;
+}
+function getLatestAction(byType) {
+	var latest = null;
+	Object.keys(byType).forEach(function(k) {
+		var a = byType[k];
+		if (a && (!latest || a.dt > latest.dt)) latest = a;
+	});
+	return latest;
+}
+
+function openRecent(companyName) {
+	var byType = getCompanyActions(companyName);
+	document.getElementById('recentSubtitle').textContent = companyName;
+	var html = '';
+	WORK_TYPES.forEach(function(wt) {
+		var a = byType[wt.key];
+		if (a) {
+			html += '<tr>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+wt.label+'</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+a.variant+'</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+a.action+'</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;color:'+a.color+';">'+a.dt+'</td>'
+			+ '</tr>';
+		} else {
+			html += '<tr style="color:#cbd5e1;">'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+wt.label+'</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">-</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">-</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">-</td>'
+			+ '</tr>';
+		}
+	});
+	document.getElementById('recentBody').innerHTML = html;
+	document.getElementById('recentOverlay').style.display = 'flex';
+}
+function closeRecent() { document.getElementById('recentOverlay').style.display = 'none'; }
+document.getElementById('recentOverlay').addEventListener('click', function(e){
+	if (e.target.id === 'recentOverlay') closeRecent();
+});
+
 function renderTable() {
 	var size = parseInt(document.getElementById('pageSize').value);
 	var rows = filteredData.slice(0, size);
 	var html = '';
 	rows.forEach(function(r) {
 		var qs = 'pages/settlement-detail.html?company=' + encodeURIComponent(r.name) + '&count=' + r.count;
+		// 최근 진행내역 셀
+		var latest = getLatestAction(getCompanyActions(r.name));
+		var recentCell = latest
+			? '<a onclick="event.preventDefault();openRecent(\''+r.name.replace(/'/g,"\\'")+'\')" style="cursor:pointer;color:inherit;text-decoration:none;border:none;font-size:12px;line-height:1.3;display:inline-block;">'
+				+ '<span style="color:'+latest.color+';">'+latest.dt.slice(2)+'</span><br>'
+				+ '<span style="text-decoration:underline;text-underline-offset:2px;color:#111;">'+latest.fullLabel+'</span>'
+			+ '</a>'
+			: '<span style="color:#cbd5e1;">-</span>';
 		html += '<tr>'
 			+ '<td>' + r.no + '</td>'
 			+ '<td><a href="' + qs + '">' + r.name + '</a></td>'
@@ -361,6 +512,7 @@ function renderTable() {
 			+ '<td>' + r.email + '</td>'
 			+ '<td><a href="' + qs + '">' + r.count + '</a></td>'
 			+ '<td>' + r.lastDate + '</td>'
+			+ '<td>' + recentCell + '</td>'
 			+ '</tr>';
 	});
 	document.getElementById('tbody').innerHTML = html;
