@@ -423,44 +423,28 @@ function generateRow(no, highestNo) {
 		};
 	}
 
-	// 디와이피엔에프(주) 회사인 경우 실제 Excel 파일 기반 값 반영
-	if (companyName === '디와이피엔에프(주)') {
-		// 가장 최신 행(highestNo) = Excel 파일 그대로
-		if (no === highestNo) {
-			return Object.assign({ no:no, period:period }, DYPNF_APRIL_2026);
-		}
-		// 그 외 행은 ±10% 변동 (월별 차이 시뮬레이션)
-		var v = 0.85 + rand() * 0.30;
-		var paymentCount = Math.round(DYPNF_APRIL_2026.paymentCount * v);
-		var pointUsed = Math.round(DYPNF_APRIL_2026.pointUsed * v);
-		var mobileCoupon = Math.round(DYPNF_APRIL_2026.mobileCoupon * v);
-		var storeRevenue = pointUsed - mobileCoupon;
-		var storeFee = Math.round(storeRevenue * 0.0105); // ~1.05%
-		var storeTransfer = storeRevenue - storeFee;
-		var storeExclude = Math.round(storeTransfer * 0.935);
-		return {
-			no:no, period:period,
-			paymentCount:paymentCount, pointUsed:pointUsed,
-			unitPrice:0, feeCompany:0,
-			companyDeposit:pointUsed,
-			mobileCoupon:mobileCoupon, storeRevenue:storeRevenue,
-			storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude
-		};
+	// 모든 회사 → 디와이피엔에프 Excel 데이터(DYPNF_APRIL_2026) 베이스
+	// 최신 행(highestNo) = Excel 파일 그대로
+	if (no === highestNo) {
+		return Object.assign({ no:no, period:period }, DYPNF_APRIL_2026);
 	}
-
-	// 기타 회사: 기존 로직
-	var paymentCount = rint(2500, 5000);
-	var pointUsed = rint(20000000, 35000000);
-	var unitPrice = 0;
-	var feeCompany = 0;
-	var companyDeposit = pointUsed + feeCompany;
-	var mobileCoupon = rint(1500000, 6000000);
+	// 그 외 행은 ±10% 변동 (월별 차이 시뮬레이션)
+	var v = 0.85 + rand() * 0.30;
+	var paymentCount = Math.round(DYPNF_APRIL_2026.paymentCount * v);
+	var pointUsed = Math.round(DYPNF_APRIL_2026.pointUsed * v);
+	var mobileCoupon = Math.round(DYPNF_APRIL_2026.mobileCoupon * v);
 	var storeRevenue = pointUsed - mobileCoupon;
-	if (storeRevenue < 0) storeRevenue = pointUsed;
-	var storeFee = Math.floor(storeRevenue * (rint(80, 130) / 10000));
+	var storeFee = Math.round(storeRevenue * 0.0105);
 	var storeTransfer = storeRevenue - storeFee;
-	var storeExclude = Math.floor(storeTransfer * (rint(85, 95) / 100));
-	return { no:no, period:period, paymentCount:paymentCount, pointUsed:pointUsed, unitPrice:unitPrice, feeCompany:feeCompany, companyDeposit:companyDeposit, mobileCoupon:mobileCoupon, storeRevenue:storeRevenue, storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude };
+	var storeExclude = Math.round(storeTransfer * 0.935);
+	return {
+		no:no, period:period,
+		paymentCount:paymentCount, pointUsed:pointUsed,
+		unitPrice:0, feeCompany:0,
+		companyDeposit:pointUsed,
+		mobileCoupon:mobileCoupon, storeRevenue:storeRevenue,
+		storeFee:storeFee, storeTransfer:storeTransfer, storeExclude:storeExclude
+	};
 }
 
 function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
@@ -634,12 +618,10 @@ function actSettle(action, no) {
 }
 
 function fetchOriginalFile() {
-	if (companyName === '디와이피엔에프(주)') {
-		return fetch('../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx')
-			.then(function(r){ if(!r.ok) throw new Error('orig fetch fail'); return r.blob(); })
-			.catch(function(){ return new Blob(['mock'], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); });
-	}
-	return Promise.resolve(new Blob(['mock'], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+	// 모든 회사: 디와이피엔에프 원본 Excel을 공통으로 사용 (파일명은 회사별로 다름)
+	return fetch('../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx')
+		.then(function(r){ if(!r.ok) throw new Error('orig fetch fail'); return r.blob(); })
+		.catch(function(){ return new Blob(['mock'], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); });
 }
 
 function uploadRevisionToServer(file, no) {
@@ -688,26 +670,9 @@ function pickRevisionFile(no) {
 				st.revData = parsed;
 				console.log('[Revision] 데이터 인식 성공 → 수정본 데이터 적용');
 			} else {
-				// 파싱 실패 → 모든 회사 대상: 현재 행의 기존 데이터를 복사해 revData로 사용
-				//  · 디와이피엔에프(주): Excel 원본 (DYPNF_APRIL_2026)
-				//  · 그 외: generateRow()로 시드 기반 생성 데이터
-				var fallback;
-				if (companyName === '디와이피엔에프(주)') {
-					fallback = JSON.parse(JSON.stringify(DYPNF_APRIL_2026));
-				} else {
-					// 임시: rs.revData 비우고 generateRow 호출 → 순수 생성값
-					var prevRev = st.revData; st.revData = null;
-					fallback = generateRow(no, totalCount);
-					st.revData = prevRev;
-				}
-				st.revData = fallback;
-				console.warn('[Revision] 파일 파싱 실패 — 기존 데이터로 fallback (사용자에게 안내 표시)');
-				// 안내: 다른 회사도 파싱 실패 시 alert로 알림
-				if (companyName !== '디와이피엔에프(주)') {
-					setTimeout(function() {
-						alert('첨부된 파일에서 정산 데이터를 자동으로 인식하지 못했습니다.\n표(원본 데이터)는 그대로 유지되며, 수정본 표시만 활성화됩니다.\n\n표준 양식이 아닌 경우 가맹점별 요약 시트와 총계 라벨이 필요합니다.');
-					}, 100);
-				}
+				// 파싱 실패 → 모든 회사: DYPNF_APRIL_2026 (공통 데이터)로 fallback
+				st.revData = JSON.parse(JSON.stringify(DYPNF_APRIL_2026));
+				console.warn('[Revision] 파일 파싱 실패 — 공통 Excel 데이터로 fallback');
 			}
 			saveStates();
 			setLastAction(no, '수정본 업로드', COLOR.revUp);
@@ -876,8 +841,8 @@ function downloadSettlementFile(no, isRev) {
 		setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1000);
 	}
 
-	// 디와이피엔에프(주) 원본 = 실제 Excel 파일 다운로드
-	if (!isRev && companyName === '디와이피엔에프(주)') {
+	// 모든 회사: 원본 = 디와이피엔에프 Excel 파일 (파일명만 회사별로)
+	if (!isRev) {
 		fetch('../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx')
 			.then(function(r){ if(!r.ok) throw new Error('fetch fail'); return r.blob(); })
 			.then(downloadBlob)
@@ -885,8 +850,15 @@ function downloadSettlementFile(no, isRev) {
 		return;
 	}
 
-	// 기타: 모의 blob
-	downloadBlob(new Blob(['mock settlement data for row ' + no], { type: 'application/octet-stream' }));
+	// 수정본 (revisions/{company}_{rowNo}.xlsx 시도)
+	if (st && st.revUploadedToServer) {
+		fetch('/api/revision-file?c=' + encodeURIComponent(companyName) + '&r=' + no)
+			.then(function(r){ if(!r.ok) throw new Error('rev fetch fail'); return r.blob(); })
+			.then(downloadBlob)
+			.catch(function(){ downloadBlob(new Blob(['mock revision data'], {type:'application/octet-stream'})); });
+		return;
+	}
+	downloadBlob(new Blob(['mock revision data'], { type: 'application/octet-stream' }));
 }
 
 var _previewCtx = { no: null, isRev: false, fileName: '' };
@@ -907,23 +879,22 @@ function openSettlementPreview(no, isRev) {
 	var rsForPv = (typeof rowStates !== 'undefined' && rowStates[no]) ? rowStates[no] : null;
 	var revData = (isRev && rsForPv && rsForPv.revData) ? rsForPv.revData : null;
 
-	// stale revData 자동 복구: 모든 합계가 0이고 stores도 비어있으면 → 디와이피엔에프 원본으로 대체
+	// stale revData 자동 복구: 모든 합계가 0이고 stores도 비어있으면 → DYPNF 원본 데이터로 대체
 	if (revData) {
 		var totalRevVal = (revData.pointUsed||0) + (revData.companyDeposit||0) + (revData.mobileCoupon||0) + (revData.storeRevenue||0);
 		var hasStores = revData.stores && revData.stores.length > 0;
-		if (totalRevVal === 0 && !hasStores && companyName === '디와이피엔에프(주)') {
+		if (totalRevVal === 0 && !hasStores) {
 			console.warn('[Preview] stale revData 감지 → DYPNF_APRIL_2026으로 자동 복구');
 			revData = JSON.parse(JSON.stringify(DYPNF_APRIL_2026));
-			// 영구 복구: localStorage에도 저장
 			rsForPv.revData = revData;
 			saveStates();
 			refreshDataRow(no);
 		}
 	}
 
-	var isDypnfApril = (companyName === '디와이피엔에프(주)' && no === totalCount && !isRev);
-	// 수정본 첨부됨 + 어떤 형태든 데이터 있으면 풍부한 모드 (가맹점 명세 우선, 없으면 합계만)
-	var useRich = isDypnfApril || (revData && (
+	// 모든 회사의 최신 행 (원본) 또는 수정본 첨부됨 → 풍부한 미리보기 (Excel 명세)
+	var isLatestOrig = (no === totalCount && !isRev);
+	var useRich = isLatestOrig || (revData && (
 		(revData.stores && revData.stores.length > 0) ||
 		(revData.pointUsed||0) > 0 ||
 		(revData.companyDeposit||0) > 0
@@ -1188,9 +1159,8 @@ function renderTable() {
 	document.getElementById('tbody').innerHTML = html;
 }
 
-// ─── Excel 파일에서 동적 로드 (디와이피엔에프(주) 한정) ───
+// ─── Excel 파일에서 동적 로드 (모든 회사가 공통 데이터 사용) ───
 function fetchDypnfData() {
-	if (companyName !== '디와이피엔에프(주)') return Promise.resolve();
 	if (typeof XLSX === 'undefined') return Promise.resolve();
 	// 캐시 무력화 (timestamp 쿼리)
 	var url = '../../resources/samples/디와이피엔에프(주)_2026-04-30_정산서.xlsx?t=' + Date.now();
