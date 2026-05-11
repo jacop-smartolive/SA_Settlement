@@ -391,6 +391,12 @@ var WORK_TYPES = [
 function readJson(key) {
 	try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) { return {}; }
 }
+// stale 데이터 호환: 'YY-MM-DD' → '20YY-MM-DD' (이전 버전 호환)
+function normDate(s) {
+	if (!s) return s;
+	if (/^\d{2}-\d{2}-\d{2}/.test(s)) return '20' + s;
+	return s;
+}
 function getCompanyActions(companyName) {
 	var settle = readJson('v11-detail-settle-' + companyName);
 	var mail   = readJson('v11-mail-' + companyName);
@@ -402,7 +408,7 @@ function getCompanyActions(companyName) {
 	Object.keys(settle).forEach(function(rowNo) {
 		var s = settle[rowNo];
 		if (s.lastAction) {
-			var dt = s.lastAction.date + ' ' + s.lastAction.time;
+			var dt = normDate(s.lastAction.date) + ' ' + s.lastAction.time;
 			var text = s.lastAction.text || '';
 			var variant = text.indexOf('수정본') >= 0 ? '수정본' : '원본';
 			var action = text.indexOf('업로드') >= 0 ? '업로드' : '다운로드';
@@ -414,7 +420,7 @@ function getCompanyActions(companyName) {
 		}
 		if (s.doneSettlement) {
 			var dp = s.doneSettlement.split('|');
-			var dt = dp[0] + ' ' + dp[1];
+			var dt = normDate(dp[0]) + ' ' + dp[1];
 			if (!byType.settlement || dt > byType.settlement.dt) {
 				byType.settlement = { dt:dt, variant:'-', method:'-', action:'확정',
 					fullLabel:'정산서 확정', color:'#059669' };
@@ -425,7 +431,7 @@ function getCompanyActions(companyName) {
 		var m = mail[rowNo];
 		if (m.mail_sent) {
 			var mp = m.mail_sent.split('|');
-			var dt = mp[0] + ' ' + mp[1];
+			var dt = normDate(mp[0]) + ' ' + mp[1];
 			var historyCnt = (m.mail_history && m.mail_history.length) || 0;
 			var isResend = historyCnt > 1;
 			var actLabel = isResend ? '재발송' : '발송';
@@ -442,7 +448,7 @@ function getCompanyActions(companyName) {
 		WORK_TYPES.slice(1).forEach(function(wt) {
 			var entry = d[wt.key];
 			if (!entry) return;
-			var dt = entry.date + ' ' + entry.time;
+			var dt = normDate(entry.date) + ' ' + entry.time;
 			if (!byType[wt.key] || dt > byType[wt.key].dt) {
 				byType[wt.key] = { dt:dt, variant:'원본', method:'개별', action:'다운로드',
 					fullLabel:wt.label + ' 다운로드', color:'#4b5563' };

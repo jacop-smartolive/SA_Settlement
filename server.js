@@ -25,9 +25,11 @@ function saveConfirmations() {
 
 // 메일에서 클릭 → 정산서 확정 처리
 app.get('/api/confirm-settlement', (req, res) => {
-	const c = req.query.c || '';
-	const r = req.query.r || '';
-	if (!c || !r) return res.status(400).send('잘못된 요청입니다.');
+	const c = String(req.query.c || '');
+	// rowNo는 항상 정수 문자열로 정규화 (문자열/숫자 혼동 방지)
+	const rNum = parseInt(req.query.r, 10);
+	if (!c || isNaN(rNum)) return res.status(400).send('잘못된 요청입니다.');
+	const r = String(rNum);
 	const key = c + ':' + r;
 	const now = new Date();
 	if (!confirmations[key]) {
