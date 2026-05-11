@@ -3,6 +3,7 @@ const express = require('express');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
 const path = require('path');
+const fs = require('fs');
 const { ImapFlow } = require('imapflow');
 const { simpleParser } = require('mailparser');
 
@@ -13,9 +14,74 @@ const PORT = process.env.PORT || 8080;
 app.use(express.static(path.join(__dirname)));
 app.use(express.json({ limit: '5mb' }));
 
+// ─── 정산서 확정 (메일 링크 클릭) ───
+const CONFIRM_FILE = path.join(__dirname, 'confirmations.json');
+let confirmations = {};
+try { if (fs.existsSync(CONFIRM_FILE)) confirmations = JSON.parse(fs.readFileSync(CONFIRM_FILE, 'utf8')); } catch(e) {}
+
+function saveConfirmations() {
+	try { fs.writeFileSync(CONFIRM_FILE, JSON.stringify(confirmations, null, 2)); } catch(e) {}
+}
+
+// 메일에서 클릭 → 정산서 확정 처리
+app.get('/api/confirm-settlement', (req, res) => {
+	const c = req.query.c || '';
+	const r = req.query.r || '';
+	if (!c || !r) return res.status(400).send('잘못된 요청입니다.');
+	const key = c + ':' + r;
+	const now = new Date();
+	if (!confirmations[key]) {
+		confirmations[key] = {
+			datetime: now.toISOString(),
+			ip: req.ip,
+			userAgent: req.headers['user-agent'] || ''
+		};
+		saveConfirmations();
+		console.log('[Confirm] ' + key + ' at ' + now.toISOString());
+	}
+	const ts = now.toLocaleString('ko-KR');
+	res.send(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>정산서 확정 완료</title>
+		<style>
+			body { font-family:'Nanum Gothic','맑은 고딕',sans-serif; background:#f9fafb; margin:0; padding:60px 24px; color:#111827; }
+			.card { max-width:480px; margin:0 auto; background:#fff; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.08); padding:48px 36px; text-align:center; }
+			.icon { width:72px; height:72px; border-radius:50%; background:#d1fae5; margin:0 auto 24px; display:flex; align-items:center; justify-content:center; }
+			h1 { font-size:24px; font-weight:700; color:#059669; margin:0 0 12px; }
+			.sub { color:#6b7280; font-size:14px; line-height:1.6; margin-bottom:32px; }
+			.info { background:#f9fafb; border-radius:10px; padding:16px 20px; font-size:13px; color:#374151; text-align:left; }
+			.info dt { color:#9ca3af; font-size:12px; margin-bottom:2px; }
+			.info dd { margin:0 0 12px; font-weight:600; }
+			.info dd:last-child { margin-bottom:0; }
+		</style></head><body>
+		<div class="card">
+			<div class="icon"><svg width="40" height="40" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+			<h1>정산서 확정 완료</h1>
+			<p class="sub">정상적으로 확정 처리되었습니다.<br>관리자 시스템에 자동 반영됩니다.</p>
+			<dl class="info">
+				<dt>기업</dt><dd>${c}</dd>
+				<dt>정산 번호</dt><dd>${r}</dd>
+				<dt>확정 일시</dt><dd>${ts}</dd>
+			</dl>
+		</div></body></html>`);
+});
+
+// 클라이언트(상세 페이지)에서 폴링 → 회사별 확정 목록 조회
+app.get('/api/settlement-confirmations', (req, res) => {
+	const c = req.query.company || '';
+	if (!c) return res.json({ confirmations: {} });
+	const result = {};
+	Object.keys(confirmations).forEach(key => {
+		const idx = key.indexOf(':');
+		if (idx < 0) return;
+		const comp = key.slice(0, idx);
+		const row = key.slice(idx + 1);
+		if (comp === c) result[row] = confirmations[key];
+	});
+	res.json({ confirmations: result });
+});
+
 app.post('/api/send-email', upload.array('attachments'), async (req, res) => {
 	try {
-		const { recipients: recipientsRaw, subject, body, companyId } = req.body;
+		const { recipients: recipientsRaw, subject, body, companyId, companyName, rowNo } = req.body;
 
 		if (!recipientsRaw) return res.status(400).json({ error: '수신자가 없습니다.' });
 
@@ -42,11 +108,28 @@ app.post('/api/send-email', upload.array('attachments'), async (req, res) => {
 			auth: { user: smtpUser, pass: smtpPass },
 		});
 
+		// 정산서 확정 링크 (companyName + rowNo가 있을 때만 추가)
+		const host = req.headers.host || `localhost:${PORT}`;
+		const proto = req.headers['x-forwarded-proto'] || 'http';
+		let confirmHtml = '', confirmText = '';
+		if (companyName && rowNo) {
+			const confirmUrl = `${proto}://${host}/api/confirm-settlement?c=${encodeURIComponent(companyName)}&r=${encodeURIComponent(rowNo)}`;
+			confirmText = `\n\n────────────────────────────────────\n정산서 내용을 확인하셨다면 아래 링크를 클릭해주세요.\n[정산서 확정 처리] ${confirmUrl}\n────────────────────────────────────`;
+			confirmHtml = `<hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;">
+				<p style="font-size:13px;color:#374151;margin:0 0 12px;">정산서 내용을 확인하셨다면 아래 버튼을 클릭해주세요.</p>
+				<a href="${confirmUrl}" target="_blank" style="display:inline-block;padding:12px 28px;background:#059669;color:#fff;text-decoration:none;font-size:14px;font-weight:600;border-radius:8px;">✓ 정산서 확정 처리</a>
+				<p style="font-size:11px;color:#9ca3af;margin:12px 0 0;">클릭 시 관리자 시스템에 자동으로 확정 상태가 반영됩니다.</p>`;
+		}
+
+		const textBody = (body || '') + confirmText;
+		const htmlBody = `<div style="font-family:'맑은 고딕',sans-serif;color:#111;line-height:1.6;font-size:14px;">${(body || '').replace(/\n/g,'<br>')}${confirmHtml}</div>`;
+
 		await transporter.sendMail({
 			from: `"올리브식권" <${smtpUser}>`,
 			to: recipients.map(r => `"${r.name}" <${r.email}>`),
 			subject,
-			text: body || '',
+			text: textBody,
+			html: htmlBody,
 			attachments,
 		});
 

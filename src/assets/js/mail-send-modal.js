@@ -335,6 +335,9 @@
 			fd.append('recipients', JSON.stringify(checked.map(function(r) { return { name: r.person, email: r.email }; })));
 			fd.append('subject', state.subj);
 			fd.append('body', state.body);
+			// 정산서 확정 링크 생성용 메타 (companyName + rowNo)
+			if (state.companyName) fd.append('companyName', state.companyName);
+			if (state.rowNo != null) fd.append('rowNo', state.rowNo);
 			// 정산서 파일 자동 첨부
 			if (state.fetchAttachment) {
 				try {
@@ -375,6 +378,7 @@
 		state = {
 			companyName: opts.companyName || '',
 			bizNo: opts.bizNo || '',
+			rowNo: opts.rowNo != null ? opts.rowNo : null,
 			attachmentName: opts.attachmentName || ('정산서_' + (opts.companyName || '기업') + '.xlsx'),
 			fetchAttachment: opts.fetchAttachment || null,
 			onShowPreview: opts.onShowPreview || null,

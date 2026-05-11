@@ -977,6 +977,7 @@ function sendSettlementMail(rowNo) {
 		MailSendModal.open({
 			companyName: companyName,
 			bizNo: '000-00-00000',
+			rowNo: rowNo,
 			attachmentName: fileName,
 			fetchAttachment: function() {
 				// 디와이피엔에프(주) → 실제 Excel 파일
@@ -1162,8 +1163,44 @@ function fetchDypnfData() {
 		});
 }
 
-// Excel 로드 완료 후 테이블 렌더 (실패 시에도 fallback 하드코딩 값으로 렌더)
-fetchDypnfData().then(renderTable);
+// 서버에서 메일 확정 링크 클릭으로 확정된 행 목록을 가져와 localStorage 동기화
+function fetchServerConfirmations() {
+	return fetch('/api/settlement-confirmations?company=' + encodeURIComponent(companyName))
+		.then(function(r){ return r.ok ? r.json() : { confirmations: {} }; })
+		.then(function(json) {
+			var confirms = (json && json.confirmations) || {};
+			var changed = false;
+			Object.keys(confirms).forEach(function(rowNo) {
+				var st = getRowState(rowNo);
+				var iso = confirms[rowNo].datetime;
+				if (!st.doneSettlement && iso) {
+					var d = new Date(iso);
+					var ds = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+					var ts = pad(d.getHours())+':'+pad(d.getMinutes());
+					st.doneSettlement = ds + '|' + ts;
+					changed = true;
+					console.log('[Server confirm] row ' + rowNo + ' → 확정 처리');
+				}
+			});
+			if (changed) saveStates();
+		})
+		.catch(function(e) { console.warn('[Confirm sync 실패]', e.message); });
+}
+
+// Excel + 서버 확정 동기화 → 테이블 렌더
+Promise.all([fetchDypnfData(), fetchServerConfirmations()]).then(renderTable);
+
+// 폴링: 10초마다 서버 확정 상태 재확인
+setInterval(function() {
+	fetchServerConfirmations().then(function(){
+		// 변경됐을 수 있으니 행 갱신
+		var rows = document.querySelectorAll('tr[data-row]');
+		rows.forEach(function(tr) {
+			var no = parseInt(tr.getAttribute('data-row'));
+			if (!isNaN(no)) refreshRow(no);
+		});
+	});
+}, 10000);
 </script>
 
 </body>
