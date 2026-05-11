@@ -500,7 +500,7 @@ function renderTable() {
 		var latest = getLatestAction(getCompanyActions(r.name));
 		var recentCell = latest
 			? '<a onclick="event.preventDefault();openRecent(\''+r.name.replace(/'/g,"\\'")+'\')" style="cursor:pointer;color:inherit;text-decoration:none;border:none;font-size:12px;line-height:1.3;display:inline-block;">'
-				+ '<span style="color:'+latest.color+';">'+latest.dt.slice(2)+'</span><br>'
+				+ '<span style="color:'+latest.color+';">'+latest.dt+'</span><br>'
 				+ '<span style="text-decoration:underline;text-underline-offset:2px;color:#111;">'+latest.fullLabel+'</span>'
 			+ '</a>'
 			: '<span style="color:#cbd5e1;">-</span>';
