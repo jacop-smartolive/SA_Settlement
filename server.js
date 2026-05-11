@@ -4,8 +4,25 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { ImapFlow } = require('imapflow');
 const { simpleParser } = require('mailparser');
+
+// 토큰 시크릿 (없으면 임의 생성 → 서버 재시작 시까지 유지)
+const CONFIRM_SECRET = process.env.CONFIRM_SECRET || crypto.randomBytes(32).toString('hex');
+function signConfirmToken(company, rowNo) {
+	return crypto.createHmac('sha256', CONFIRM_SECRET)
+		.update(String(company) + ':' + String(rowNo))
+		.digest('hex')
+		.slice(0, 16); // 16자리로 단축 (URL 길이 절약)
+}
+function verifyConfirmToken(company, rowNo, token) {
+	if (!token) return false;
+	var expected = signConfirmToken(company, rowNo);
+	try {
+		return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(String(token)));
+	} catch(e) { return false; }
+}
 
 const app = express();
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 } });
@@ -59,7 +76,8 @@ app.get('/api/revision-file', (req, res) => {
 });
 
 // ─── 정산서 확정 (메일 링크 클릭) ───
-const CONFIRM_FILE = path.join(__dirname, 'confirmations.json');
+// 경로 ENV 지원 (멀티 인스턴스/Docker 운영 대비)
+const CONFIRM_FILE = process.env.CONFIRMATIONS_PATH || path.join(__dirname, 'confirmations.json');
 let confirmations = {};
 try { if (fs.existsSync(CONFIRM_FILE)) confirmations = JSON.parse(fs.readFileSync(CONFIRM_FILE, 'utf8')); } catch(e) {}
 
@@ -72,8 +90,14 @@ app.get('/api/confirm-settlement', (req, res) => {
 	const c = String(req.query.c || '');
 	// rowNo는 항상 정수 문자열로 정규화 (문자열/숫자 혼동 방지)
 	const rNum = parseInt(req.query.r, 10);
+	const t = String(req.query.t || '');
 	if (!c || isNaN(rNum)) return res.status(400).send('잘못된 요청입니다.');
 	const r = String(rNum);
+	// HMAC 토큰 검증 (없거나 위조면 거부)
+	if (!verifyConfirmToken(c, r, t)) {
+		return res.status(403).send(`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:'맑은 고딕',sans-serif;text-align:center;padding:80px;color:#dc2626;">
+			<h1>인증 실패</h1><p>유효하지 않은 링크입니다. 관리자에게 문의하세요.</p></body></html>`);
+	}
 	const key = c + ':' + r;
 	const now = new Date();
 	if (!confirmations[key]) {
@@ -159,7 +183,9 @@ app.post('/api/send-email', upload.array('attachments'), async (req, res) => {
 		const proto = req.headers['x-forwarded-proto'] || 'http';
 		let confirmHtml = '', confirmText = '';
 		if (companyName && rowNo) {
-			const confirmUrl = `${proto}://${host}/api/confirm-settlement?c=${encodeURIComponent(companyName)}&r=${encodeURIComponent(rowNo)}`;
+			// HMAC 토큰 자동 생성 (URL 위조 방지)
+			const token = signConfirmToken(companyName, rowNo);
+			const confirmUrl = `${proto}://${host}/api/confirm-settlement?c=${encodeURIComponent(companyName)}&r=${encodeURIComponent(rowNo)}&t=${token}`;
 			confirmText = `\n\n────────────────────────────────────\n정산서 내용을 확인하셨다면 아래 링크를 클릭해주세요.\n[정산서 확정 처리] ${confirmUrl}\n────────────────────────────────────`;
 			confirmHtml = `
 				<hr style="margin:32px 0 24px;border:none;border-top:1px solid #e5e7eb;">

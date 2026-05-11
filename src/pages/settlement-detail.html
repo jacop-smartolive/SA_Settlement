@@ -731,20 +731,27 @@ function parseRevisionFile(file) {
 		function readNum(addr) { var c = ws[addr]; return (c && typeof c.v === 'number') ? c.v : null; }
 		function readStr(addr) { var c = ws[addr]; return c && c.v != null ? String(c.v) : ''; }
 
-		// 1) 라벨 검색 — 모든 열 (A~G) 스캔
+		// 1) 라벨 검색 — 모든 열 (A~G) 스캔, 정규식으로 정확 매칭
 		var labels = {};
 		var COLS = ['A','B','C','D','E','F','G'];
+		// 라벨 → 매칭 정규식 (음의 lookahead로 합성어 차단)
+		var LABEL_PATTERNS = [
+			{ key:'total',  re: /^총계$/ },
+			{ key:'mobile', re: /모바일\s*쿠폰\s*이용료\s*합계/ },
+			{ key:'food',   re: /식대\s*이용료\s*합계/ },
+			{ key:'fee',    re: /이용료.*(사용인원|VAT)/ },
+			{ key:'tax',    re: /세금계산서\s*발행\s*금액/ },
+			{ key:'final',  re: /최종\s*정산\s*금액/ }
+		];
 		for (var r = 1; r <= range.e.r + 1; r++) {
 			for (var ci = 0; ci < COLS.length; ci++) {
 				var v = readCell(COLS[ci] + r);
 				if (typeof v !== 'string') continue;
-				var s = v.replace(/\s+/g, '');
-				if (s.indexOf('총계') >= 0 && !labels.total && s.indexOf('정산') < 0) labels.total = r;
-				if (s.indexOf('모바일') >= 0 && s.indexOf('쿠폰') >= 0 && !labels.mobile) labels.mobile = r;
-				if (s.indexOf('식대') >= 0 && s.indexOf('이용료') >= 0 && !labels.food) labels.food = r;
-				if (s.indexOf('이용료') >= 0 && (s.indexOf('사용인원') >= 0 || s.indexOf('VAT') >= 0) && !labels.fee) labels.fee = r;
-				if (s.indexOf('세금계산서') >= 0 && !labels.tax) labels.tax = r;
-				if (s.indexOf('최종정산') >= 0 && !labels.final) labels.final = r;
+				var s = v.replace(/\s+/g, ' ').trim();
+				LABEL_PATTERNS.forEach(function(p) {
+					if (labels[p.key]) return; // 이미 찾음
+					if (p.re.test(s)) labels[p.key] = r;
+				});
 			}
 		}
 

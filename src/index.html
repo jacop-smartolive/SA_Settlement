@@ -410,7 +410,8 @@ function getCompanyActions(companyName) {
 		if (s.lastAction) {
 			var dt = normDate(s.lastAction.date) + ' ' + s.lastAction.time;
 			var text = s.lastAction.text || '';
-			var variant = text.indexOf('수정본') >= 0 ? '수정본' : '원본';
+			// variant: 첨부 여부(hasRevision)를 우선 반영 (액션 텍스트는 보조)
+			var variant = s.hasRevision ? '수정본' : (text.indexOf('수정본') >= 0 ? '수정본' : '원본');
 			var action = text.indexOf('업로드') >= 0 ? '업로드' : '다운로드';
 			var color = s.lastAction.color || '#4b5563';
 			if (!byType.settlement || dt > byType.settlement.dt) {
