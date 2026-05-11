@@ -115,14 +115,34 @@ app.post('/api/send-email', upload.array('attachments'), async (req, res) => {
 		if (companyName && rowNo) {
 			const confirmUrl = `${proto}://${host}/api/confirm-settlement?c=${encodeURIComponent(companyName)}&r=${encodeURIComponent(rowNo)}`;
 			confirmText = `\n\n────────────────────────────────────\n정산서 내용을 확인하셨다면 아래 링크를 클릭해주세요.\n[정산서 확정 처리] ${confirmUrl}\n────────────────────────────────────`;
-			confirmHtml = `<hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;">
-				<p style="font-size:13px;color:#374151;margin:0 0 12px;">정산서 내용을 확인하셨다면 아래 버튼을 클릭해주세요.</p>
-				<a href="${confirmUrl}" target="_blank" style="display:inline-block;padding:12px 28px;background:#059669;color:#fff;text-decoration:none;font-size:14px;font-weight:600;border-radius:8px;">✓ 정산서 확정 처리</a>
-				<p style="font-size:11px;color:#9ca3af;margin:12px 0 0;">클릭 시 관리자 시스템에 자동으로 확정 상태가 반영됩니다.</p>`;
+			confirmHtml = `
+				<hr style="margin:32px 0 24px;border:none;border-top:1px solid #e5e7eb;">
+				<div style="text-align:center;">
+					<p style="font-size:13px;color:#374151;margin:0 0 18px;text-align:center;">정산서 내용을 확인하셨다면 아래 버튼을 클릭해주세요.</p>
+					<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
+						<tr><td align="center" bgcolor="#059669" style="border-radius:8px;">
+							<a href="${confirmUrl}" target="_blank" style="display:inline-block;padding:14px 32px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;border-radius:8px;background:#059669;">✓ 정산서 확정 처리</a>
+						</td></tr>
+					</table>
+					<p style="font-size:11px;color:#9ca3af;margin:14px 0 0;text-align:center;">클릭 시 관리자 시스템에 자동으로 확정 상태가 반영됩니다.</p>
+				</div>`;
 		}
 
 		const textBody = (body || '') + confirmText;
-		const htmlBody = `<div style="font-family:'맑은 고딕',sans-serif;color:#111;line-height:1.6;font-size:14px;">${(body || '').replace(/\n/g,'<br>')}${confirmHtml}</div>`;
+		// 중앙 정렬 + 좌우 여백 (이메일 클라이언트 호환 위해 table 기반)
+		const htmlBody = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+			<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;">
+				<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f3f4f6;">
+					<tr><td align="center" style="padding:32px 16px;">
+						<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+							<tr><td style="padding:40px 48px;color:#111827;line-height:1.7;font-size:14px;">
+								${(body || '').replace(/\n/g, '<br>')}
+								${confirmHtml}
+							</td></tr>
+						</table>
+					</td></tr>
+				</table>
+			</body></html>`;
 
 		await transporter.sendMail({
 			from: `"올리브식권" <${smtpUser}>`,
