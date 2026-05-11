@@ -14,6 +14,50 @@ const PORT = process.env.PORT || 8080;
 app.use(express.static(path.join(__dirname)));
 app.use(express.json({ limit: '5mb' }));
 
+// ─── 수정본 파일 업로드 / 다운로드 (메일 발송 시 사용) ───
+const REVISIONS_DIR = path.join(__dirname, 'revisions');
+if (!fs.existsSync(REVISIONS_DIR)) {
+	try { fs.mkdirSync(REVISIONS_DIR, { recursive: true }); } catch(e) {}
+}
+function revisionFilePath(company, rowNo) {
+	var safeCompany = String(company).replace(/[^\w가-힣()\-_.]/g, '_');
+	return path.join(REVISIONS_DIR, safeCompany + '_' + rowNo + '.xlsx');
+}
+app.post('/api/upload-revision', upload.single('file'), (req, res) => {
+	try {
+		const c = String(req.body.companyName || '');
+		const rNum = parseInt(req.body.rowNo, 10);
+		if (!c || isNaN(rNum) || !req.file) return res.status(400).json({ error: '잘못된 요청' });
+		const dest = revisionFilePath(c, rNum);
+		fs.writeFileSync(dest, req.file.buffer);
+		console.log('[Revision uploaded]', c, rNum, '→', dest, req.file.size + 'B');
+		res.json({ success: true, fileName: req.file.originalname, size: req.file.size });
+	} catch(err) {
+		console.error('upload-revision error:', err);
+		res.status(500).json({ error: err.message });
+	}
+});
+app.delete('/api/upload-revision', (req, res) => {
+	try {
+		const c = String(req.query.c || '');
+		const rNum = parseInt(req.query.r, 10);
+		if (!c || isNaN(rNum)) return res.status(400).json({ error: '잘못된 요청' });
+		const dest = revisionFilePath(c, rNum);
+		if (fs.existsSync(dest)) fs.unlinkSync(dest);
+		res.json({ success: true });
+	} catch(err) {
+		res.status(500).json({ error: err.message });
+	}
+});
+app.get('/api/revision-file', (req, res) => {
+	const c = String(req.query.c || '');
+	const rNum = parseInt(req.query.r, 10);
+	if (!c || isNaN(rNum)) return res.status(400).send('잘못된 요청');
+	const dest = revisionFilePath(c, rNum);
+	if (!fs.existsSync(dest)) return res.status(404).send('파일 없음');
+	res.sendFile(dest);
+});
+
 // ─── 정산서 확정 (메일 링크 클릭) ───
 const CONFIRM_FILE = path.join(__dirname, 'confirmations.json');
 let confirmations = {};
