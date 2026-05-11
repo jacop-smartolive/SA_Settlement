@@ -285,8 +285,8 @@
 								<col style="width:120px">
 								<col>
 								<col style="width:110px">
-								<col style="width:140px">
 								<col style="width:170px">
+								<col style="width:140px">
 							</colgroup>
 							<thead>
 								<tr>
@@ -296,8 +296,8 @@
 									<th>대표자 명</th>
 									<th>세금계산서 발행 이메일</th>
 									<th>정산 완료 건수</th>
-									<th>마지막 정산 완료일</th>
 									<th>최근 진행내역</th>
+									<th>마지막 정산 완료일</th>
 								</tr>
 							</thead>
 							<tbody id="tbody"></tbody>
@@ -511,8 +511,8 @@ function renderTable() {
 			+ '<td>' + r.ceo + '</td>'
 			+ '<td>' + r.email + '</td>'
 			+ '<td><a href="' + qs + '">' + r.count + '</a></td>'
-			+ '<td>' + r.lastDate + '</td>'
 			+ '<td>' + recentCell + '</td>'
+			+ '<td>' + r.lastDate + '</td>'
 			+ '</tr>';
 	});
 	document.getElementById('tbody').innerHTML = html;
