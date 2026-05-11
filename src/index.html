@@ -317,10 +317,11 @@
 			<table style="width:100%;border-collapse:collapse;font-size:13px;">
 				<thead>
 					<tr style="background:#f8f9fa;">
-						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:30%;">유형</th>
-						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:18%;">수정유무</th>
-						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:22%;">진행내역</th>
-						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:30%;">최근 일시</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:28%;">유형</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:14%;">수정유무</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:14%;">등록방식</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:18%;">진행내역</th>
+						<th style="padding:10px 12px;border:1px solid #ddd;font-weight:600;color:#374151;text-align:center;width:26%;">최근 일시</th>
 					</tr>
 				</thead>
 				<tbody id="recentBody"></tbody>
@@ -408,7 +409,7 @@ function getCompanyActions(companyName) {
 			var action = text.indexOf('업로드') >= 0 ? '업로드' : '다운로드';
 			var color = s.lastAction.color || '#4b5563';
 			if (!byType.settlement || dt > byType.settlement.dt) {
-				byType.settlement = { dt:dt, variant:variant, action:action,
+				byType.settlement = { dt:dt, variant:variant, method:'개별', action:action,
 					fullLabel:'정산서 '+variant+' '+action, color:color };
 			}
 		}
@@ -416,7 +417,7 @@ function getCompanyActions(companyName) {
 			var dp = s.doneSettlement.split('|');
 			var dt = dp[0] + ' ' + dp[1];
 			if (!byType.settlement || dt > byType.settlement.dt) {
-				byType.settlement = { dt:dt, variant:'-', action:'확정',
+				byType.settlement = { dt:dt, variant:'-', method:'-', action:'확정',
 					fullLabel:'정산서 확정', color:'#059669' };
 			}
 		}
@@ -430,13 +431,13 @@ function getCompanyActions(companyName) {
 			var isResend = historyCnt > 1;
 			var actLabel = isResend ? '재발송' : '발송';
 			if (!byType.settlement || dt > byType.settlement.dt) {
-				byType.settlement = { dt:dt, variant:'-', action:'메일 '+actLabel,
+				byType.settlement = { dt:dt, variant:'-', method:'-', action:'메일 '+actLabel,
 					fullLabel:'정산서 메일 '+actLabel, color:'#4f46e5' };
 			}
 		}
 	});
 
-	// 2) 다운로드 5종
+	// 2) 다운로드 5종 (현재 모두 개별, 추후 일괄 지원 시 method 분기 추가)
 	Object.keys(dl).forEach(function(rowNo) {
 		var d = dl[rowNo];
 		WORK_TYPES.slice(1).forEach(function(wt) {
@@ -444,7 +445,7 @@ function getCompanyActions(companyName) {
 			if (!entry) return;
 			var dt = entry.date + ' ' + entry.time;
 			if (!byType[wt.key] || dt > byType[wt.key].dt) {
-				byType[wt.key] = { dt:dt, variant:'원본', action:'다운로드',
+				byType[wt.key] = { dt:dt, variant:'원본', method:'개별', action:'다운로드',
 					fullLabel:wt.label + ' 다운로드', color:'#4b5563' };
 			}
 		});
@@ -470,12 +471,14 @@ function openRecent(companyName) {
 			html += '<tr>'
 				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+wt.label+'</td>'
 				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+a.variant+'</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+(a.method || '-')+'</td>'
 				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+a.action+'</td>'
-				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;color:'+a.color+';">'+a.dt+'</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;color:'+a.color+';white-space:nowrap;">'+a.dt+'</td>'
 			+ '</tr>';
 		} else {
 			html += '<tr style="color:#cbd5e1;">'
 				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">'+wt.label+'</td>'
+				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">-</td>'
 				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">-</td>'
 				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">-</td>'
 				+ '<td style="padding:10px 12px;border:1px solid #ddd;text-align:center;">-</td>'
