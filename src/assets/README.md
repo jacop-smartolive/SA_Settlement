@@ -1,33 +1,29 @@
-# src/assets/
+# src/assets/ — 공통 자산
 
-## 목적
-HTML에서 로드되는 공통 스크립트와 정적 데이터.
+## 📁 구조
 
-## 하위 구조
-| 경로 | 역할 |
-|---|---|
-| `js/bulk-registration.js` | 세금계산서/대량이체/회계전표 엑셀 생성 공통 스크립트 |
-| `data/store_master.json` | 가맹점 마스터 데이터 (대표자/이메일) — 상세 페이지에서 fetch |
-
-## 경로 규칙 (bulk-registration.js 내부)
-fetch/templateUrl은 **스크립트를 로드한 HTML 위치 기준** 으로 해석된다.
-현재 소비자는 `src/pages/detail-*.html` 이므로:
 ```
-../../resources/templates/{reverse|forward_50|forward_101|reverse_detail}.xlsx
+assets/
+├─ css/
+│  └─ mail-send-modal.css   # 메일 발송 모달 스타일
+├─ js/
+│  ├─ mail-send-modal.js    # 메일 발송 모달 (v2.0 이식)
+│  └─ bulk-registration.js  # 일괄등록 (세금계산서 양식)
+└─ data/
+   └─ store_master.json     # 가맹점 마스터 (참조 데이터)
 ```
 
-## 관련 함수 (bulk-registration.js)
-| 함수 | 역할 | 라인(대략) |
-|---|---|---|
-| `getReverseConfig()` | 역방향 세금계산서 템플릿 설정 | L57~ |
-| `getForward50Config()` | 정방향 50건 | L84~ |
-| `getForward101Config()` | 정방향 101건 | L104~ |
-| `generateDetailExcel()` | 내역 다운로드 | L449~ |
-| `generateTransferExcel()` | 대량이체 | L516~ |
-| `generateSlipExcel()` | 회계전표 | L596~ |
+## 📌 mail-send-modal
 
-## 관련 문서
-- [../../docs/02_process-analysis.md](../../docs/02_process-analysis.md) §2.4~2.6
+- `MailSendModal.open({ companyName, rowNo, attachmentName, fetchAttachment, onSuccess })`
+- `SendHistoryModal.open({ history })`
 
-## 작업 내역 (최신순)
-- 2026-04-14: `downloads/` → `src/assets/js,data/` 로 분리, `templateUrl` 경로 재계산
+호출 위치: `src/pages/settlement-detail.html` → `sendSettlementMail()`
+
+## 📌 bulk-registration
+
+홈택스/U+ 양식의 일괄등록 ZIP 생성. v1.1에선 적극 사용되지 않으나 v2.0 호환을 위해 보존.
+
+## 📚 자세한 사용법
+
+[`/docs/v1.1-LOGIC.md`](../../docs/v1.1-LOGIC.md) §8 메일 발송 시스템

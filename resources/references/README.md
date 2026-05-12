@@ -1,19 +1,13 @@
-# resources/references/
+# resources/references/ — 참고 자료
 
-## 목적
-화면 복원·기획 참고용 자료. 코드와 무관하며 열람용.
+> 코드가 직접 사용하지 않는 기획·스크린샷·스냅샷
 
-## 파일 목록
-| 파일 | 내용 |
-|---|---|
-| `screenshot_full.png` | 정산 완료 내역 페이지 풀 스크린샷 |
-| `snapshot_detail.txt` | 상세 페이지 DOM 스냅샷 (텍스트) |
+## 📂 파일
 
-## 관련 문서
-- [../../docs/03_navigation-flow.md](../../docs/03_navigation-flow.md)
+- `screenshot_full.png` — 전체 화면 캡처 (기획 단계)
+- `snapshot_detail.txt` — DOM 스냅샷 (구조 참고용)
 
-## 작업 내역 (최신순)
-- 2026-04-14: 프로젝트 루트에서 이동
+## 🔒 운영 규칙
 
-## TODO
-- [ ] 화면별 스크린샷을 페이지명과 매핑되게 재명명 (예: `screenshot_index.png`)
+여기 파일은 **런타임에 fetch되지 않음**. 순수 기획·디자인 참조용.
+배포 산출물에 포함시키지 말 것.

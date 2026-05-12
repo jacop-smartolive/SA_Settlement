@@ -1,26 +1,36 @@
-# src/
+# src/ — 프런트엔드 소스
 
-## 목적
-실제 브라우저에서 실행되는 프런트엔드 소스. 이 폴더 하위는 **HTML 을 직접 열면 동작**하도록 구성.
+> v1.1 브라우저 코드 (HTML/CSS/JS)
 
-## 파일 & 폴더
-| 항목 | 역할 | 상태 |
-|---|---|---|
-| `index.html` | 업체 정산 완료 내역 목록 (진입점) | 구현 |
-| `pages/` | 기업별 정산 상세 페이지 | 한화에어로 풀/나머지 3사 와이어프레임 |
-| `settlement/` | 정산하기 (기업 선택→기간→실행) | **planned** |
-| `wireframes/` | 기획 단계 와이어프레임 | 참조용 |
-| `assets/js/` | 공통 스크립트 (`bulk-registration.js`) | 구현 |
-| `assets/data/` | 정적 JSON (`store_master.json`) | 구현 |
+## 📁 구조
 
-## 관련 문서
-- [../docs/01_directory-structure.md](../docs/01_directory-structure.md)
-- [../docs/02_process-analysis.md](../docs/02_process-analysis.md)
-- [../docs/03_navigation-flow.md](../docs/03_navigation-flow.md)
+```
+src/
+├─ index.html              # 진입점 — 정산 완료 내역 목록
+├─ pages/
+│  └─ settlement-detail.html   # 정산 기간별 조회 상세
+└─ assets/
+   ├─ css/mail-send-modal.css
+   ├─ js/
+   │  ├─ mail-send-modal.js    # 메일 발송 모달
+   │  └─ bulk-registration.js  # 일괄등록
+   └─ data/
+      └─ store_master.json
+```
 
-## 작업 내역 (최신순)
-- 2026-04-14: 전체 파일 src/ 하위로 이동, 내부 링크 경로 수정
+## 🔗 진입점
 
-## TODO
-- [ ] `settlement/` 정산 실행 화면 신규 구축
-- [ ] `pages/` 의 두산/한화오션/HD현대 상세를 한화에어로 수준으로 고도화
+http://localhost:8081/**src/index.html**
+
+## 📚 자세한 명세
+
+- 페이지 흐름: [`/docs/v1.1-LOGIC.md`](../docs/v1.1-LOGIC.md) §4
+- 데이터 모델 (localStorage 3종): [`/docs/v1.1-LOGIC.md`](../docs/v1.1-LOGIC.md) §5
+- 컬러 시스템 (B안): [`/docs/v1.1-LOGIC.md`](../docs/v1.1-LOGIC.md) §11
+
+## ⚠ 외부 의존성
+
+브라우저에서 CDN으로 로드:
+- SheetJS (xlsx-0.20.0)
+- JSZip (3.10.1)
+- Google Fonts (Nanum Gothic)
